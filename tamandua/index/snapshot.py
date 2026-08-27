@@ -1,7 +1,7 @@
 """Save and load a built index as a single JSON file.
 
 Implements docs/decisions.md D-8. Building an index needs a SWAT+ checkout
-*and* an importable ``swatplus_reference``; the latter is a private
+*and* an importable ``swatplus_reference``; the latter is a separate
 repository, so without this module nobody outside the team can run the MCP
 server at all -- not because the facts are unavailable, but because the parser
 that extracts them is.

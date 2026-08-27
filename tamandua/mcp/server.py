@@ -10,9 +10,8 @@ Two ways to start it, and the difference is who can run it:
     # loads a published facts file; needs neither (docs/decisions.md D-8)
     swatplus-mcp --facts swatplus-facts.json
 
-The parser lives in a private repository, so the second form is what makes
-these tools usable by anyone outside the team. Build one with
-``swatplus-build`` and publish it as a release asset.
+The second form makes these tools usable without either build-time checkout.
+Build a snapshot with ``swatplus-build`` and publish it as a release asset.
 
 Tool responses are deliberately terse. The point is to spend fewer tokens than
 the assistant would spend finding the answer itself, and a verbose response
@@ -24,7 +23,9 @@ calls checking whether it was truncated.
 from __future__ import annotations
 
 import argparse
+from importlib import resources
 import json
+import os
 import sys
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
@@ -39,6 +40,7 @@ from tamandua.index import (
 from tamandua.output.reader import OutputError, query as query_output
 
 PROTOCOL_VERSION = "2024-11-05"
+BUNDLED_FACTS = "data/swatplus-facts.json"
 
 #: Assignment sites returned per variable, matching the rendered index.
 MAX_WRITE_SITES = 40
@@ -364,21 +366,39 @@ def serve(index: SourceIndex, stdin=sys.stdin, stdout=sys.stdout,
             stdout.flush()
 
 
+def load_bundled_snapshot() -> SourceIndex:
+    """Load the release snapshot shipped inside the Tamandua package."""
+    resource = resources.files("tamandua").joinpath(BUNDLED_FACTS)
+    if not resource.is_file():
+        raise IndexError_(
+            "no bundled SWAT+ facts file is installed; pass --facts or "
+            "--source"
+        )
+    with resources.as_file(resource) as path:
+        return load_snapshot(path)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=None,
-                        help="SWAT+ checkout (default: $SWATPLUS_SOURCE)")
+                        help="build from a SWAT+ checkout instead of the "
+                             "bundled snapshot (default: $SWATPLUS_SOURCE)")
     parser.add_argument("--corpus", type=Path, default=None,
                         help="swatplus-reference-corpus checkout (default: $SWATPLUS_REFERENCE_CORPUS)")
     parser.add_argument("--facts", type=Path, default=None, metavar="FILE",
-                        help="serve a prebuilt facts JSON instead of parsing "
-                             "source; needs no checkout and no reference-corpus")
+                        help="serve this prebuilt facts JSON (default: the "
+                             "snapshot bundled with Tamandua)")
     parser.add_argument("--compact", action="store_true",
                         help="return pipe-delimited rows instead of JSON")
     args = parser.parse_args(argv)
     try:
-        index = (load_snapshot(args.facts) if args.facts is not None
-                 else build_source_index(args.source, args.corpus))
+        if args.facts is not None:
+            index = load_snapshot(args.facts)
+        elif (args.source is not None or args.corpus is not None
+              or os.environ.get("SWATPLUS_SOURCE")):
+            index = build_source_index(args.source, args.corpus)
+        else:
+            index = load_bundled_snapshot()
     except IndexError_ as exc:
         parser.exit(2, f"error: {exc}\n")
     serve(index, compact=args.compact)

@@ -96,7 +96,7 @@ Untested: whether weak/local models respond to that instruction the same way
 
 ## Resolved
 
-**Distribution.** The parser is private (`swatplus-reference-corpus`, and
+**Distribution.** The parser is separate (`swatplus-reference-corpus`, and
 `swatplus-doc-builder` before it), so this used to be unusable by anyone
 outside the team. The facts file splits
 building from serving: the parser is now a build-time dependency only, and the

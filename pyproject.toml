@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tamandua"
-version = "0.1.0.dev0"
+name = "swatplus-tamandua"
+version = "0.1.0"
 description = "Facts-only index and MCP tools over SWAT+ Fortran source, so any coding assistant answers SWAT+ questions from evidence instead of guesswork."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,6 +16,10 @@ keywords = ["swatplus", "swat+", "hydrology", "assistant", "mcp"]
 # stdlib-only, so serving a published snapshot needs no install beyond Python
 # itself -- which is the point of docs/decisions.md D-8.
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/tugraskan/Tamandua"
+Issues = "https://github.com/tugraskan/Tamandua/issues"
 
 [project.optional-dependencies]
 # httpx is here for scripts/test_ant_model.py, which drives local models over
