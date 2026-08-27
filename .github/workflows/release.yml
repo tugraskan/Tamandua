@@ -1,0 +1,93 @@
+name: Release
+
+# Publish the facts file and the rendered index as release assets, so the
+# MCP server can be run by people who have neither a SWAT+ checkout nor the
+# swatplus-reference-corpus parser (docs/decisions.md D-8).
+#
+# The parser is a private repository, so building here needs a token with read
+# access to it in the CORPUS_TOKEN secret. Without that secret the job
+# fails with a named reason rather than silently publishing nothing.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -e .[dev]
+
+      - name: Read the pinned source and parser commits
+        id: pins
+        # docs/pins.toml is the single source of truth for what an index is
+        # built against; reading it here keeps the release from floating.
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib, pathlib
+          pins = tomllib.loads(pathlib.Path("docs/pins.toml").read_text())
+          print(f"source_ref={pins['swatplus_source']['ref']}")
+          print(f"corpus_commit={pins['reference_corpus']['commit']}")
+          PY
+
+      - name: Check out the pinned SWAT+ source
+        uses: actions/checkout@v4
+        with:
+          repository: swat-model/swatplus
+          ref: ${{ steps.pins.outputs.source_ref }}
+          path: .build/swatplus
+
+      - name: Check out the parser
+        # Checked out, not pip-installed: only the schema scanner is used and
+        # it is stdlib-only, so the corpus's own fparser/PyYAML/mkdocs
+        # dependencies never need installing here.
+        uses: actions/checkout@v4
+        with:
+          repository: tugraskan/swatplus-reference-corpus
+          ref: ${{ steps.pins.outputs.corpus_commit }}
+          path: .build/corpus
+          token: ${{ secrets.CORPUS_TOKEN }}
+
+      - name: Build the facts file and the rendered index
+        env:
+          SWATPLUS_SOURCE: ${{ github.workspace }}/.build/swatplus
+          SWATPLUS_REFERENCE_CORPUS: ${{ github.workspace }}/.build/corpus
+        run: |
+          swatplus-build \
+            --facts dist/swatplus-facts.json \
+            --out dist/SWATPLUS_INDEX.md
+
+      - name: Verify the facts file serves without the source or the parser
+        # The whole point of the asset is that it works on a machine with
+        # neither. Proving that here beats discovering it downstream.
+        run: |
+          rm -rf .build
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"file_io","arguments":{"file":"aquifer.aqu"}}}' \
+          | env -u SWATPLUS_SOURCE -u SWATPLUS_REFERENCE_CORPUS \
+              swatplus-mcp \
+                --facts dist/swatplus-facts.json --compact \
+          | tee /dev/stderr | grep -q aqu_read
+
+      - name: Create the GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/swatplus-facts.json
+            dist/SWATPLUS_INDEX.md

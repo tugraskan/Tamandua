@@ -1,0 +1,12 @@
+{"id":"SN-001","phrasing":"identifier","question":"Which routine reads aquifer.aqu?","expect":{"procedures":["aqu_read"]},"probe":{"kind":"file_io","file":"aquifer.aqu","op":"open"}}
+{"id":"SN-002","phrasing":"identifier","question":"Which routine writes aquifer_day.txt?","expect":{"procedures":["aquifer_output","header_aquifer"]},"probe":{"kind":"file_io","file":"aquifer_day.txt"}}
+{"id":"SN-003","phrasing":"identifier","question":"What calls hru_control?","expect":{"procedures":["command"]},"probe":{"kind":"callers","procedure":"hru_control"}}
+{"id":"SN-004","phrasing":"identifier","question":"Where is aqu_read defined?","expect":{"locations":["aqu_read.f90"]},"probe":{"kind":"find_procedure","procedure":"aqu_read"}}
+{"id":"SN-005","phrasing":"identifier","question":"What does et_pot do that hru_control depends on -- is et_pot called from hru_control?","expect":{"procedures":["et_pot"]},"probe":{"kind":"callees","procedure":"hru_control"}}
+{"id":"SN-006","phrasing":"identifier","question":"Which routines open unit 107?","expect":{"procedures":["aqu_read","swift_output"]},"probe":{"kind":"unit_users","unit":"107","op":"open"}}
+{"id":"SN-007","phrasing":"identifier","question":"What assigns sw_volume_begin?","expect":{"procedures":["hru_control"]},"probe":{"kind":"writers","variable":"sw_volume_begin"}}
+{"id":"SN-008","phrasing":"identifier","question":"What are the loops in hru_control and their index variables?","expect":{"substrings":["ipest","ly"]},"probe":{"kind":"loops","procedure":"hru_control"}}
+{"id":"SN-009","phrasing":"ordinary","question":"Where does SWAT+ load the groundwater properties for each aquifer from disk?","expect":{"procedures":["aqu_read"]},"probe":{"kind":"file_io","file":"aquifer.aqu","op":"open"}}
+{"id":"SN-010","phrasing":"ordinary","question":"Which part of the code drives one HRU through a single simulated day?","expect":{"locations":["hru_control.f90"]},"probe":{"kind":"find_procedure","procedure":"hru_control"}}
+{"id":"SN-011","phrasing":"ordinary","question":"Where does the daily aquifer water balance get written out to a file?","expect":{"procedures":["aquifer_output"]},"probe":{"kind":"file_io","file":"aquifer_day.txt"}}
+{"id":"SN-012","phrasing":"ordinary","question":"If soil water storage is wrong at the start of a day, where is it first accumulated?","expect":{"procedures":["hru_control"]},"probe":{"kind":"writers","variable":"sw_volume_begin"}}
