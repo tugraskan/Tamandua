@@ -24,11 +24,13 @@ by construction here, and every row carries its file and line.
 **If you just want the tools** — no SWAT+ checkout or parser:
 
 ```bash
-pip install swatplus-tamandua
+pip install "git+https://github.com/tugraskan/Tamandua.git@v0.1.0"
 ```
 
-The package includes the pinned SWAT+ facts snapshot. Point your assistant at
-the server with no machine-specific paths:
+The tagged package includes the pinned SWAT+ facts snapshot. The future PyPI
+distribution name is `swatplus-tamandua` (`tamandua` is already owned by an
+unrelated project). Point your assistant at the server with no machine-specific
+paths:
 
 ```jsonc
 // .mcp.json (Claude Code) — VS Code uses .vscode/mcp.json, where these
