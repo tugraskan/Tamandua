@@ -1,0 +1,60 @@
+# Tamandua — pinned dependency versions
+#
+# Single source of truth for the exact versions of every external repository
+# and dataset this work is built and tested against. `tamandua/
+# config.py` reads these; `.github/workflows/release.yml` builds release
+# assets from them. Do not float to a branch tip — bump deliberately.
+#
+# Trimmed 2026-08-26: the pins for the retrieval corpora (swatplus-
+# documentation, enhanced-docs, the authoritative reference database, the
+# bitbucket archive) went out with the chatbot that consumed them. They are in
+# git history under the `chatbot-archive` tag.
+
+swatplus_version = "62.0.0"          # the release an index is built against
+
+[swatplus_source]
+# Authoritative current Fortran source, tagged releases, tests, Ames dataset.
+# This is what gets parsed into the index.
+repo   = "https://github.com/swat-model/swatplus"
+ref    = "62.0.0"
+commit = "de210d6"                   # tag 62.0.0
+
+[reference_corpus]
+# SWAT+-specific Fortran static analysis. Supplies the schema scanner
+# (swatplus_reference.parser.schema_fortran.FortranScanner) the index is built
+# with. Replaced swatplus-doc-builder, which was archived 2026-08-26.
+#
+# Private repository, and a BUILD-TIME dependency only: `swatplus-build`
+# produces swatplus-facts.json, which the MCP server answers from with neither
+# this nor the source present (docs/decisions.md D-8).
+repo   = "https://github.com/tugraskan/swatplus-reference-corpus"
+commit = "2daa14ae7b50c597aefbc110734ec5bfc5472cb0"
+# Only the *schema scanner* is used: it reports procedures, calls, I/O with
+# units and fields, assignments, loops, and derived-type components with the
+# units and description SWAT+ writes inline. Its sibling parser (parser/facts
+# .py) and the 1,095 generated prose pages are deliberately unused -- prose is
+# not evidence, and facts.py keys variable writes on the root symbol
+# (`aqu_d`, not `aqu_d%rchrg`) with no line numbers.
+#
+# scan() leaves called_by / call_paths / CallRef.resolved empty; Tamandua fills
+# them in tamandua/index/analyze.py.
+
+[dataselector]
+# TxtInOut indexing + MCP server (six tools, docs-only mode). Complementary,
+# not overlapping: it covers input-file columns and real dataset rows.
+repo   = "https://github.com/tugraskan/swatplus-dataselector"
+commit = "fd7af35"                   # PR #136; verified standalone MCP server
+# Do NOT pin between 345b24f and fd7af35: an intermediate merge left the tree
+# broken (Plan 03/07 reverted), repaired in fd7af35.
+avoid_commits = ["345b24f"]
+
+[reference_dataset]
+# The integration fixture: the Ames project shipped in the SWAT+ source repo.
+# Used by tamandua/output/reader.py's real-data tests, and the
+# dataset the dataselector engine was validated against upstream.
+name         = "Ames"
+source_repo  = "https://github.com/swat-model/swatplus"
+source_ref   = "62.0.0"
+commit       = "de210d6"             # tag 62.0.0
+path_in_repo = "refdata/Ames_sub1"   # 109 files, ~11 MB, includes file.cio
+# Fetch with scripts/fetch_ames.sh.

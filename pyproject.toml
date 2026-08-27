@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tamandua"
+version = "0.1.0.dev0"
+description = "Facts-only index and MCP tools over SWAT+ Fortran source, so any coding assistant answers SWAT+ questions from evidence instead of guesswork."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }  # decision D-7 (docs/decisions.md)
+authors = [{ name = "SWAT+ Assistant contributors" }]
+keywords = ["swatplus", "swat+", "hydrology", "assistant", "mcp"]
+
+# Nothing at runtime. The index, the MCP server and the output reader are
+# stdlib-only, so serving a published snapshot needs no install beyond Python
+# itself -- which is the point of docs/decisions.md D-8.
+dependencies = []
+
+[project.optional-dependencies]
+# httpx is here for scripts/test_ant_model.py, which drives local models over
+# their HTTP endpoints, and its tests.
+dev = ["pytest>=7", "httpx>=0.27"]
+
+[project.scripts]
+# Build the facts file the MCP server reads (--markdown also renders the
+# greppable index and installs the assistant pointers).
+swatplus-build = "tamandua.index.cli:main"
+# The MCP server itself, so a client config needs one word and no module path.
+swatplus-mcp = "tamandua.mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tamandua"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
