@@ -127,7 +127,8 @@ Now that step 2 gave you a real file size:
   owned by an unrelated project, so install becomes
   `pip install swatplus-tamandua` and a config with no paths in it at all.
   **Selected for v0.1.0:** the 4.34 MiB snapshot is bundled and the server uses
-  it when neither `--facts` nor a source checkout is given.
+  it when neither `--facts` nor a source checkout is given. The wheel was
+  verified locally; PyPI publication is pending account-side publisher setup.
 - **Larger** → keep the download step. `pip install swatplus-tamandua`,
   download the asset, pass `--facts`.
 
