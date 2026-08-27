@@ -1,0 +1,32 @@
+name: Publish to PyPI
+
+# Publication is manual so creating a GitHub tag cannot accidentally overwrite
+# the separately verified two-asset release flow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/swatplus-tamandua
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Build the source and wheel distributions
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Publish with PyPI trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
