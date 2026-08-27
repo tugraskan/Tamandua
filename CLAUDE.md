@@ -30,13 +30,14 @@ with neither the parser nor a SWAT+ checkout present (docs/decisions.md D-8).
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 140 pass, 9 skipped (119/30 without the corpus)
+python -m pytest -q          # 151 pass, 9 skipped (128/32 without the parser)
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and
 nothing else; `--markdown` adds the greppable rendering and the instruction
-pointers, for a tool that cannot run a server. It rebuilds when either the
-source or parser has changed, so it is safe to run before every question.
+pointers, for a tool that cannot run a server. A running server checks an
+explicit source tree or `--facts` file before every request and refreshes only
+after it changes. The package-bundled release snapshot remains static.
 
 ## Conventions
 
@@ -51,7 +52,7 @@ source or parser has changed, so it is safe to run before every question.
   with the script that produced them and its caveats. Where a later measurement
   overturned an earlier conclusion, the earlier write-up goes -- `docs/status.md`
   records what survived.
-- Six defects in this work were found by ordinary use and none by any harness.
+- Eight defects in this work were found by ordinary use and none by any harness.
   Prefer running the thing over reasoning about it.
 
 ## The chatbot

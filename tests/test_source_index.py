@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -25,6 +26,7 @@ from tamandua.index import (
     install_pointer,
     HOOK_EVENTS,
     index_is_current,
+    input_filenames,
     install_hooks,
     install_pointers,
     looks_like_swatplus,
@@ -79,6 +81,17 @@ READER = """\
       end subroutine aqu_read
 """
 
+INPUT_MODULE = """\
+      module input_file_module
+        type input_aqu
+          character(len=25) :: init = "initial.aqu"
+          character(len=25) :: aqu = "aquifer.aqu"
+          character(len=25) :: runtime_name
+        end type input_aqu
+        type (input_aqu) :: in_aqu
+      end module input_file_module
+"""
+
 CALLER = """\
       subroutine proc_aqu
       call aqu_read
@@ -115,6 +128,7 @@ def fake_source(tmp_path: Path) -> Path:
     src = tmp_path / "src"
     src.mkdir()
     (src / "aqu_read.f90").write_text(READER, encoding="utf-8")
+    (src / "input_file_module.f90").write_text(INPUT_MODULE, encoding="utf-8")
     (src / "proc_aqu.f90").write_text(CALLER, encoding="utf-8")
     (src / "header_aquifer.f90").write_text(WRITER, encoding="utf-8")
     (src / "hru_control.f90").write_text(LOOPER, encoding="utf-8")
@@ -195,11 +209,29 @@ def test_callers_and_callees(index) -> None:
 @requires_corpus
 def test_input_file_is_indexed_with_unit(index) -> None:
     """The archetype question: which routine reads aquifer.aqu, on what unit."""
-    opens = [u for u in index.io_for_file("in_aqu%aqu") if u.op == "open"]
+    opens = [u for u in index.io_for_file("aquifer.aqu") if u.op == "open"]
     by_unit = [u for u in index.io_for_unit("107", "open")]
+    assert opens, "input file not findable by its source-declared name"
     assert by_unit, "unit 107 open not indexed"
     assert by_unit[0].procedure == "aqu_read"
-    assert opens or by_unit
+    assert index.io_for_file("in_aqu%aqu") == []
+
+
+def test_input_filename_fallback_resolves_literal_component_defaults() -> None:
+    """Tamandua preserves the lookup even if a parser reports the expression."""
+    project = SimpleNamespace(
+        types=[SimpleNamespace(
+            name="input_aqu",
+            components=[
+                SimpleNamespace(name="aqu", initial="'aquifer.aqu'"),
+                SimpleNamespace(name="runtime_name", initial=None),
+            ],
+        )],
+        modules=[SimpleNamespace(variables=[
+            SimpleNamespace(name="in_aqu", vartype="type (input_aqu)"),
+        ])],
+    )
+    assert input_filenames(project) == {"in_aqu%aqu": "aquifer.aqu"}
 
 
 @requires_corpus

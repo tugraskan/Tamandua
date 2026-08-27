@@ -24,7 +24,7 @@ by construction here, and every row carries its file and line.
 **If you just want the tools** — no SWAT+ checkout or parser:
 
 ```bash
-pip install "git+https://github.com/tugraskan/Tamandua.git@v0.1.0"
+pip install "git+https://github.com/tugraskan/Tamandua.git@v0.1.1"
 ```
 
 The tagged package includes the pinned SWAT+ facts snapshot. The future PyPI
@@ -45,16 +45,27 @@ paths:
 }
 ```
 
-**If you have a SWAT+ checkout and the parser**, build your own:
+**If you have a SWAT+ checkout and the parser**, point the server directly at
+the source:
+
+```bash
+swatplus-mcp --source /path/to/swatplus --compact
+```
+
+The running process fingerprints the working Fortran tree before each request.
+It reparses only after an edit, so the next answer follows the source without a
+manual rebuild or server restart.
+
+To produce a portable facts file for someone else:
 
 ```bash
 cd <your swatplus checkout> && swatplus-build
 ```
 
-That writes `swatplus-facts.json` and nothing else. Run it again whenever — it
-checks that the file still matches both the source and parser and only rebuilds
-when either changed, so an assistant can run it before every question without
-deciding whether it is worth it.
+That writes `swatplus-facts.json` and nothing else. A server started with
+`--facts` notices when that file is replaced and reloads the newest complete
+snapshot without restarting. The package-bundled release snapshot remains
+static by design.
 
 **If your tool cannot run an MCP server**, `swatplus-build --markdown` also
 renders `SWATPLUS_INDEX.md` and points every assistant instruction file
@@ -95,7 +106,7 @@ tamandua/
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 python -m pip install -e ".[dev]"
-pytest                       # 140 pass, 9 skipped (119/30 without the corpus)
+pytest                       # 151 pass, 9 skipped (128/32 without the parser)
 ```
 
 The parser is a build-time dependency only: the bundled facts file lets the
@@ -119,7 +130,7 @@ the snapshot still answers, and publishes it.
 
 Facts only — if a model wrote it, it does not go in the index. Every claim
 carries its file and line. Measure before concluding; findings live in
-`docs/*_experiment.md` with the script that produced them. Six defects in this
+`docs/*_experiment.md` with the script that produced them. Eight defects in this
 work were found by ordinary use and none by any harness, so prefer running the
 thing over reasoning about it.
 

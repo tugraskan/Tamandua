@@ -36,6 +36,7 @@ from tamandua.index import (
     SourceIndex,
     build_source_index,
     load_snapshot,
+    source_fingerprint,
 )
 from tamandua.output.reader import OutputError, query as query_output
 
@@ -354,13 +355,67 @@ def handle(index: SourceIndex, request: dict, compact: bool) -> dict | None:
     return {"jsonrpc": "2.0", "id": rid, "result": result}
 
 
-def serve(index: SourceIndex, stdin=sys.stdin, stdout=sys.stdout,
+class Current:
+    """Keep an explicitly live source or facts file current between requests.
+
+    MCP clients normally keep one server process alive across many edits. A
+    server that only loads at startup can therefore return a stale answer that
+    looks completely valid. Explicit ``--facts`` mode watches the file's size
+    and nanosecond mtime; source mode fingerprints the working Fortran tree.
+
+    When neither path is supplied, the index is a package-bundled release
+    snapshot and intentionally remains static. Its provenance path names the
+    machine that built it and must never be treated as a live checkout.
+    """
+
+    def __init__(self, index: SourceIndex, *, facts: Path | None = None,
+                 source: Path | None = None, corpus: Path | None = None) -> None:
+        if facts is not None and source is not None:
+            raise ValueError("facts and source modes are mutually exclusive")
+        self._index = index
+        self._facts = facts
+        self._source = source
+        self._corpus = corpus
+        self._stamp = self._facts_stamp()
+
+    def _facts_stamp(self) -> tuple[int, int] | None:
+        if self._facts is None:
+            return None
+        try:
+            stat = self._facts.stat()
+        except OSError:
+            return None
+        return (stat.st_mtime_ns, stat.st_size)
+
+    def get(self) -> SourceIndex:
+        """Return the newest complete index available right now."""
+        try:
+            if self._facts is not None:
+                stamp = self._facts_stamp()
+                if stamp is not None and stamp != self._stamp:
+                    refreshed = load_snapshot(self._facts)
+                    self._index = refreshed
+                    self._stamp = stamp
+            elif self._source is not None:
+                fingerprint = self._index.provenance.source_fingerprint
+                if source_fingerprint(self._source) != fingerprint:
+                    self._index = build_source_index(self._source, self._corpus)
+        except (IndexError_, OSError):
+            # A rebuild can briefly expose a truncated file, and a checkout can
+            # be between states. Keep the last complete answer and retry on the
+            # next request instead of taking down the MCP process.
+            pass
+        return self._index
+
+
+def serve(index: SourceIndex | Current, stdin=sys.stdin, stdout=sys.stdout,
           compact: bool = False) -> None:
+    current = index if isinstance(index, Current) else Current(index)
     for line in stdin:
         line = line.strip()
         if not line:
             continue
-        response = handle(index, json.loads(line), compact)
+        response = handle(current.get(), json.loads(line), compact)
         if response is not None:
             stdout.write(json.dumps(response) + "\n")
             stdout.flush()
@@ -391,17 +446,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--compact", action="store_true",
                         help="return pipe-delimited rows instead of JSON")
     args = parser.parse_args(argv)
+    current: Current
     try:
         if args.facts is not None:
             index = load_snapshot(args.facts)
+            current = Current(index, facts=args.facts)
         elif (args.source is not None or args.corpus is not None
               or os.environ.get("SWATPLUS_SOURCE")):
             index = build_source_index(args.source, args.corpus)
+            # build_source_index resolves repo roots to the actual Fortran
+            # directory; provenance records exactly what must be fingerprinted.
+            current = Current(index, source=Path(index.provenance.source_path),
+                              corpus=args.corpus)
         else:
             index = load_bundled_snapshot()
+            current = Current(index)
     except IndexError_ as exc:
         parser.exit(2, f"error: {exc}\n")
-    serve(index, compact=args.compact)
+    serve(current, compact=args.compact)
     return 0
 
 

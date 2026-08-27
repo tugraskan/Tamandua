@@ -31,8 +31,8 @@ export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus
 python -m pytest -q
 ```
 
-**Expect:** `140 passed, 9 skipped`. Without `SWATPLUS_REFERENCE_CORPUS` set you get
-`119 passed, 30 skipped` — also fine, it just means the parser-backed tests
+**Expect:** `151 passed, 9 skipped`. Without an importable parser you get
+`128 passed, 32 skipped` — also fine, it just means the parser-backed tests
 skipped rather than ran.
 
 ## 2. Build against real SWAT+ — the actual gate
