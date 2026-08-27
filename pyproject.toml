@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "swatplus-tamandua"
-version = "0.1.0"
+version = "0.1.1"
 description = "Facts-only index and MCP tools over SWAT+ Fortran source, so any coding assistant answers SWAT+ questions from evidence instead of guesswork."
 readme = "README.md"
 requires-python = ">=3.11"

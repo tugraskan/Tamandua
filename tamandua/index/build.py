@@ -49,6 +49,10 @@ _OPEN_HELPER_RE = re.compile(
     re.IGNORECASE,
 )
 
+# `type (input_aqu)` / `type(input_aqu)` -- a variable's declared derived
+# type, which is the first hop from `in_aqu` to the component defaults.
+_TYPE_DECL_RE = re.compile(r"\s*type\s*\(\s*([A-Za-z_]\w*)\s*\)", re.IGNORECASE)
+
 
 class IndexError_(RuntimeError):
     """Raised with an actionable message when the index cannot be built."""
@@ -533,6 +537,41 @@ def output_unit_filenames(source: Path) -> dict[str, str]:
     return mapping
 
 
+def input_filenames(project: Any) -> dict[str, str]:
+    """Map an input-file expression to its source-declared default filename.
+
+    The pinned parser now resolves this itself, but keeping the final mapping at
+    the index boundary makes the headline lookup resilient to a parser
+    regression or an older compatible parser. For example, ``in_aqu%aqu`` is
+    declared through ``type(input_aqu)`` and defaults to ``aquifer.aqu``.
+
+    Components without a literal default remain expressions because their
+    runtime filename cannot be known by static analysis.
+    """
+    defaults: dict[str, str] = {}
+    for derived in getattr(project, "types", ()):
+        for component in getattr(derived, "components", ()):
+            initial = (getattr(component, "initial", None) or "").strip()
+            if (len(initial) > 2 and initial[0] in "\"'"
+                    and initial[-1] == initial[0]):
+                defaults[f"{derived.name.lower()}%{component.name.lower()}"] = initial[1:-1]
+
+    var_types: dict[str, str] = {}
+    for module in getattr(project, "modules", ()):
+        for variable in getattr(module, "variables", ()):
+            match = _TYPE_DECL_RE.match(getattr(variable, "vartype", "") or "")
+            if match:
+                var_types[variable.name.lower()] = match.group(1).lower()
+
+    resolved: dict[str, str] = {}
+    for variable, type_name in var_types.items():
+        prefix = f"{type_name}%"
+        for key, filename in defaults.items():
+            if key.startswith(prefix):
+                resolved[f"{variable}%{key[len(prefix):]}"] = filename
+    return resolved
+
+
 def build_source_index(
     source: Path | None = None,
     corpus: Path | None = None,
@@ -553,6 +592,7 @@ def build_source_index(
     # them. See tamandua/index/analyze.py.
     project = analyze_project(FortranScanner(BuildConfig(source_dir=source_dir)).scan())
     units = output_unit_filenames(source_dir)
+    inputs = input_filenames(project)
     index = SourceIndex(provenance=_provenance(source_dir, corpus_src))
 
     for derived in project.types:
@@ -588,6 +628,9 @@ def build_source_index(
             # helper map turns that back into the real output filename.
             if (not name or name.startswith("unit_")) and op.unit in units:
                 name = units[op.unit]
+            # Defence in depth around the parser contract: a compatible parser
+            # may still report `in_aqu%aqu` instead of its default filename.
+            name = inputs.get(name.lower(), name)
             if not name:
                 continue
             use = IOUse(file=name, op=op.kind, unit=op.unit,

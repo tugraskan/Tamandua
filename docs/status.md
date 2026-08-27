@@ -2,7 +2,7 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-08-26 (parser swapped to swatplus-reference-corpus).
+Last updated 2026-08-27 (real-source launch and post-fork bug fixes verified).
 
 ---
 
@@ -21,20 +21,21 @@ and more accurate on SWAT+, not to be an assistant.
 
 | | |
 |---|---|
+| Full-tree build | **3.199 s**, 4,547,355 bytes, 734 procedures and 510 derived types (SWAT+ 62.0.0) |
 | Staleness check | **14 ms** — hashes the working tree, so uncommitted edits count |
+| Live reload | one running process picked up a replaced facts file on its next request |
+| Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | **135 pass** with the corpus on the path, 117 without |
+| Tests | **151 pass, 9 skipped** with the parser; **128/32** without; real-source gate **158/2** |
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these.
 
-**Re-measure after the parser swap.** Three numbers were taken against
-swatplus-doc-builder and have not been re-run against the new scanner: the
-full-tree parse (6.2 s), the eight-question byte comparison (grep 194,675 B ·
-index 11,639 B, ~94% less), and the frozen navigation cases (12/12). The
-scanner is a different implementation; quoting its predecessor's timings as
-current is the habit this project keeps warning itself about. The field-doc
-coverage figure below (4,003 of 6,904) is from the old parser too.
+**Verified on real source 2026-08-27.** The pinned parser handles the complete
+648-file SWAT+ 62.0.0 tree, and the frozen navigation evaluation is 12/12.
+Still unverified against the new scanner: the eight-question byte comparison
+(grep 194,675 B · index 11,639 B) and the field-doc coverage figure (4,003 of
+6,904), both measured with swatplus-doc-builder.
 
 ## What real sessions showed
 
@@ -143,10 +144,14 @@ git -C taci-archive checkout 222092d -- tamandua/agent
 
 ## Worth carrying forward
 
-Six defects in this work were found by ordinary use and none by any harness: an
+Eight defects in this work were found by ordinary use and none by any harness: an
 ambiguous column that cost eight tool calls, a variable index keyed on the wrong
 thing, a dead `python -m` entry point, a correct tool result that read as a
 failure, a dropped column in heterogeneous rows, and 159 files miscounted from a
-missing loop form.
+missing loop form, input files keyed by expressions instead of their source
+defaults, and a long-running server that kept serving its startup snapshot.
 
 Every one was invisible to measurement and obvious within one real question.
+The two post-fork fixes were adapted from archived commits `c5fa088` (live
+freshness) and `8760e3d` (input filenames); Tamandua also retains its stronger
+parser-level input resolution at the pinned parser commit.

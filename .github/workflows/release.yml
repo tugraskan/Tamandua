@@ -68,6 +68,11 @@ jobs:
             --facts dist/swatplus-facts.json \
             --out dist/SWATPLUS_INDEX.md
 
+      - name: Test live freshness behavior
+        env:
+          SWATPLUS_REFERENCE_CORPUS: ${{ github.workspace }}/.build/corpus
+        run: python -m pytest -q tests/test_freshness.py
+
       - name: Verify the facts file serves without the source or the parser
         # The whole point of the asset is that it works on a machine with
         # neither. Proving that here beats discovering it downstream.
