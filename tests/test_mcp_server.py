@@ -10,7 +10,13 @@ from __future__ import annotations
 
 import json
 
-from tamandua.mcp.server import handle, render_compact, tool_specs
+from tamandua.mcp.server import (
+    handle,
+    load_bundled_snapshot,
+    render_compact,
+    t_file_io,
+    tool_specs,
+)
 
 
 def test_sequences_are_joined_not_repred() -> None:
@@ -55,6 +61,11 @@ def test_initialize_reports_the_protocol_version() -> None:
     assert reply["result"]["protocolVersion"]
     assert reply["result"]["serverInfo"]["name"] == "swatplus-source"
     assert "file_io first" in reply["result"]["instructions"]
+
+
+def test_bundled_snapshot_answers_the_archetype_question() -> None:
+    rows = t_file_io(load_bundled_snapshot(), "aquifer.aqu")
+    assert any(row["procedure"] == "aqu_read" for row in rows)
 
 
 def test_unknown_method_still_answers() -> None:

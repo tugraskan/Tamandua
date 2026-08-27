@@ -21,9 +21,14 @@ by construction here, and every row carries its file and line.
 
 ## Use it
 
-**If you just want the tools** — no SWAT+ checkout, no parser, nothing private.
-Download `swatplus-facts.json` from a [release], then point your assistant at
-it:
+**If you just want the tools** — no SWAT+ checkout or parser:
+
+```bash
+pip install swatplus-tamandua
+```
+
+The package includes the pinned SWAT+ facts snapshot. Point your assistant at
+the server with no machine-specific paths:
 
 ```jsonc
 // .mcp.json (Claude Code) — VS Code uses .vscode/mcp.json, where these
@@ -32,7 +37,7 @@ it:
   "mcpServers": {
     "swatplus-source": {
       "command": "swatplus-mcp",
-      "args": ["--facts", "/path/to/swatplus-facts.json", "--compact"]
+      "args": ["--compact"]
     }
   }
 }
@@ -91,9 +96,10 @@ python -m pip install -e ".[dev]"
 pytest                       # 140 pass, 9 skipped (119/30 without the corpus)
 ```
 
-The parser lives in a private repository. That is a build-time dependency
-only: the facts file exists so that serving needs neither it nor the SWAT+
-source (see [D-8](docs/decisions.md)).
+The parser is a build-time dependency only: the bundled facts file lets the
+installed server run with neither it nor the SWAT+ source (see
+[D-8](docs/decisions.md)). Pass `--facts` to use another snapshot or `--source`
+to build live from a checkout.
 
 ```bash
 # build the publishable artifacts

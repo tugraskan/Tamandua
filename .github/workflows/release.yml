@@ -4,9 +4,8 @@ name: Release
 # MCP server can be run by people who have neither a SWAT+ checkout nor the
 # swatplus-reference-corpus parser (docs/decisions.md D-8).
 #
-# The parser is a private repository, so building here needs a token with read
-# access to it in the CORPUS_TOKEN secret. Without that secret the job
-# fails with a named reason rather than silently publishing nothing.
+# The parser repository is public, so the normal GitHub token can check out the
+# pinned commit without a separately managed personal-access-token secret.
 on:
   push:
     tags: ["v*.*.*"]
@@ -59,7 +58,6 @@ jobs:
           repository: tugraskan/swatplus-reference-corpus
           ref: ${{ steps.pins.outputs.corpus_commit }}
           path: .build/corpus
-          token: ${{ secrets.CORPUS_TOKEN }}
 
       - name: Build the facts file and the rendered index
         env:
@@ -81,6 +79,14 @@ jobs:
           | env -u SWATPLUS_SOURCE -u SWATPLUS_REFERENCE_CORPUS \
               swatplus-mcp \
                 --facts dist/swatplus-facts.json --compact \
+          | tee /dev/stderr | grep -q aqu_read
+
+      - name: Verify the package-bundled facts fallback
+        run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"file_io","arguments":{"file":"aquifer.aqu"}}}' \
+          | env -u SWATPLUS_SOURCE -u SWATPLUS_REFERENCE_CORPUS \
+              swatplus-mcp --compact \
           | tee /dev/stderr | grep -q aqu_read
 
       - name: Create the GitHub release

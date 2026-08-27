@@ -14,7 +14,7 @@ measurement so far ran against synthetic Fortran.
 | | |
 |---|---|
 | SWAT+ source | tag `62.0.0`, commit `de210d6` (docs/pins.toml) |
-| The parser | `tugraskan/swatplus-reference-corpus` at `2daa14ae7b50c597aefbc110734ec5bfc5472cb0` — **private** |
+| The parser | `tugraskan/swatplus-reference-corpus` at `2daa14ae7b50c597aefbc110734ec5bfc5472cb0` — public as verified during launch |
 | Python | 3.11+ |
 
 The parser is a build-time dependency only. Nobody installing Tamandua needs it.
@@ -100,11 +100,9 @@ a mistake.
 
 ## 4. Create the repository
 
-Push to `tugraskan/Tamandua` with a fresh history. Then:
-
-- Add repository secret **`CORPUS_TOKEN`** — a token with read access to
-  `tugraskan/swatplus-reference-corpus`. `.github/workflows/release.yml` checks
-  the parser out with it, and without it the release job fails.
+Push to `tugraskan/Tamandua` with a fresh history. The pinned parser repository
+is public, so the release uses GitHub's normal checkout token and needs no
+separately managed `CORPUS_TOKEN` secret.
 
 ## 5. Cut a release
 
@@ -125,10 +123,13 @@ Now that step 2 gave you a real file size:
 
 - **Under ~20 MB** → bundle the facts file inside the package as package data,
   make the server fall back to the bundled copy when `--facts` is absent, and
-  publish to PyPI. Install becomes `pip install tamandua` and a config with no
-  paths in it at all.
-- **Larger** → keep the download step. `pip install tamandua`, download the
-  asset, pass `--facts`.
+  publish to PyPI. The unqualified `tamandua` distribution name is already
+  owned by an unrelated project, so install becomes
+  `pip install swatplus-tamandua` and a config with no paths in it at all.
+  **Selected for v0.1.0:** the 4.34 MiB snapshot is bundled and the server uses
+  it when neither `--facts` nor a source checkout is given.
+- **Larger** → keep the download step. `pip install swatplus-tamandua`,
+  download the asset, pass `--facts`.
 
 Either way the README's install section needs updating to match what you chose.
 

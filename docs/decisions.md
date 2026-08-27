@@ -21,9 +21,10 @@ that work be revisited.
 
 **The problem.** Building an index needs a SWAT+ checkout *and* an importable
 parser — `swatplus-reference-corpus` today, `swatplus-doc-builder` before it.
-Both are private repositories, so this repo's tools were unusable by anyone
-outside the team — not because the facts were unavailable, but because the
-thing that extracts them was.
+Both were private when this decision was made, so this repo's tools were
+unusable by anyone outside the team — not because the facts were unavailable,
+but because the thing that extracts them was. The current parser repository is
+public; the snapshot remains the portable, pinned distribution boundary.
 
 That the parser has already been swapped once is itself an argument for this
 decision: a snapshot is a stable artifact across a changing build chain.
