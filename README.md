@@ -10,13 +10,6 @@ unit numbers, variable writes by field path, loop headers with their index
 variables, derived types with the units and meaning the source documents
 inline. Nothing in it is written by a model.
 
-Why bother: asked to list the loops in `hru_control`, an assistant working from
-raw source read all 890 lines and produced a tidy table of 18 — of 21. Nothing
-in the answer suggested it was incomplete. Exhaustive questions are exhaustive
-by construction here, and every row carries its file and line.
-
-- **Where things stand:** [`docs/status.md`](docs/status.md) ← start here
-- **Decisions:** [`docs/decisions.md`](docs/decisions.md)
 - **Dependency pins:** [`docs/pins.toml`](docs/pins.toml)
 
 ## Use it
@@ -67,15 +60,6 @@ That writes `swatplus-facts.json` and nothing else. A server started with
 snapshot without restarting. The package-bundled release snapshot remains
 static by design.
 
-**If your tool cannot run an MCP server**, `swatplus-build --markdown` also
-renders `SWATPLUS_INDEX.md` and points every assistant instruction file
-(`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) at it, to be
-grepped instead. That is the fallback, not the default.
-
-The check hashes the **working tree, not the last commit** — questions get
-asked about code being edited, which is exactly when a commit-based check
-would call a stale index current.
-
 ## Pairs with dataselector
 
 [`swatplus-dataselector`](https://github.com/tugraskan/swatplus-dataselector)
@@ -106,16 +90,15 @@ tamandua/
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 python -m pip install -e ".[dev]"
-pytest                       # 151 pass, 9 skipped (128/32 without the parser)
+pytest
 ```
 
 The parser is a build-time dependency only: the bundled facts file lets the
-installed server run with neither it nor the SWAT+ source (see
-[D-8](docs/decisions.md)). Pass `--facts` to use another snapshot or `--source`
+installed server run with neither it nor the SWAT+ source. Pass `--facts` to use another snapshot or `--source`
 to build live from a checkout.
 
 ```bash
-# build the publishable artifacts
+# builds swatplus-facts.json plus sibling swatplus-rhs.json by default
 swatplus-build --facts dist/swatplus-facts.json --out dist/SWATPLUS_INDEX.md
 
 # serve them with nothing else installed
@@ -123,8 +106,8 @@ swatplus-mcp --facts dist/swatplus-facts.json
 ```
 
 Tagging `v*.*.*` runs [`.github/workflows/release.yml`](.github/workflows/release.yml),
-which builds both against the pinned commits, deletes the checkouts, verifies
-the snapshot still answers, and publishes it.
+which builds all three artifacts against the pinned commits, deletes the
+checkouts, verifies the snapshot and sidecar still answer, and publishes them.
 
 ## Principles
 

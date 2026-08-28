@@ -38,6 +38,25 @@ def render_index(index: SourceIndex) -> str:
     w("```")
     w("")
 
+    w("## Scanner warnings")
+    w("")
+    w("Advisory structural findings, not compiler errors. An empty block means")
+    w("the checker found no obvious damage; compilation was not performed.")
+    w("")
+    w("`code | file:line | procedure | message`")
+    w("")
+    w("```")
+    for warning in index.scanner_warnings:
+        message = warning.message.replace("|", "/").replace("\n", " ")
+        w("|".join([
+            warning.code,
+            f"{warning.file}:{warning.line}",
+            warning.procedure or "-",
+            message,
+        ]))
+    w("```")
+    w("")
+
     procs = sorted(index.procedures.values(), key=lambda p: p.name.lower())
 
     w("## Procedures")
@@ -53,6 +72,52 @@ def render_index(index: SourceIndex) -> str:
             ",".join(index.callees_of(proc.name)) or "-",
             ",".join(index.callers_of(proc.name)) or "-",
         ]))
+    w("```")
+    w("")
+
+    w("## Procedure imports")
+    w("")
+    w("`routine | line | module | only-list | intrinsic`")
+    w("")
+    w("```")
+    for proc in procs:
+        for use in proc.uses:
+            w("|".join([
+                proc.name, str(use.line), use.module,
+                ",".join(use.only) or "all", "yes" if use.intrinsic else "no",
+            ]))
+    w("```")
+    w("")
+
+    w("## Procedure declarations")
+    w("")
+    w("`routine | kind | name | line | type | initial | units | meaning | declaration`")
+    w("")
+    w("```")
+    for proc in procs:
+        for kind, items in (("argument", proc.arguments), ("local", proc.locals)):
+            for item in items:
+                values = [
+                    proc.name, kind, item.name, str(item.line), item.vartype or "-",
+                    item.initial or "-", item.units or "-", item.description or "-",
+                    item.declaration or "-",
+                ]
+                w("|".join(value.replace("|", "/").replace("\n", " ")
+                           for value in values))
+    w("```")
+    w("")
+
+    w("## Select cases")
+    w("")
+    w("`routine | line | subject | cases`")
+    w("")
+    w("```")
+    for proc in procs:
+        for select in proc.select_cases:
+            w("|".join([
+                proc.name, str(select.line), select.subject.replace("|", "/"),
+                ",".join(select.cases).replace("|", "/") or "-",
+            ]))
     w("```")
     w("")
 
@@ -116,17 +181,36 @@ def render_index(index: SourceIndex) -> str:
     w("```")
     w("")
 
+    w("## Assignment expressions")
+    w("")
+    w("Complete logical statements for derived-type paths. These come from the")
+    w("scanner after Fortran continuation lines have been joined.")
+    w("")
+    w("`variable | routine:line | assignment`")
+    w("")
+    w("```")
+    for variable in sorted(index.writer_statements):
+        for item in index.writer_statements[variable]:
+            raw = item.raw.replace("|", "/").replace("\n", " ")
+            w(f"{variable}|{item.procedure}:{item.line}|{raw}")
+    w("```")
+    w("")
+
     w("## Loops")
     w("")
-    w("Loop headers with their index variable and line -- what is in scope at a")
+    w("Loop headers with their index variable and start/end lines -- what is in scope at a")
     w("given point, for setting a conditional breakpoint.")
     w("")
-    w("`routine | line | loop header`")
+    w("`routine | start | end | index | loop header`")
     w("")
     w("```")
     for proc in procs:
         for loop in index.loops_in(proc.name):
-            w(f"{loop.procedure}|{loop.line}|{loop.header}")
+            w("|".join([
+                loop.procedure, str(loop.line),
+                str(loop.end_line) if loop.end_line is not None else "unresolved",
+                loop.index or "while", loop.header,
+            ]))
     w("```")
 
     return "\n".join(out) + "\n"

@@ -7,11 +7,12 @@ Two ways to start it, and the difference is who can run it:
     # builds from source; needs a SWAT+ checkout and swatplus-reference-corpus
     swatplus-mcp --source /path/to/swatplus
 
-    # loads a published facts file; needs neither (docs/decisions.md D-8)
+    # loads a published facts file and a matching sibling RHS sidecar if present
     swatplus-mcp --facts swatplus-facts.json
 
 The second form makes these tools usable without either build-time checkout.
-Build a snapshot with ``swatplus-build`` and publish it as a release asset.
+Build snapshots with ``swatplus-build`` and publish the base and sidecar as
+separate release assets.
 
 Tool responses are deliberately terse. The point is to spend fewer tokens than
 the assistant would spend finding the answer itself, and a verbose response
@@ -43,10 +44,6 @@ from tamandua.output.reader import OutputError, query as query_output
 PROTOCOL_VERSION = "2024-11-05"
 BUNDLED_FACTS = "data/swatplus-facts.json"
 
-#: Assignment sites returned per variable, matching the rendered index.
-MAX_WRITE_SITES = 40
-
-
 def _rows(items: list[Any]) -> list[dict]:
     return [asdict(i) if is_dataclass(i) else i for i in items]
 
@@ -55,8 +52,17 @@ def t_find_procedure(index: SourceIndex, name: str) -> Any:
     proc = index.procedure(name)
     if proc is None:
         return {"name": name, "found": "no"}
-    return {"name": proc.name, "at": proc.location,
-            "module": proc.module or "none"}
+    answer = {
+        "name": proc.name,
+        "at": proc.location,
+        "module": proc.module or "none",
+        "uses": _rows(proc.uses) or "none",
+        "arguments": _rows(proc.arguments) or "none",
+        "locals": _rows(proc.locals) or "none",
+    }
+    if proc.select_cases:
+        answer["select_cases"] = _rows(proc.select_cases)
+    return answer
 
 
 def t_callers(index: SourceIndex, procedure: str) -> Any:
@@ -78,11 +84,9 @@ def t_unit_users(index: SourceIndex, unit: str, op: str = "") -> Any:
 
 
 def t_writers(index: SourceIndex, variable: str) -> Any:
-    sites = index.writers_of(variable)
     return {
         "variable": variable,
-        "assigned_at": sites[:MAX_WRITE_SITES] or "none",
-        **({"truncated": len(sites) - MAX_WRITE_SITES} if len(sites) > MAX_WRITE_SITES else {}),
+        "assignments": index.writer_details(variable) or "none",
     }
 
 
@@ -91,7 +95,60 @@ def t_loops(index: SourceIndex, procedure: str) -> Any:
 
 
 def t_provenance(index: SourceIndex) -> Any:
-    return asdict(index.provenance)
+    return {
+        **asdict(index.provenance),
+        "scanner_warning_count": len(index.scanner_warnings),
+    }
+
+
+def _warning_rows(index: SourceIndex, procedures: set[str]) -> list[dict]:
+    """Warnings relevant to the procedures named by one tool answer."""
+
+    seen: set[tuple[str, int, str]] = set()
+    rows: list[dict] = []
+    for procedure in sorted(procedures):
+        for warning in index.warnings_for_procedure(procedure):
+            key = (warning.file, warning.line, warning.code)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append({
+                "code": warning.code,
+                "at": f"{warning.file}:{warning.line}",
+                "procedure": warning.procedure or "file-level",
+                "message": warning.message,
+            })
+    return rows
+
+
+def _procedures_in_payload(name: str, args: dict, payload: Any) -> set[str]:
+    """Find procedure names already present in a tool's question or answer."""
+
+    procedures: set[str] = set()
+    if isinstance(args.get("procedure"), str):
+        procedures.add(args["procedure"])
+    if name == "find_procedure" and isinstance(args.get("name"), str):
+        procedures.add(args["name"])
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in {"procedure", "in"} and isinstance(item, str):
+                    procedures.add(item)
+                elif key == "assigned_at" and isinstance(item, list):
+                    for site in item:
+                        if isinstance(site, str) and ":" in site:
+                            procedures.add(site.rsplit(":", 1)[0])
+                elif key == "at" and isinstance(item, str) and ":" in item:
+                    procedures.add(item.rsplit(":", 1)[0])
+                else:
+                    visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    visit(payload)
+    return procedures
 
 
 def t_search_fields(index: SourceIndex, text: str) -> Any:
@@ -141,7 +198,7 @@ def t_breakpoint(index: SourceIndex, variable: str) -> Any:
     for stop in result["stops"]:
         row = {"break_at": stop["at"], "in": stop["procedure"]}
         if stop.get("scope") == "unresolved":
-            row["scope"] = "loop nesting unresolved in this file"
+            row["scope"] = "loop nesting unresolved when the index was built"
         elif stop.get("loops"):
             row["indexes"] = ",".join(
                 loop["index"] or "while" for loop in stop["loops"])
@@ -162,7 +219,8 @@ def t_scope_at(index: SourceIndex, procedure: str, line: str) -> Any:
         return {"procedure": procedure, "error": f"line must be a number, got {line!r}"}
     scopes = index.scope_at(proc.path, int(line))
     if scopes is None:
-        return {"procedure": procedure, "scope": "loop nesting unresolved in this file"}
+        return {"procedure": procedure,
+                "scope": "loop nesting unresolved when the index was built"}
     if not scopes:
         return {"procedure": procedure, "line": line, "loops": "none",
                 "index_from": ",".join(index.callers_of(procedure)) or "unknown"}
@@ -204,7 +262,13 @@ def _one(prop: str, desc: str) -> dict:
 
 
 TOOLS: list[tuple[str, str, dict, Callable]] = [
-    ("find_procedure", "Locate a SWAT+ procedure: source file, line range, module.",
+    ("find_procedure", "Locate a SWAT+ procedure: source file, line range, module, "
+                       "module imports and only lists, every argument and local "
+                       "declaration with source line/type/initial/inline units and "
+                       "meaning, and select-case vocabularies. All stored fields "
+                       "are returned, never sampled or truncated. "
+                       "Returns advisory scanner warnings in a second content "
+                       "block when this procedure has any; these are not compiler errors.",
      _one("name", "Procedure name, e.g. aqu_read"), t_find_procedure),
     ("callers", "Routines that call this procedure. Exhaustive over the whole "
                 "tree, never sampled or truncated -- one result means exactly "
@@ -223,15 +287,19 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
       "properties": {"unit": {"type": "string", "description": "Unit number, e.g. 107"},
                      "op": {"type": "string", "description": "Optional: open, read, or write"}},
       "required": ["unit"]}, t_unit_users),
-    ("writers", "Routines that assign a variable, with line numbers. Exhaustive "
-                "over the whole tree, not truncated (a long list is capped and "
-                "says so explicitly with a count of what was cut).",
+    ("writers", "Routines that assign a variable, with line numbers and the "
+                "complete logical assignment statement for derived-type paths "
+                "when the RHS sidecar is installed. Exhaustive over the whole "
+                "tree, never sampled or truncated. Relevant "
+                "scanner warnings are returned separately when present.",
      _one("variable", "Variable or derived-type root, e.g. sw_volume_begin"), t_writers),
-    ("loops", "Loop headers in a procedure with their index variables and lines, "
+    ("loops", "Loop headers in a procedure with their index variables and start/end lines, "
               "for setting a conditional breakpoint. Exhaustive -- every loop in "
-              "the procedure, not a sample.",
+              "the procedure, not a sample. Relevant scanner warnings are "
+              "returned separately when present.",
      _one("procedure", "Procedure name"), t_loops),
-    ("provenance", "Which SWAT+ checkout and commit this index describes.",
+    ("provenance", "Which SWAT+ checkout and commit this index describes, its "
+                   "compile-check status, and scanner-warning count.",
      {"type": "object", "properties": {}}, t_provenance),
     ("search_fields", "Find a variable from ordinary words. Searches what the "
                       "source says each field means, e.g. 'recharge' or "
@@ -255,10 +323,12 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
       "required": ["file", "column"]}, t_read_output),
     ("breakpoint", "Where to stop to watch a variable, and on what condition: "
                    "the routines that assign it, the loops enclosing each "
-                   "assignment, and their index variables.",
+                   "assignment, and their index variables. Relevant scanner "
+                   "warnings are returned separately when present.",
      _one("variable", "Variable or field path, e.g. aqu_d%rchrg"), t_breakpoint),
     ("scope_at", "Which loops enclose a given line of a procedure, outermost "
-                 "first -- the variables live at that point.",
+                 "first -- the variables live at that point. Relevant scanner "
+                 "warnings are returned separately when present.",
      {"type": "object",
       "properties": {"procedure": {"type": "string", "description": "Procedure name"},
                      "line": {"type": "string", "description": "Line number"}},
@@ -334,17 +404,32 @@ def handle(index: SourceIndex, request: dict, compact: bool) -> dict | None:
             "instructions": (
                 "Use these facts-only tools before shell or web search for "
                 "questions about SWAT+ Fortran source. For a named input or "
-                "output file, call file_io first."
+                "output file, call file_io first. Scanner warnings are advisory "
+                "structure checks, not proof that the source compiles; call "
+                "provenance for compile-check status."
             ),
         }
     elif method == "tools/list":
         result = {"tools": tool_specs()}
     elif method == "tools/call":
         params = request.get("params", {})
-        payload = dispatch(index, params["name"], params.get("arguments", {}))
+        name = params["name"]
+        args = params.get("arguments", {})
+        payload = dispatch(index, name, args)
         text = (render_compact(payload) if compact
                 else json.dumps(payload, separators=(",", ":")))
-        result = {"content": [{"type": "text", "text": text}]}
+        content = [{"type": "text", "text": text}]
+        warning_rows = _warning_rows(
+            index, _procedures_in_payload(name, args, payload)
+        )
+        if warning_rows:
+            warning_payload = {"scanner_warnings": warning_rows}
+            warning_text = (
+                render_compact(warning_payload) if compact
+                else json.dumps(warning_payload, separators=(",", ":"))
+            )
+            content.append({"type": "text", "text": warning_text})
+        result = {"content": content}
     elif rid is None:
         return None
     else:
@@ -377,6 +462,13 @@ class Current:
         self._source = source
         self._corpus = corpus
         self._stamp = self._facts_stamp()
+        self._stale_message: str | None = None
+
+    @property
+    def stale_message(self) -> str | None:
+        """Why a live source answer is unavailable, if candidate rebuild failed."""
+
+        return self._stale_message
 
     def _facts_stamp(self) -> tuple[int, int] | None:
         if self._facts is None:
@@ -400,11 +492,19 @@ class Current:
                 fingerprint = self._index.provenance.source_fingerprint
                 if source_fingerprint(self._source) != fingerprint:
                     self._index = build_source_index(self._source, self._corpus)
-        except (IndexError_, OSError):
+                    self._stale_message = None
+                else:
+                    self._stale_message = None
+        except (IndexError_, OSError) as exc:
             # A rebuild can briefly expose a truncated file, and a checkout can
-            # be between states. Keep the last complete answer and retry on the
-            # next request instead of taking down the MCP process.
-            pass
+            # be between states. Keep the last complete index for recovery, but
+            # never serve it as though it describes the changed live source.
+            if self._source is not None:
+                self._stale_message = (
+                    "live source changed, but its replacement index could not "
+                    f"be built: {exc}. No source answer was returned; retry "
+                    "after the source is readable and structurally indexable."
+                )
         return self._index
 
 
@@ -415,7 +515,20 @@ def serve(index: SourceIndex | Current, stdin=sys.stdin, stdout=sys.stdout,
         line = line.strip()
         if not line:
             continue
-        response = handle(current.get(), json.loads(line), compact)
+        request = json.loads(line)
+        index = current.get()
+        if current.stale_message and request.get("method") == "tools/call":
+            rid = request.get("id")
+            response = None if rid is None else {
+                "jsonrpc": "2.0",
+                "id": rid,
+                "result": {
+                    "content": [{"type": "text", "text": current.stale_message}],
+                    "isError": True,
+                },
+            }
+        else:
+            response = handle(index, request, compact)
         if response is not None:
             stdout.write(json.dumps(response) + "\n")
             stdout.flush()

@@ -26,11 +26,12 @@ from typing import Any
 
 from tamandua.config import resolve_checkout
 from tamandua.index.analyze import analyze_project
-from tamandua.index.scope import LoopScope, condition_for, scope_at
+from tamandua.index.diagnostics import ScannerWarning, scan_source_warnings
+from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 
 #: Bumped when the extracted fields change shape, so a stale index is
 #: recognisable as stale rather than silently mis-read.
-INDEX_FORMAT_VERSION = "1"
+INDEX_FORMAT_VERSION = "2"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
@@ -53,6 +54,10 @@ _OPEN_HELPER_RE = re.compile(
 # type, which is the first hop from `in_aqu` to the component defaults.
 _TYPE_DECL_RE = re.compile(r"\s*type\s*\(\s*([A-Za-z_]\w*)\s*\)", re.IGNORECASE)
 
+# Keep this in step with the corpus scanner. Suffix matching is deliberately
+# case-insensitive: Git checkouts on Linux distinguish ``.F90`` from ``.f90``.
+FORTRAN_SUFFIXES = {".f90", ".for", ".f", ".f95"}
+
 
 class IndexError_(RuntimeError):
     """Raised with an actionable message when the index cannot be built."""
@@ -62,6 +67,8 @@ class IndexError_(RuntimeError):
 FINGERPRINT_KEY = "source_fingerprint: "
 #: Prefix of the parser revision in a rendered index's provenance block.
 PARSER_COMMIT_KEY = "parser_commit: "
+#: Prefix of the facts projection version in rendered provenance.
+INDEX_FORMAT_KEY = "index_format: "
 
 
 @dataclass(frozen=True)
@@ -81,6 +88,8 @@ class Provenance:
     generated_at: str
     format_version: str
     parser_commit: str | None
+    #: Only a real compiler result may change this from ``not_checked``.
+    compile_status: str = "not_checked"
 
     def as_lines(self) -> list[str]:
         return [
@@ -89,8 +98,9 @@ class Provenance:
             f"source_version: {self.source_describe or 'unknown'}",
             f"{FINGERPRINT_KEY}{self.source_fingerprint}",
             f"generated_at: {self.generated_at}",
-            f"index_format: {self.format_version}",
+            f"{INDEX_FORMAT_KEY}{self.format_version}",
             f"parser_commit: {self.parser_commit or 'unknown'}",
+            f"compile_status: {self.compile_status}",
         ]
 
 
@@ -118,6 +128,49 @@ class Loop:
     procedure: str
     line: int
     header: str
+    end_line: int | None = None
+    index: str | None = None
+
+
+@dataclass
+class Use:
+    """One module import made by a procedure."""
+
+    module: str
+    only: tuple[str, ...]
+    line: int
+    intrinsic: bool = False
+
+
+@dataclass
+class VariableDeclaration:
+    """One argument or local declaration, including its inline source doc."""
+
+    name: str
+    declaration: str | None
+    line: int
+    vartype: str | None
+    initial: str | None
+    units: str | None
+    description: str | None
+
+
+@dataclass
+class SelectCase:
+    """The closed vocabulary parsed from one ``select case`` block."""
+
+    subject: str
+    cases: tuple[str, ...]
+    line: int
+
+
+@dataclass
+class WriterStatement:
+    """One assignment and the complete logical statement parsed from source."""
+
+    procedure: str
+    line: int
+    raw: str
 
 
 @dataclass
@@ -174,6 +227,10 @@ class Procedure:
     called_by: list[str] = field(default_factory=list)
     #: Resolved callees only. An unresolved call names no procedure to look up.
     callees: list[str] = field(default_factory=list)
+    uses: list[Use] = field(default_factory=list)
+    arguments: list[VariableDeclaration] = field(default_factory=list)
+    locals: list[VariableDeclaration] = field(default_factory=list)
+    select_cases: list[SelectCase] = field(default_factory=list)
 
 
 @dataclass
@@ -185,9 +242,14 @@ class SourceIndex:
     io_by_file: dict[str, list[IOUse]] = field(default_factory=lambda: defaultdict(list))
     io_by_unit: dict[str, list[IOUse]] = field(default_factory=lambda: defaultdict(list))
     writers: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
+    writer_statements: dict[str, list[WriterStatement]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
     loops: dict[str, list[Loop]] = field(default_factory=lambda: defaultdict(list))
     types: dict[str, DerivedType] = field(default_factory=dict)
     call_paths: dict[str, list[list[str]]] = field(default_factory=lambda: defaultdict(list))
+    scanner_warnings: list[ScannerWarning] = field(default_factory=list)
+    unresolved_loop_files: set[str] = field(default_factory=set)
 
     # -- lookups; every consumer goes through these ----------------------
 
@@ -212,6 +274,18 @@ class SourceIndex:
     def writers_of(self, variable: str) -> list[str]:
         return sorted(set(self.writers.get(variable.strip().lower(), [])))
 
+    def writer_details(self, variable: str) -> list[dict[str, Any]]:
+        """Every write site with its expression when the RHS sidecar is loaded."""
+        key = variable.strip().lower()
+        raw_by_site = {
+            f"{item.procedure}:{item.line}": item.raw
+            for item in self.writer_statements.get(key, [])
+        }
+        return [
+            {"at": site, "expression": raw_by_site.get(site, "unavailable")}
+            for site in self.writers_of(key)
+        ]
+
     def loops_in(self, procedure: str) -> list[Loop]:
         return self.loops.get(procedure.strip().lower(), [])
 
@@ -222,10 +296,35 @@ class SourceIndex:
         """Execution paths from an entry point down to this procedure."""
         return self.call_paths.get(procedure.strip().lower(), [])
 
+    def warnings_for_procedure(self, procedure: str) -> list[ScannerWarning]:
+        """Warnings attached to a procedure or to its containing source file."""
+
+        proc = self.procedure(procedure)
+        if proc is None:
+            return []
+        wanted = proc.name.lower()
+        return [
+            warning for warning in self.scanner_warnings
+            if ((warning.procedure or "").lower() == wanted)
+            or (warning.procedure is None and warning.file == proc.path)
+        ]
+
     def scope_at(self, source_file: str, line: int) -> list[LoopScope] | None:
-        """Loops enclosing a line, outermost first; ``None`` if unrecoverable."""
-        root = Path(self.provenance.source_path)
-        return scope_at(root / Path(source_file).name, line)
+        """Loops enclosing a line, from stored facts; ``None`` if unresolved."""
+        normalised = source_file.replace("\\", "/")
+        if normalised in self.unresolved_loop_files:
+            return None
+        ranges = [
+            LoopScope(index=item.index, start=item.line, end=item.end_line,
+                      header=item.header)
+            for items in self.loops.values()
+            for item in items
+            if item.end_line is not None
+            and (proc := self.procedure(item.procedure)) is not None
+            and proc.path.replace("\\", "/") == normalised
+            and item.line <= line <= item.end_line
+        ]
+        return sorted(ranges, key=lambda item: item.start)
 
     def breakpoint_for(self, variable: str) -> dict[str, Any]:
         """Where to stop to watch a variable, and on what condition.
@@ -326,9 +425,10 @@ def field_path(target: str) -> str | None:
 def find_corpus(explicit: Path | None = None) -> Path:
     """Locate an importable ``swatplus_reference``.
 
-    Order: an explicit path, then an already-importable install, then the
-    ``SWATPLUS_REFERENCE_CORPUS`` checkout convention shared with the rest of
-    the package. Raises with the fix rather than returning something unusable.
+    Order: an explicit path, then the ``SWATPLUS_REFERENCE_CORPUS`` checkout
+    convention shared with the rest of the package, then an already-importable
+    install. An explicit environment checkout must not be shadowed by an
+    unrelated editable install or freshness compares two parser revisions.
     """
     if explicit is not None:
         src = explicit / "src" if (explicit / "src").is_dir() else explicit
@@ -339,6 +439,15 @@ def find_corpus(explicit: Path | None = None) -> Path:
             )
         return src
 
+    checkout = resolve_checkout("reference_corpus")
+    if checkout is not None:
+        src = checkout / "src"
+        if not (src / "swatplus_reference").is_dir():
+            raise IndexError_(
+                f"SWATPLUS_REFERENCE_CORPUS={checkout} has no src/swatplus_reference."
+            )
+        return src
+
     try:  # already installed
         import swatplus_reference  # noqa: F401
     except ImportError:
@@ -346,25 +455,18 @@ def find_corpus(explicit: Path | None = None) -> Path:
     else:
         return Path(swatplus_reference.__file__).resolve().parent.parent
 
-    checkout = resolve_checkout("reference_corpus")
-    if checkout is None:
-        raise IndexError_(
-            "cannot find swatplus-reference-corpus. Set SWATPLUS_REFERENCE_CORPUS "
-            "to its checkout, pip install it, or pass --corpus."
-        )
-    src = checkout / "src"
-    if not (src / "swatplus_reference").is_dir():
-        raise IndexError_(
-            f"SWATPLUS_REFERENCE_CORPUS={checkout} has no src/swatplus_reference."
-        )
-    return src
+    raise IndexError_(
+        "cannot find swatplus-reference-corpus. Set SWATPLUS_REFERENCE_CORPUS "
+        "to its checkout, pip install it, or pass --corpus."
+    )
 
 
 def looks_like_swatplus(path: Path) -> bool:
     """True when ``path`` is a SWAT+ checkout or its ``src/`` directory."""
     if not path.is_dir():
         return False
-    return any(path.glob("*.f90")) or any((path / "src").glob("*.f90"))
+    return _contains_fortran(path, recursive=False) or _contains_fortran(
+        path / "src", recursive=False)
 
 
 def resolve_source(explicit: Path | None = None) -> Path:
@@ -390,11 +492,67 @@ def resolve_source(explicit: Path | None = None) -> Path:
     candidate = Path(candidate)
     if not candidate.is_dir():
         raise IndexError_(f"source path does not exist or is not a directory: {candidate}")
-    if (candidate / "src").is_dir() and not any(candidate.glob("*.f90")):
+    if (candidate / "src").is_dir() and not _contains_fortran(
+        candidate, recursive=False
+    ):
         candidate = candidate / "src"
-    if not any(candidate.rglob("*.f90")):
-        raise IndexError_(f"no .f90 files found under {candidate}")
+    if not _contains_fortran(candidate):
+        raise IndexError_(
+            f"no .f90 files or other supported Fortran source files found under {candidate}"
+        )
     return candidate
+
+
+def _contains_fortran(path: Path, *, recursive: bool = True) -> bool:
+    if not path.is_dir():
+        return False
+    candidates = path.rglob("*") if recursive else path.glob("*")
+    return any(
+        item.is_file() and item.suffix.lower() in FORTRAN_SUFFIXES
+        for item in candidates
+    )
+
+
+def source_files(source: Path) -> list[Path]:
+    """The tracked Fortran files under ``source``, with a fixture fallback.
+
+    The corpus scanner uses Git's tracked file list when it has one. Mirroring
+    that rule prevents an untracked scratch file from invalidating a snapshot
+    that the scanner would rebuild identically. A non-Git tree (including unit
+    test fixtures and exported source archives) falls back to walking disk.
+    """
+    root = source.resolve()
+    top_text = _git(root, "rev-parse", "--show-toplevel")
+    if top_text:
+        top = Path(top_text).resolve()
+        try:
+            target = root.relative_to(top).as_posix()
+        except ValueError:
+            target = ""
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(top), "ls-files", "-z", "--", target or "."],
+                capture_output=True, timeout=15, check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            result = None
+        if result is not None and result.returncode == 0:
+            tracked = [
+                top / raw.decode("utf-8", errors="surrogateescape")
+                for raw in result.stdout.split(b"\0") if raw
+            ]
+            matched = [
+                path for path in tracked
+                if path.is_file() and path.suffix.lower() in FORTRAN_SUFFIXES
+            ]
+            if matched:
+                return sorted(matched, key=lambda path: path.relative_to(root).as_posix())
+
+    return sorted(
+        (path for path in root.rglob("*")
+         if path.is_file() and path.suffix.lower() in FORTRAN_SUFFIXES),
+        key=lambda path: path.relative_to(root).as_posix(),
+    )
 
 
 def split_field_doc(doc: str | None) -> dict[str, str | None]:
@@ -416,14 +574,15 @@ def split_field_doc(doc: str | None) -> dict[str, str | None]:
 def source_fingerprint(source: Path) -> str:
     """Hash the Fortran source as it is on disk right now.
 
-    ~14 ms against a ~6.2 s parse, so checking is effectively free and a rebuild
-    can be made conditional on it. Content rather than mtime: an editor can
+    Milliseconds against a multi-second build, so checking is effectively free
+    and a rebuild can be made conditional on it. Content rather than mtime: an editor can
     touch a file without changing it, and a checkout can change a file without
     advancing its mtime.
     """
     digest = hashlib.blake2b(digest_size=16)
-    for path in sorted(source.rglob("*.f90")):
-        digest.update(path.name.encode())
+    root = source.resolve()
+    for path in source_files(root):
+        digest.update(path.relative_to(root).as_posix().encode())
         digest.update(path.read_bytes())
     return digest.hexdigest()
 
@@ -448,16 +607,18 @@ def index_is_current(
     current_parser = _git(corpus_src.parent, "rev-parse", "HEAD")
     stored_source = stored_fingerprint(index_file)
     stored_parser = stored_parser_commit(index_file)
-    return bool(stored_source and stored_parser and current_parser) and (
+    stored_format = stored_index_format(index_file)
+    return bool(stored_source and stored_parser and current_parser and stored_format) and (
         stored_source == source_fingerprint(source)
         and stored_parser == current_parser
+        and stored_format == INDEX_FORMAT_VERSION
     )
 
 
 def stored_fingerprint(path: Path) -> str | None:
     """The source fingerprint an existing artifact was built from, if any."""
     if path.suffix == ".json":
-        # Parsing a few MB costs tens of milliseconds against a ~6 s reparse.
+        # Parsing a few MB costs tens of milliseconds against a multi-second reparse.
         # Duplicating the fingerprint somewhere cheaper to reach would give the
         # file two copies of one fact, free to disagree.
         try:
@@ -501,6 +662,31 @@ def stored_parser_commit(path: Path) -> str | None:
     return None
 
 
+def stored_index_format(path: Path) -> str | None:
+    """The facts projection version in an existing JSON or markdown artifact."""
+
+    if path.suffix == ".json":
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            value = payload.get("index_format") or payload["provenance"]["format_version"]
+        except (json.JSONDecodeError, KeyError, TypeError, OSError):
+            return None
+        return str(value) if value is not None else None
+
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for _ in range(40):
+                line = handle.readline()
+                if not line:
+                    return None
+                if line.startswith(INDEX_FORMAT_KEY):
+                    value = line[len(INDEX_FORMAT_KEY):].strip()
+                    return value or None
+    except OSError:
+        return None
+    return None
+
+
 def _git(repo: Path, *args: str) -> str | None:
     try:
         out = subprocess.run(
@@ -530,7 +716,7 @@ def _provenance(source: Path, corpus_src: Path) -> Provenance:
 def output_unit_filenames(source: Path) -> dict[str, str]:
     """Map output unit number -> filename, from ``open_output_file`` calls."""
     mapping: dict[str, str] = {}
-    for path in sorted(source.rglob("*.f90")):
+    for path in source_files(source):
         text = path.read_text(encoding="utf-8", errors="replace")
         for unit, name in _OPEN_HELPER_RE.findall(text):
             mapping[unit] = name
@@ -590,10 +776,30 @@ def build_source_index(
 
     # scan() leaves called_by/call_paths/resolved empty; analyze_project fills
     # them. See tamandua/index/analyze.py.
-    project = analyze_project(FortranScanner(BuildConfig(source_dir=source_dir)).scan())
+    scanner = FortranScanner(BuildConfig(source_dir=source_dir))
+    scanner_files = list(scanner.iter_source_files())
+    scanner_warnings = scan_source_warnings(source_dir, scanner_files)
+    ranges_by_file: dict[str, list[LoopScope] | None] = {}
+    for raw_path in scanner_files:
+        path = Path(raw_path)
+        if not path.is_absolute():
+            path = source_dir / path
+        try:
+            relative = path.resolve().relative_to(source_dir.resolve()).as_posix()
+        except ValueError:
+            relative = path.name
+        ranges = loop_ranges(path)
+        ranges_by_file[relative] = ranges
+        # The parser normally reports a basename. Retain the relative key too
+        # so nested source layouts remain unambiguous when they occur.
+        ranges_by_file.setdefault(path.name, ranges)
+    project = analyze_project(scanner.scan())
     units = output_unit_filenames(source_dir)
     inputs = input_filenames(project)
-    index = SourceIndex(provenance=_provenance(source_dir, corpus_src))
+    index = SourceIndex(
+        provenance=_provenance(source_dir, corpus_src),
+        scanner_warnings=scanner_warnings,
+    )
 
     for derived in project.types:
         fields: list[Field] = []
@@ -611,6 +817,30 @@ def build_source_index(
         )
 
     for proc in project.procedures:
+        argument_names = {name.lower() for name in proc.args}
+        variables = {variable.name.lower(): variable for variable in proc.variables}
+
+        def declaration(variable: Any | None, fallback_name: str) -> VariableDeclaration:
+            doc = split_field_doc(getattr(variable, "doc", None))
+            location = getattr(variable, "location", None)
+            return VariableDeclaration(
+                name=getattr(variable, "name", fallback_name),
+                declaration=getattr(variable, "declaration", None),
+                line=getattr(location, "line", proc.location.line),
+                vartype=getattr(variable, "vartype", None),
+                initial=getattr(variable, "initial", None),
+                **doc,
+            )
+
+        arguments = [
+            declaration(variables.get(name.lower()), name)
+            for name in proc.args
+        ]
+        locals_ = [
+            declaration(variable, variable.name)
+            for variable in proc.variables
+            if variable.name.lower() not in argument_names
+        ]
         index.procedures[proc.name.lower()] = Procedure(
             name=proc.name,
             module=proc.module,
@@ -618,6 +848,25 @@ def build_source_index(
             path=proc.location.path,
             called_by=list(proc.called_by),
             callees=sorted({c.name for c in proc.calls if c.resolved}),
+            uses=[
+                Use(
+                    module=use.module,
+                    only=tuple(use.only or ()),
+                    line=use.location.line,
+                    intrinsic=bool(getattr(use, "intrinsic", False)),
+                )
+                for use in proc.uses
+            ],
+            arguments=arguments,
+            locals=locals_,
+            select_cases=[
+                SelectCase(
+                    subject=select.subject,
+                    cases=tuple(str(case) for case in select.cases),
+                    line=select.location.line,
+                )
+                for select in proc.select_cases
+            ],
         )
         if proc.call_paths:
             index.call_paths[proc.name.lower()] = [list(p) for p in proc.call_paths]
@@ -647,12 +896,30 @@ def build_source_index(
             path = field_path(match.group(1))
             if path:
                 index.writers[path].append(f"{proc.name}:{step.location.line}")
+                if "%" in path:
+                    index.writer_statements[path].append(WriterStatement(
+                        procedure=proc.name,
+                        line=step.location.line,
+                        raw=step.raw.strip(),
+                    ))
 
+        proc_path = proc.location.path.replace("\\", "/")
+        file_ranges = ranges_by_file.get(proc_path)
+        if proc_path not in ranges_by_file:
+            file_ranges = ranges_by_file.get(Path(proc_path).name)
+        if file_ranges is None:
+            index.unresolved_loop_files.add(proc_path)
+        range_by_start = {
+            item.start: item for item in (file_ranges or [])
+        }
         for step in proc.control_steps:
             if step.kind == "loop":
+                resolved = range_by_start.get(step.location.line)
                 index.loops[proc.name.lower()].append(
                     Loop(procedure=proc.name, line=step.location.line,
-                         header=step.raw.strip()[:90])
+                         header=step.raw.strip()[:90],
+                         end_line=resolved.end if resolved else None,
+                         index=resolved.index if resolved else None)
                 )
 
     return index

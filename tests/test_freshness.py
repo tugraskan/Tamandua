@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import io
 import os
 from pathlib import Path
 
 import pytest
 
 from tamandua.index import Provenance, SourceIndex, build_source_index, save_snapshot
-from tamandua.mcp.server import Current
+from tamandua.mcp.server import Current, serve
 
 CORPUS = os.environ.get("SWATPLUS_REFERENCE_CORPUS")
 
@@ -127,3 +128,23 @@ def test_a_source_that_disappears_keeps_the_previous_answer(tmp_path: Path) -> N
     current = Current(original, source=src)
     src.rmdir()
     assert current.get() is original
+    assert current.stale_message is not None
+
+
+def test_failed_live_rebuild_refuses_to_serve_the_previous_index(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    original = _index("known", source_path=str(src))
+    current = Current(original, source=src)
+    src.rmdir()
+    request = {
+        "jsonrpc": "2.0", "id": 7, "method": "tools/call",
+        "params": {"name": "find_procedure", "arguments": {"name": "old"}},
+    }
+    stdout = io.StringIO()
+
+    serve(current, stdin=io.StringIO(json.dumps(request) + "\n"), stdout=stdout)
+
+    reply = json.loads(stdout.getvalue())
+    assert reply["result"]["isError"] is True
+    assert "No source answer was returned" in reply["result"]["content"][0]["text"]

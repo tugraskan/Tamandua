@@ -24,9 +24,15 @@ from tamandua.index import (
     Loop,
     Procedure,
     Provenance,
+    ScannerWarning,
+    SelectCase,
     SourceIndex,
+    Use,
+    VariableDeclaration,
+    WriterStatement,
     build_source_index,
     load_snapshot,
+    save_rhs,
     save_snapshot,
 )
 
@@ -64,6 +70,19 @@ def index() -> SourceIndex:
         name="aqu_read", module="aquifer_module",
         location="aquifer_module.f90:22", path="aquifer_module.f90",
         called_by=["command", "command"], callees=["allocate_parms"],
+        uses=[Use(module="input_file_module", only=("in_aqu",), line=23)],
+        arguments=[VariableDeclaration(
+            name="frac", declaration="real, intent(in) :: frac", line=24,
+            vartype="real", initial=None, units="-", description="fraction",
+        )],
+        locals=[VariableDeclaration(
+            name="eof", declaration="integer :: eof = 0", line=25,
+            vartype="integer", initial="0", units=None,
+            description="end-of-file flag",
+        )],
+        select_cases=[SelectCase(
+            subject="mode", cases=("1", "2", "default"), line=28,
+        )],
     )
     # A procedure with nothing pointing at it in either direction: the empty
     # lists must survive as empty, not come back as None.
@@ -81,8 +100,19 @@ def index() -> SourceIndex:
     ]
     idx.io_by_unit["107"] = list(idx.io_by_file["aquifer.aqu"])
     idx.writers["aqu_d%rchrg"] = ["aquifer_output:31", "aqu_initial:12"]
+    idx.writer_statements["aqu_d%rchrg"] = [
+        WriterStatement(
+            procedure="aquifer_output", line=31,
+            raw="aqu_d(iaq)%rchrg = recharge + lateral_flow",
+        ),
+        WriterStatement(
+            procedure="aqu_initial", line=12,
+            raw="aqu_d(iaq)%rchrg = 0.",
+        ),
+    ]
     idx.loops["aqu_read"] = [
-        Loop(procedure="aqu_read", line=26, header="do ish_aqp = 1, msh_aqp"),
+        Loop(procedure="aqu_read", line=26, header="do ish_aqp = 1, msh_aqp",
+             end_line=29, index="ish_aqp"),
     ]
     idx.types["aquifer_dynamic"] = DerivedType(
         name="aquifer_dynamic", module="aquifer_module",
@@ -98,6 +128,13 @@ def index() -> SourceIndex:
         ],
     )
     idx.call_paths["aqu_read"] = [["main", "command", "aqu_read"]]
+    idx.scanner_warnings.append(ScannerWarning(
+        code="unclosed_block",
+        message="if opened here is not closed",
+        file="aquifer_module.f90",
+        line=30,
+        procedure="aqu_read",
+    ))
     return idx
 
 
@@ -112,11 +149,72 @@ def test_round_trip_preserves_every_query_answer(index, tmp_path):
     assert back.procedure("aqu_read").path == "aquifer_module.f90"
     assert back.callers_of("aqu_read") == ["command"]      # deduplicated
     assert back.callees_of("aqu_read") == ["allocate_parms"]
+    assert back.procedure("aqu_read").uses == index.procedure("aqu_read").uses
+    assert back.procedure("aqu_read").arguments == index.procedure("aqu_read").arguments
+    assert back.procedure("aqu_read").locals == index.procedure("aqu_read").locals
+    assert back.procedure("aqu_read").select_cases == index.procedure("aqu_read").select_cases
     assert back.callers_of("orphan") == []
     assert back.callees_of("orphan") == []
     assert back.writers_of("aqu_d%rchrg") == ["aqu_initial:12", "aquifer_output:31"]
     assert back.paths_to("aqu_read") == [["main", "command", "aqu_read"]]
     assert [l.header for l in back.loops_in("aqu_read")] == ["do ish_aqp = 1, msh_aqp"]
+    assert back.loops_in("aqu_read")[0].end_line == 29
+    assert back.loops_in("aqu_read")[0].index == "ish_aqp"
+    assert back.scope_at("aquifer_module.f90", 27)[0].index == "ish_aqp"
+    assert back.scanner_warnings == index.scanner_warnings
+    assert back.warnings_for_procedure("aqu_read") == index.scanner_warnings
+
+
+def test_version_one_snapshot_loads_with_warning_defaults(index, tmp_path):
+    path = save_snapshot(index, tmp_path / "snap.json")
+    payload = json.loads(path.read_text())
+    payload["snapshot_format"] = "1"
+    payload.pop("scanner_warnings")
+    payload.pop("unresolved_loop_files")
+    payload["provenance"].pop("compile_status")
+    for procedure in payload["procedures"]:
+        for key in ("uses", "arguments", "locals", "select_cases"):
+            procedure.pop(key)
+    for loops in payload["loops"].values():
+        for loop in loops:
+            loop.pop("end_line")
+            loop.pop("index")
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    back = load_snapshot(path)
+    assert back.provenance.compile_status == "not_checked"
+    assert back.scanner_warnings == []
+    assert back.procedure("aqu_read").uses == []
+    assert back.loops_in("aqu_read")[0].end_line is None
+
+
+def test_rhs_sidecar_round_trips_complete_assignment_statements(index, tmp_path):
+    facts = save_snapshot(index, tmp_path / "swatplus-facts.json")
+    save_rhs(index, tmp_path / "swatplus-rhs.json")
+
+    back = load_snapshot(facts)
+    assert back.writer_details("aqu_d%rchrg") == [
+        {"at": "aqu_initial:12", "expression": "aqu_d(iaq)%rchrg = 0."},
+        {"at": "aquifer_output:31",
+         "expression": "aqu_d(iaq)%rchrg = recharge + lateral_flow"},
+    ]
+
+
+def test_missing_rhs_keeps_writer_response_shape(index, tmp_path):
+    facts = save_snapshot(index, tmp_path / "swatplus-facts.json")
+    back = load_snapshot(facts)
+    assert back.writer_details("aqu_d%rchrg")[0]["expression"] == "unavailable"
+
+
+def test_mismatched_rhs_is_rejected(index, tmp_path):
+    facts = save_snapshot(index, tmp_path / "swatplus-facts.json")
+    rhs = save_rhs(index, tmp_path / "swatplus-rhs.json")
+    payload = json.loads(rhs.read_text(encoding="utf-8"))
+    payload["source_fingerprint"] = "different-tree"
+    rhs.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(IndexError_, match="does not match the base facts"):
+        load_snapshot(facts)
 
 
 def test_round_trip_preserves_io_including_null_unit_and_empty_fields(index, tmp_path):

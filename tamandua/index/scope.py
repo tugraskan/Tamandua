@@ -1,11 +1,12 @@
 """What is in scope at a line, for setting a conditional breakpoint.
 
-The parser records where each loop starts but not where it ends, so nesting has
-to be recovered from the source. Fortran makes that tractable: `do` opens and
+The parser records where each loop starts but not where it ends, so nesting is
+recovered from the source once, while the index is built. Fortran makes that tractable: `do` opens and
 `end do` closes, with no early exit from the block structure. Across the pinned
 SWAT+ tree 647 of 648 files balance exactly; the one that does not is reported
 as unresolved rather than guessed at, because a breakpoint condition built on a
-wrong loop variable costs a whole compile-and-run cycle to discover.
+wrong loop variable costs a whole compile-and-run cycle to discover. Query-time
+scope lookups use the stored ranges and never reopen this source path.
 """
 
 from __future__ import annotations

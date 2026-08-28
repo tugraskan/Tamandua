@@ -1,7 +1,7 @@
 name: Publish to PyPI
 
 # Publication is manual so creating a GitHub tag cannot accidentally overwrite
-# the separately verified two-asset release flow.
+# the separately verified three-asset release flow.
 on:
   workflow_dispatch:
 

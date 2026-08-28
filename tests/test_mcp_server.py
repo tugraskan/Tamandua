@@ -15,7 +15,21 @@ from tamandua.mcp.server import (
     load_bundled_snapshot,
     render_compact,
     t_file_io,
+    t_find_procedure,
+    t_loops,
+    t_writers,
     tool_specs,
+)
+from tamandua.index import (
+    Loop,
+    Procedure,
+    Provenance,
+    ScannerWarning,
+    SelectCase,
+    SourceIndex,
+    Use,
+    VariableDeclaration,
+    WriterStatement,
 )
 
 
@@ -151,6 +165,50 @@ def test_debugging_tools_are_declared() -> None:
     assert {"breakpoint", "scope_at"} <= names
 
 
+def test_existing_tools_surface_the_widened_procedure_and_loop_facts() -> None:
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-08-28T00:00:00Z",
+        format_version="2", parser_commit=None,
+    ))
+    index.procedures["dispatch"] = Procedure(
+        name="dispatch", module="routing", location="routing.f90:10-30",
+        path="routing.f90",
+        uses=[Use(module="state", only=("water",), line=11)],
+        arguments=[VariableDeclaration(
+            name="frac", declaration="real :: frac", line=12,
+            vartype="real", initial=None, units="-", description="fraction",
+        )],
+        locals=[],
+        select_cases=[SelectCase(subject="mode", cases=("1", "default"), line=15)],
+    )
+    index.loops["dispatch"] = [Loop(
+        procedure="dispatch", line=20, end_line=24, index="i", header="do i = 1, n",
+    )]
+
+    procedure = t_find_procedure(index, "dispatch")
+    assert procedure["uses"][0]["only"] == ("water",)
+    assert procedure["arguments"][0]["line"] == 12
+    assert procedure["select_cases"][0]["cases"] == ("1", "default")
+    assert t_loops(index, "dispatch")[0]["end_line"] == 24
+
+
+def test_writers_returns_the_complete_sidecar_expression() -> None:
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-08-28T00:00:00Z",
+        format_version="2", parser_commit=None,
+    ))
+    index.writers["state%water"] = ["route:18"]
+    index.writer_statements["state%water"] = [WriterStatement(
+        procedure="route", line=18,
+        raw="state(i)%water = inflow + recharge",
+    )]
+    assert t_writers(index, "state%water")["assignments"] == [{
+        "at": "route:18", "expression": "state(i)%water = inflow + recharge",
+    }]
+
+
 def test_scope_at_rejects_a_non_numeric_line() -> None:
     from tamandua.mcp.server import t_scope_at
 
@@ -162,3 +220,44 @@ def test_scope_at_rejects_a_non_numeric_line() -> None:
             return _P()
 
     assert "error" in t_scope_at(_Index(), procedure="hru_control", line="abc")
+
+
+def test_relevant_scanner_warning_rides_with_tool_answer() -> None:
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-08-28T00:00:00Z",
+        format_version="2", parser_commit=None,
+    ))
+    index.procedures["broken"] = Procedure(
+        name="broken", module=None, location="broken.f90:1-4", path="broken.f90",
+    )
+    index.scanner_warnings.append(ScannerWarning(
+        code="unclosed_block", message="if opened here is not closed",
+        file="broken.f90", line=2, procedure="broken",
+    ))
+
+    reply = handle(index, {
+        "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+        "params": {"name": "find_procedure", "arguments": {"name": "broken"}},
+    }, False)
+
+    content = reply["result"]["content"]
+    assert len(content) == 2
+    assert "unclosed_block" in content[1]["text"]
+    assert "broken.f90:2" in content[1]["text"]
+
+
+def test_healthy_answer_does_not_pay_for_empty_warning_block() -> None:
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-08-28T00:00:00Z",
+        format_version="2", parser_commit=None,
+    ))
+    index.procedures["healthy"] = Procedure(
+        name="healthy", module=None, location="healthy.f90:1-2", path="healthy.f90",
+    )
+    reply = handle(index, {
+        "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+        "params": {"name": "find_procedure", "arguments": {"name": "healthy"}},
+    }, False)
+    assert len(reply["result"]["content"]) == 1

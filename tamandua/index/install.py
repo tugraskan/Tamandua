@@ -18,6 +18,9 @@ from pathlib import Path
 #: The facts file the MCP server reads -- the normal delivery.
 FACTS_NAME = "swatplus-facts.json"
 
+#: Optional assignment-expression sidecar, produced by default beside facts.
+RHS_NAME = "swatplus-rhs.json"
+
 #: The greppable markdown rendering, for a tool that cannot run an MCP server.
 #: Opt-in (``--markdown``), not the default.
 INDEX_NAME = "SWATPLUS_INDEX.md"

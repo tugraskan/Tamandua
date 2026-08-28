@@ -1,6 +1,6 @@
 name: Release
 
-# Publish the facts file and the rendered index as release assets, so the
+# Publish the facts file, expression sidecar, and rendered index as release assets, so the
 # MCP server can be run by people who have neither a SWAT+ checkout nor the
 # swatplus-reference-corpus parser (docs/decisions.md D-8).
 #
@@ -59,7 +59,7 @@ jobs:
           ref: ${{ steps.pins.outputs.corpus_commit }}
           path: .build/corpus
 
-      - name: Build the facts file and the rendered index
+      - name: Build the facts file, RHS sidecar, and rendered index
         env:
           SWATPLUS_SOURCE: ${{ github.workspace }}/.build/swatplus
           SWATPLUS_REFERENCE_CORPUS: ${{ github.workspace }}/.build/corpus
@@ -85,6 +85,7 @@ jobs:
               swatplus-mcp \
                 --facts dist/swatplus-facts.json --compact \
           | tee /dev/stderr | grep -q aqu_read
+          python -c "from pathlib import Path; from tamandua.index import load_snapshot; i=load_snapshot(Path('dist/swatplus-facts.json')); assert i.writer_details('db_mx%aqudb')[0]['expression'] != 'unavailable'"
 
       - name: Verify the package-bundled facts fallback
         run: |
@@ -101,4 +102,5 @@ jobs:
           generate_release_notes: true
           files: |
             dist/swatplus-facts.json
+            dist/swatplus-rhs.json
             dist/SWATPLUS_INDEX.md

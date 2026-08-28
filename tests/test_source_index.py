@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -20,8 +21,10 @@ from tamandua.index import (
     INDEX_NAME,
     IndexError_,
     POINTER_FILES,
+    RHS_NAME,
     build_source_index,
     field_path,
+    find_corpus,
     split_field_doc,
     install_pointer,
     HOOK_EVENTS,
@@ -36,6 +39,7 @@ from tamandua.index import (
     resolve_source,
     source_fingerprint,
     stored_fingerprint,
+    stored_index_format,
     stored_parser_commit,
 )
 
@@ -75,7 +79,8 @@ READER = """\
       do ish_aqp = 1, msh_aqp
         read (107,*,iostat=eof) titldum
       end do
-      db_mx%aqudb = msh_aqp
+      db_mx%aqudb = msh_aqp &
+        & + 0
       close (107)
       return
       end subroutine aqu_read
@@ -121,6 +126,21 @@ LOOPER = """\
       end subroutine hru_control
 """
 
+DISPATCHER = """\
+      subroutine dispatcher(frac)
+      use input_file_module, only: in_aqu
+      implicit none
+      real, intent(in) :: frac !! unitless | input fraction
+      integer :: mode = 1 !! - | selected mode
+      select case (mode)
+      case (1, 2)
+        mode = 2
+      case default
+        mode = 1
+      end select
+      end subroutine dispatcher
+"""
+
 
 @pytest.fixture
 def fake_source(tmp_path: Path) -> Path:
@@ -132,6 +152,7 @@ def fake_source(tmp_path: Path) -> Path:
     (src / "proc_aqu.f90").write_text(CALLER, encoding="utf-8")
     (src / "header_aquifer.f90").write_text(WRITER, encoding="utf-8")
     (src / "hru_control.f90").write_text(LOOPER, encoding="utf-8")
+    (src / "dispatcher.f90").write_text(DISPATCHER, encoding="utf-8")
     return src
 
 
@@ -160,6 +181,17 @@ def test_resolve_source_rejects_tree_without_fortran(tmp_path: Path) -> None:
     (tmp_path / "readme.md").write_text("not fortran", encoding="utf-8")
     with pytest.raises(IndexError_, match="no .f90 files"):
         resolve_source(tmp_path)
+
+
+def test_corpus_environment_wins_over_an_installed_copy(
+    tmp_path: Path, monkeypatch
+) -> None:
+    checkout = tmp_path / "corpus"
+    package = checkout / "src" / "swatplus_reference"
+    package.mkdir(parents=True)
+    monkeypatch.setenv("SWATPLUS_REFERENCE_CORPUS", str(checkout))
+
+    assert find_corpus() == checkout / "src"
 
 
 def test_output_unit_map_is_path_separator_agnostic(tmp_path: Path) -> None:
@@ -281,6 +313,9 @@ def test_writers_key_on_the_full_field_path(index) -> None:
     """
     assert any(s.startswith("aqu_read:") for s in index.writers_of("db_mx%aqudb"))
     assert index.writers_of("db_mx") == []
+    statements = index.writer_statements["db_mx%aqudb"]
+    assert len(statements) == 1
+    assert "+ 0" in statements[0].raw
 
 
 def test_field_path_strips_subscripts() -> None:
@@ -309,6 +344,39 @@ def test_loop_locations(index) -> None:
     assert any("ly = 1" in h for h in headers)
     assert any("ipest = 1" in h for h in headers)
     assert all(loop.line > 0 for loop in loops)
+    assert all(loop.end_line is not None for loop in loops)
+    assert {loop.index for loop in loops} == {"ly", "ipest"}
+
+
+@requires_corpus
+def test_procedure_projection_keeps_imports_declarations_and_cases(index) -> None:
+    proc = index.procedure("dispatcher")
+    assert proc is not None
+    assert [(use.module, use.only, use.line) for use in proc.uses] == [
+        ("input_file_module", ("in_aqu",), 2),
+    ]
+    assert [item.name for item in proc.arguments] == ["frac"]
+    assert "intent(in)" in proc.arguments[0].declaration
+    assert proc.arguments[0].declaration.endswith(":: frac")
+    assert proc.arguments[0].units == "unitless"
+    assert proc.arguments[0].description == "input fraction"
+    assert [item.name for item in proc.locals] == ["mode"]
+    assert proc.locals[0].initial == "1"
+    assert proc.select_cases
+    assert proc.select_cases[0].subject == "mode"
+    assert proc.select_cases[0].line == 6
+
+
+@requires_corpus
+def test_scope_uses_stored_loop_ends_after_source_disappears(index, fake_source) -> None:
+    scopes = index.scope_at("hru_control.f90", 4)
+    assert scopes and scopes[0].index == "ly"
+
+    # Query-time answers must not depend on the build machine's checkout path.
+    index.provenance = index.provenance.__class__(
+        **{**index.provenance.__dict__, "source_path": "Z:/someone-elses/missing/tree"}
+    )
+    assert index.scope_at("hru_control.f90", 4) == scopes
 
 
 # ---------------------------------------------------------------- render
@@ -322,6 +390,9 @@ def test_rendered_index_is_greppable(index) -> None:
         line.startswith("aquifer_day.txt|write|unit=2520|header_aquifer|")
         for line in text.splitlines()
     ), "the unit column must be self-describing; a grep hit carries no heading"
+    assert "## Assignment expressions" in text
+    assert "db_mx%aqudb|aqu_read:" in text
+    assert "+ 0" in text
 
 
 @requires_corpus
@@ -580,6 +651,33 @@ def test_fingerprint_ignores_touch_without_change(fake_source: Path) -> None:
     assert source_fingerprint(fake_source) == before
 
 
+def test_fingerprint_watches_every_scanner_extension(tmp_path: Path) -> None:
+    source = tmp_path / "src"
+    source.mkdir()
+    path = source / "legacy.FOR"
+    path.write_text("      subroutine legacy\n      end\n", encoding="utf-8")
+    before = source_fingerprint(source)
+    path.write_text("      subroutine legacy\n      return\n      end\n", encoding="utf-8")
+    assert source_fingerprint(source) != before
+
+
+def test_fingerprint_ignores_untracked_fortran_in_a_git_checkout(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    source = repo / "src"
+    source.mkdir(parents=True)
+    tracked = source / "tracked.f90"
+    tracked.write_text("      subroutine tracked\n      end\n", encoding="utf-8")
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "add", "src/tracked.f90"],
+                   check=True, capture_output=True)
+
+    before = source_fingerprint(source)
+    (source / "scratch.f90").write_text(
+        "      subroutine scratch\n      end\n", encoding="utf-8"
+    )
+    assert source_fingerprint(source) == before
+
+
 @requires_corpus
 def test_index_is_current_until_the_source_changes(fake_source: Path, tmp_path: Path) -> None:
     index_file = tmp_path / "SWATPLUS_INDEX.md"
@@ -623,6 +721,26 @@ def test_index_without_a_fingerprint_is_not_current(fake_source: Path, tmp_path:
     stale = tmp_path / "SWATPLUS_INDEX.md"
     stale.write_text("# SWAT+ source index\n\nsource_commit: abc123\n", encoding="utf-8")
     assert not index_is_current(stale, fake_source)
+
+
+def test_old_index_format_is_not_current(
+    fake_source: Path, tmp_path: Path, monkeypatch
+) -> None:
+    artifact = tmp_path / "swatplus-facts.json"
+    artifact.write_text(json.dumps({
+        "index_format": "1",
+        "provenance": {
+            "source_fingerprint": source_fingerprint(fake_source),
+            "parser_commit": "same-parser",
+        },
+    }), encoding="utf-8")
+    corpus_src = tmp_path / "corpus" / "src"
+    (corpus_src / "swatplus_reference").mkdir(parents=True)
+    monkeypatch.setattr("tamandua.index.build.find_corpus", lambda _=None: corpus_src)
+    monkeypatch.setattr("tamandua.index.build._git", lambda *_args: "same-parser")
+
+    assert stored_index_format(artifact) == "1"
+    assert not index_is_current(artifact, fake_source)
 
 
 def test_pointer_tells_the_assistant_to_self_heal() -> None:
@@ -704,8 +822,8 @@ def test_search_fields_ignores_empty_input(fake_source: Path) -> None:
 # ------------------------------------------------- what a bare run produces
 
 @requires_corpus
-def test_bare_run_writes_facts_and_nothing_else(fake_source: Path, tmp_path,
-                                                monkeypatch) -> None:
+def test_bare_run_writes_facts_and_rhs_but_no_repo_files(fake_source: Path, tmp_path,
+                                                        monkeypatch) -> None:
     """MCP is the delivery, so a bare build must not edit anyone's repository.
 
     The markdown rendering and the instruction-file pointers are the fallback
@@ -720,9 +838,24 @@ def test_bare_run_writes_facts_and_nothing_else(fake_source: Path, tmp_path,
     assert main(["--source", str(fake_source)]) == 0
 
     assert (workdir / FACTS_NAME).is_file()
+    assert (workdir / RHS_NAME).is_file()
     assert not (workdir / INDEX_NAME).exists()
     for name in POINTER_FILES:
         assert not (workdir / name).exists(), f"{name} written without --markdown"
+
+
+@requires_corpus
+def test_no_rhs_writes_only_the_base_facts(fake_source: Path, tmp_path,
+                                           monkeypatch) -> None:
+    from tamandua.index.cli import main
+
+    workdir = tmp_path / "work"
+    workdir.mkdir()
+    (workdir / RHS_NAME).write_text("stale sidecar", encoding="utf-8")
+    monkeypatch.chdir(workdir)
+    assert main(["--source", str(fake_source), "--no-rhs"]) == 0
+    assert (workdir / FACTS_NAME).is_file()
+    assert not (workdir / RHS_NAME).exists()
 
 
 @requires_corpus

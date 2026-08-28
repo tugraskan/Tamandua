@@ -9,8 +9,9 @@ From inside a SWAT+ checkout, once, with no arguments:
 
     swatplus-build
 
-That writes the facts file the MCP server reads. Pass ``--markdown`` to also
-render the greppable index and point every assistant's instruction file at it
+That writes the base facts file and its assignment-expression sidecar. Pass
+``--no-rhs`` for base facts only. Pass ``--markdown`` to also render the
+greppable index and point every assistant's instruction file at it
 -- the fallback for a tool that cannot run a server.
 
 Run it again any time -- it is a cheap no-op when the index already matches the
@@ -37,11 +38,12 @@ from tamandua.index.build import (
 from tamandua.index.install import (
     FACTS_NAME,
     INDEX_NAME,
+    RHS_NAME,
     install_hooks,
     install_pointers,
 )
 from tamandua.index.render import render_index
-from tamandua.index.snapshot import save_snapshot
+from tamandua.index.snapshot import rhs_matches_snapshot, save_rhs, save_snapshot
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -58,6 +60,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--facts", type=Path, metavar="FILE", default=None,
         help=f"where to write the facts JSON (default: ./{FACTS_NAME}). This is "
              "what the MCP server reads, and what a release publishes",
+    )
+    parser.add_argument(
+        "--no-rhs", action="store_true",
+        help=f"do not write the optional assignment-expression sidecar {RHS_NAME}",
     )
     parser.add_argument(
         "--markdown", action="store_true",
@@ -100,7 +106,7 @@ def main(argv: list[str] | None = None) -> int:
 
     say = (lambda *_: None) if args.quiet else print
 
-    # Cheap path first: hashing the source costs ~14 ms against a ~6 s parse, so
+    # Cheap path first: hashing costs milliseconds against a multi-second build, so
     # a caller can run this before every question without thinking about it.
     try:
         source_dir = resolve_source(args.source)
@@ -115,11 +121,18 @@ def main(argv: list[str] | None = None) -> int:
     else:
         existing = args.out
 
-    if (
+    base_current = bool(
         existing is not None
-        and not args.force
         and index_is_current(existing, source_dir, args.corpus)
-    ):
+    )
+    rhs_path = existing.parent / RHS_NAME if args.facts is not None else None
+    sidecar_current = bool(
+        args.facts is None
+        or (args.no_rhs and rhs_path is not None and not rhs_path.exists())
+        or (not args.no_rhs and rhs_path is not None
+            and rhs_matches_snapshot(rhs_path, existing))
+    )
+    if existing is not None and not args.force and base_current and sidecar_current:
         say(f"current  {existing} already matches the source and parser")
         return 0
     if args.check:
@@ -134,6 +147,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.facts is not None:
         written = save_snapshot(index, args.facts)
         say(f"facts    {written} ({written.stat().st_size / 1024:.0f} KB)")
+        if not args.no_rhs:
+            rhs = save_rhs(index, written.parent / RHS_NAME)
+            say(f"rhs      {rhs} ({rhs.stat().st_size / 1024:.0f} KB)")
+        else:
+            # Presence is the server's only switch. Leaving an older sidecar
+            # here would make --no-rhs ineffective or deliberately mismatch
+            # the newly written base snapshot.
+            (written.parent / RHS_NAME).unlink(missing_ok=True)
 
     if wants_markdown:
         text = render_index(index)
