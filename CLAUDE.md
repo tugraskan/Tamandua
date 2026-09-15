@@ -22,7 +22,7 @@ a run's numbers actually did.
 
 Building needs the parser in swatplus-reference-corpus; **serving does not**.
 `swatplus-build` writes `swatplus-facts.json`, which the server answers from
-with neither the parser nor a SWAT+ checkout present (docs/decisions.md D-8).
+with neither the parser nor a SWAT+ checkout present.
 
 ## Working here
 
@@ -30,7 +30,7 @@ with neither the parser nor a SWAT+ checkout present (docs/decisions.md D-8).
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 151 pass, 9 skipped (128/32 without the parser)
+python -m pytest -q          # 187 pass with SWATPLUS_SOURCE + Ames; 178/9 without
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and

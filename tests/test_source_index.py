@@ -217,7 +217,7 @@ def test_procedure_locations(index) -> None:
     """``location`` is the rendered label; ``path`` is what ``scope_at`` needs.
 
     They are two plain strings rather than the parser's own location object,
-    which is what lets an index be serialised without the parser (D-8).
+    which is what lets an index be serialised without the parser.
     """
     proc = index.procedure("aqu_read")
     assert proc is not None

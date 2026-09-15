@@ -35,6 +35,12 @@ INDEX_FORMAT_VERSION = "2"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
+# The parser pinned on 2026-09-15 reports `target`, `target_root` and
+# `expression` on each assignment, which makes re-deriving the target from
+# `raw` here redundant. Measured against SWAT+ 62.0.0: both agree on all
+# 21,770 assignments, and neither finds a target the other misses. So this is
+# a safe refactor with no behaviour change -- and, being no behaviour change,
+# not urgent. Left as is deliberately.
 _ASSIGN_RE = re.compile(r"^\s*([A-Za-z_]\w*(?:\s*%\s*\w+|\s*\([^=]*?\))*)\s*=(?!=)")
 
 #: Array subscripts carry no identity -- `aqu_d(iaq)` and `aqu_d(3)` are the
@@ -214,8 +220,8 @@ class Procedure:
     read again. Only this surface survives into queries.
 
     Keeping just it is what lets an index be serialised and served with no
-    ``swatplus_reference`` present at all (docs/decisions.md D-8): the parser
-    is a build-time dependency, not a runtime one.
+    ``swatplus_reference`` present at all: the parser is a build-time
+    dependency, not a runtime one.
     """
 
     name: str

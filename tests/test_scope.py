@@ -38,6 +38,17 @@ NESTED = """\
       end subroutine demo
 """
 
+PACKED = """\
+      subroutine packed
+      buf = 0.0; do k = 1, n; buf(k) = real(k); end do
+      do j = 1, m
+        total = 0.; do k = 1, n; total = total + buf(k); end do
+      end do
+      write (7,*) "a; b"; x = 1
+      return
+      end subroutine packed
+"""
+
 UNBALANCED = """\
       subroutine broken
       do i = 1, n
@@ -121,3 +132,38 @@ def test_real_corpus_nesting_is_recoverable() -> None:
 def test_real_corpus_scope_of_a_nested_line() -> None:
     scopes = scope_at(FORTRAN / "hru_control.f90", 800)
     assert [s.index for s in scopes] == ["isalt", "jj"]
+
+
+def test_a_loop_packed_onto_one_line_is_found(tmp_path: Path) -> None:
+    """`buf = 0.0; do k = 1, n; ...; end do` is a real loop.
+
+    SWAT+ writes 172 of them in soil_nutcarb_write.f90 and
+    soil_carbvar_write.f90. A scan anchored at the start of the line sees
+    neither the `do` nor its `end do`, so it silently reported no scope at all
+    for every line inside them.
+    """
+    source = tmp_path / "packed.f90"
+    source.write_text(PACKED, encoding="utf-8")
+
+    loops = loop_ranges(source)
+    assert loops is not None, "a packed line must not unbalance the file"
+
+    starts = [(loop.start, loop.end, loop.index) for loop in loops]
+    # line 2 opens and closes on itself; line 3 is the outer `do j`, closed on
+    # line 5; line 4 is a packed loop nested inside it.
+    assert (2, 2, "k") in starts
+    assert (4, 4, "k") in starts
+    assert (3, 5, "j") in starts
+
+
+def test_a_packed_loop_contributes_its_index_to_scope(tmp_path: Path) -> None:
+    source = tmp_path / "packed.f90"
+    source.write_text(PACKED, encoding="utf-8")
+    assert [s.index for s in scope_at(source, 4)] == ["j", "k"]
+
+
+def test_a_semicolon_inside_a_string_is_not_a_separator(tmp_path: Path) -> None:
+    """`write (7,*) "a; b"` is one statement, not two."""
+    source = tmp_path / "packed.f90"
+    source.write_text(PACKED, encoding="utf-8")
+    assert loop_ranges(source) is not None

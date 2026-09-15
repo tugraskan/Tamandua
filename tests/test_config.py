@@ -11,7 +11,7 @@ def test_verified_pins_are_resolved():
     corpus = pins.get("reference_corpus")
     dataselector = pins.get("dataselector")
     assert corpus.resolved
-    assert corpus.version() == "2daa14ae7b50c597aefbc110734ec5bfc5472cb0"
+    assert corpus.version() == "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
     assert dataselector.resolved
     assert dataselector.version() == "fd7af35"
 
@@ -33,7 +33,7 @@ def test_release_workflow_can_read_what_it_builds_against():
     pins = load_pins()
     assert pins.raw["swatplus_source"]["ref"] == "62.0.0"
     assert pins.raw["reference_corpus"]["commit"] == \
-        "2daa14ae7b50c597aefbc110734ec5bfc5472cb0"
+        "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
 
 
 def test_reference_dataset_is_resolved_to_ames():

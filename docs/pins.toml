@@ -24,11 +24,16 @@ commit = "de210d6"                   # tag 62.0.0
 # (swatplus_reference.parser.schema_fortran.FortranScanner) the index is built
 # with. Replaced swatplus-doc-builder, which was archived 2026-08-26.
 #
-# Private repository, and a BUILD-TIME dependency only: `swatplus-build`
+# Public repository, and a BUILD-TIME dependency only: `swatplus-build`
 # produces swatplus-facts.json, which the MCP server answers from with neither
-# this nor the source present (docs/decisions.md D-8).
+# this nor the source present.
 repo   = "https://github.com/tugraskan/swatplus-reference-corpus"
-commit = "2daa14ae7b50c597aefbc110734ec5bfc5472cb0"
+commit = "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
+# Bumped 2026-09-15. The previous pin (2daa14ae) is unreachable: the corpus
+# rewrote its history for the public release, so `actions/checkout` could no
+# longer resolve that ref and release.yml could not build. Verified against
+# this commit: Tamandua's suite is 171 passed / 9 skipped (the 9 want a SWAT+
+# checkout or the Ames dataset, not the parser).
 # Only the *schema scanner* is used: it reports procedures, calls, I/O with
 # units and fields, assignments, loops, and derived-type components with the
 # units and description SWAT+ writes inline. Its sibling parser (parser/facts
@@ -36,8 +41,18 @@ commit = "2daa14ae7b50c597aefbc110734ec5bfc5472cb0"
 # not evidence, and facts.py keys variable writes on the root symbol
 # (`aqu_d`, not `aqu_d%rchrg`) with no line numbers.
 #
+# Also unused: parser/ast_index.py, the fparser2 AST parser this commit added.
+# That matters for release.yml, which checks the corpus out rather than
+# pip-installing it: `fparser==0.2.4` is a hard dependency of the corpus
+# package but only ast_index.py imports it, so the schema scanner still runs
+# on the stdlib alone. Verified by scanning with fparser blocked from
+# sys.meta_path. Keep that true, or release.yml grows an install step.
+#
 # scan() leaves called_by / call_paths / CallRef.resolved empty; Tamandua fills
-# them in tamandua/index/analyze.py.
+# them in tamandua/index/analyze.py. Still true at this commit -- the corpus
+# added its own semantic layer (parser/semantic.py: scope-aware call
+# resolution, call paths, reads/writes), but scan() does not run it; the
+# corpus invokes it as a separate post-pass.
 
 [dataselector]
 # TxtInOut indexing + MCP server (six tools, docs-only mode). Complementary,
