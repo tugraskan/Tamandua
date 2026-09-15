@@ -42,6 +42,10 @@ from tamandua.index import (
 from tamandua.output.reader import OutputError, query as query_output
 
 PROTOCOL_VERSION = "2024-11-05"
+
+#: JSON-RPC "invalid params". What a tool call with a wrong argument name or a
+#: missing required one gets back, instead of the server exiting.
+INVALID_PARAMS = -32602
 BUNDLED_FACTS = "data/swatplus-facts.json"
 
 def _rows(items: list[Any]) -> list[dict]:
@@ -347,6 +351,14 @@ def dispatch(index: SourceIndex, name: str, args: dict) -> Any:
     raise ValueError(f"unknown tool: {name}")
 
 
+def accepted_arguments(name: str) -> list[str]:
+    """The argument names a tool takes, for a bad-call message worth reading."""
+    for tool_name, _, schema, _ in TOOLS:
+        if tool_name == name:
+            return sorted((schema.get("properties") or {}).keys())
+    return []
+
+
 def _cell(key: str, value: Any) -> str:
     """One field of a compact row.
 
@@ -413,9 +425,26 @@ def handle(index: SourceIndex, request: dict, compact: bool) -> dict | None:
         result = {"tools": tool_specs()}
     elif method == "tools/call":
         params = request.get("params", {})
-        name = params["name"]
+        name = params.get("name")
         args = params.get("arguments", {})
-        payload = dispatch(index, name, args)
+        # A bad call must not take the server down with it. dispatch() splats
+        # the caller's arguments straight into the tool, so one wrong keyword
+        # -- `query` where the tool takes `text`, which a client guesses on its
+        # first try -- raised TypeError out through serve() and killed the
+        # process. The client saw its tools vanish mid-session with no error.
+        try:
+            payload = dispatch(index, name, args)
+        except Exception as exc:  # noqa: BLE001 -- the whole point is to not exit
+            if rid is None:
+                return None
+            takes = accepted_arguments(name)
+            detail = f"{type(exc).__name__}: {exc}"
+            if takes:
+                detail += f". {name} accepts: {', '.join(takes)}"
+            return {
+                "jsonrpc": "2.0", "id": rid,
+                "error": {"code": INVALID_PARAMS, "message": detail},
+            }
         text = (render_compact(payload) if compact
                 else json.dumps(payload, separators=(",", ":")))
         content = [{"type": "text", "text": text}]
