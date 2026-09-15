@@ -88,12 +88,18 @@ jobs:
           python -c "from pathlib import Path; from tamandua.index import load_snapshot; i=load_snapshot(Path('dist/swatplus-facts.json')); assert i.writer_details('db_mx%aqudb')[0]['expression'] != 'unavailable'"
 
       - name: Verify the package-bundled facts fallback
+        # Both halves, and that they are the current format. The bundled pair
+        # is checked into the repo rather than rebuilt here, so it is the one
+        # release asset that can silently go stale -- it shipped a format
+        # behind for a whole release, answering every expression query
+        # "unavailable" while the downloadable asset answered fine.
         run: |
           printf '%s\n' \
             '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"file_io","arguments":{"file":"aquifer.aqu"}}}' \
           | env -u SWATPLUS_SOURCE -u SWATPLUS_REFERENCE_CORPUS \
               swatplus-mcp --compact \
           | tee /dev/stderr | grep -q aqu_read
+          python -m pytest -q tests/test_snapshot.py -k bundled
 
       - name: Create the GitHub release
         uses: softprops/action-gh-release@v3

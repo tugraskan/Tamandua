@@ -26,7 +26,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **183 pass, 0 skipped**; **174/9** without a SWAT+ checkout; **148/35** without the parser either |
+| Tests | real-source gate **187 pass, 0 skipped**; **178/9** without a SWAT+ checkout; **152/35** without the parser either |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -48,7 +48,7 @@ the synthetic fixtures:
 
 - Full-tree build succeeds, 734 procedures and 510 derived types -- the same
   figures as the previous parser.
-- **183 pass, 0 skipped** with source and the Ames dataset present.
+- **187 pass, 0 skipped** with source and the Ames dataset present.
 - Tamandua's two entry points, `BuildConfig` and `FortranScanner`, are
   unchanged, and every field it reads is still there.
 - `FortranScanner.scan()` still leaves `called_by`, `call_paths` and
@@ -79,15 +79,33 @@ invented**. The 19 the parser still finds are all in gwflow_pond.f90, the one
 file whose `do`/`end do` do not balance, still reported unresolved rather than
 guessed at.
 
-**The bundled snapshot was two formats stale.** `tamandua/data/swatplus-facts
-.json` shipped as `snapshot_format: 1` with `parser_commit: 2daa14ae`. Format 1
-is still *readable*, so it loaded silently while missing everything format 2
-added: per-procedure `arguments`, `locals`, `uses` and `select_cases`, and
-`index`/`end_line` on every loop. Served from that file, `aqu_read` reported 0
-uses and 0 locals, and **every** `breakpoint` query returned 0 loops. Rebuilt
-against `de210d6` with the new parser; `aqu_read` now reports 4 uses and 9
-locals, and a write inside a packed loop yields `k == <value>`. The file grows
-4.34 MB -> 6.39 MB, almost all of it the format-2 procedure detail.
+**The bundled snapshot was two formats stale, and half of it was missing.**
+`tamandua/data/swatplus-facts.json` shipped as `snapshot_format: 1` with
+`parser_commit: 2daa14ae`. Format 1 is still *readable*, so it loaded silently
+while missing everything format 2 added: per-procedure `arguments`, `locals`,
+`uses` and `select_cases`, and `index`/`end_line` on every loop. Served from
+that file, `aqu_read` reported 0 uses and 0 locals, and **every** `breakpoint`
+query returned 0 loops. Rebuilt against `de210d6` with the new parser;
+`aqu_read` now reports 4 uses and 9 locals, and a write inside a packed loop
+yields `k == <value>`.
+
+The sidecar was the other half. `swatplus-build` writes two files -- the
+compact facts, and `swatplus-rhs.json` carrying the assignment expressions --
+and `load_snapshot` treats the sidecar as optional-by-presence. Only the facts
+file had ever been bundled, so on a plain `pip install` **every one of the
+11,495 writer expressions read `unavailable`**, while the downloadable release
+asset answered them fine. `release.yml` asserts expressions are available for
+the dist asset and never checked the bundled copy, which is why it went
+unnoticed. Both halves now ship: `writers` for `db_mx%aqudb` returns
+`db_mx%aqudb = msh_aqp` from a bare install, and 10,119 of 21,598 writer
+records carry an expression.
+
+Package data goes 4.34 MB -> 7.77 MB: 6.39 MB of format-2 facts plus the
+1.38 MB sidecar. Four tests in `test_snapshot.py` now assert the pair ships
+together, matches on fingerprint and parser commit, answers with a real
+expression, and is the current format; `release.yml` runs them against the
+bundled copy before publishing. Three of the four fail if the sidecar is
+removed.
 
 ## Not taken up
 

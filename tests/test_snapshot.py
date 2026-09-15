@@ -16,6 +16,9 @@ from pathlib import Path
 import pytest
 
 from tamandua.index import (
+    FACTS_NAME,
+    INDEX_FORMAT_VERSION,
+    RHS_NAME,
     SNAPSHOT_FORMAT,
     DerivedType,
     Field,
@@ -35,6 +38,7 @@ from tamandua.index import (
     save_rhs,
     save_snapshot,
 )
+from tamandua.index.snapshot import rhs_matches_snapshot, rhs_path_for
 
 REAL_SOURCE = Path(os.environ.get("SWATPLUS_SOURCE", "/workspace/swatplus-62.0.0"))
 CORPUS = os.environ.get("SWATPLUS_REFERENCE_CORPUS")
@@ -333,3 +337,54 @@ def test_real_index_round_trips(tmp_path):
     for name in list(built.procedures)[:50]:
         assert back.callers_of(name) == built.callers_of(name)
         assert back.callees_of(name) == built.callees_of(name)
+
+
+# ------------------------------------------------- the files we actually ship
+
+def _bundled(name: str) -> Path:
+    return Path(__file__).resolve().parent.parent / "tamandua" / "data" / name
+
+
+def test_the_bundled_pair_is_shipped_together():
+    """Both halves of the release snapshot are in the package.
+
+    The facts file answers "where is this set"; the sidecar answers "set to
+    what". Shipping only the first is not a failure -- ``load_snapshot`` treats
+    the sidecar as optional-by-presence -- so every expression silently read
+    ``unavailable`` on a plain install while the release asset answered fine.
+    """
+    assert _bundled(FACTS_NAME).is_file()
+    assert _bundled(RHS_NAME).is_file(), (
+        f"{RHS_NAME} is missing from tamandua/data/, so a plain install cannot "
+        "answer what any assignment computes")
+
+
+def test_the_bundled_sidecar_matches_the_bundled_facts():
+    """A sidecar from a different build is worse than none.
+
+    It is keyed on source fingerprint and parser commit, so a mismatched pair
+    would attach one tree's expressions to another tree's line numbers.
+    """
+    facts = _bundled(FACTS_NAME)
+    assert rhs_matches_snapshot(rhs_path_for(facts), facts), (
+        "bundled swatplus-rhs.json does not match swatplus-facts.json; "
+        "rebuild both with `swatplus-build` in one run")
+
+
+def test_the_bundled_snapshot_answers_with_an_expression():
+    """The end-to-end property the pair exists for."""
+    index = load_snapshot(_bundled(FACTS_NAME))
+    details = index.writer_details("db_mx%aqudb")
+    assert details and details[0]["expression"] != "unavailable"
+
+
+def test_the_bundled_snapshot_is_the_current_format():
+    """A format-1 snapshot still loads, so staleness has to be asserted.
+
+    The shipped file sat at format 1 through a format-2 release: it loaded
+    without complaint while silently missing every procedure's arguments,
+    locals and uses, and every loop's index and end line.
+    """
+    payload = json.loads(_bundled(FACTS_NAME).read_text(encoding="utf-8"))
+    assert str(payload["snapshot_format"]) == SNAPSHOT_FORMAT
+    assert str(payload["index_format"]) == INDEX_FORMAT_VERSION
