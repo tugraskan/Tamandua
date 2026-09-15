@@ -172,6 +172,20 @@ def test_resolve_source_accepts_src_dir(fake_source: Path) -> None:
     assert resolve_source(fake_source) == fake_source
 
 
+def test_resolve_source_returns_an_absolute_path(fake_source: Path, monkeypatch) -> None:
+    """`--source .` is the documented way to run this from inside a checkout.
+
+    The scanner resolves its own root before listing files, so it reports
+    absolute paths. A relative root returned here reached every consumer that
+    compares the two: `scan_source_warnings` raised ValueError on the first
+    file, taking the whole build down.
+    """
+    monkeypatch.chdir(fake_source.parent)
+    resolved = resolve_source(Path("."))
+    assert resolved.is_absolute()
+    assert resolved == fake_source.resolve()
+
+
 def test_resolve_source_rejects_missing_path(tmp_path: Path) -> None:
     with pytest.raises(IndexError_, match="does not exist"):
         resolve_source(tmp_path / "nope")

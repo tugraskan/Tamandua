@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 
 from tamandua.mcp.server import (
+    INVALID_PARAMS,
+    accepted_arguments,
     handle,
     load_bundled_snapshot,
     render_compact,
@@ -261,3 +263,72 @@ def test_healthy_answer_does_not_pay_for_empty_warning_block() -> None:
         "params": {"name": "find_procedure", "arguments": {"name": "healthy"}},
     }, False)
     assert len(reply["result"]["content"]) == 1
+
+
+# ------------------------------------------------- a bad call must not be fatal
+
+def _bad_call_index() -> SourceIndex:
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-08-28T00:00:00Z",
+        format_version="2", parser_commit=None,
+    ))
+    index.procedures["aqu_read"] = Procedure(
+        name="aqu_read", module=None, location="aqu_read.f90:1-67",
+        path="aqu_read.f90",
+    )
+    return index
+
+
+def _call(index, name, arguments):
+    return handle(index, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                          "params": {"name": name, "arguments": arguments}},
+                  compact=True)
+
+
+def test_a_wrong_argument_name_returns_an_error_instead_of_raising() -> None:
+    """dispatch() splats caller arguments straight into the tool.
+
+    One wrong keyword -- `query` where search_fields takes `text`, which a
+    client guesses on its first try -- raised TypeError out through serve() and
+    killed the process. The client saw its tools vanish mid-session, with no
+    error and nothing in the transcript explaining it.
+    """
+    index = _bad_call_index()
+    response = _call(index, "search_fields", {"query": "lateral flow"})
+
+    assert "error" in response, "a bad argument name must not propagate"
+    assert response["error"]["code"] == INVALID_PARAMS
+
+
+def test_the_error_names_the_arguments_the_tool_accepts() -> None:
+    """Naming the fix is what turns a dead session into a corrected retry."""
+    index = _bad_call_index()
+    message = _call(index, "search_fields", {"query": "x"})["error"]["message"]
+
+    assert "query" in message
+    assert "search_fields accepts: text" in message
+
+
+def test_an_unknown_tool_is_an_error_not_an_exit() -> None:
+    index = _bad_call_index()
+    response = _call(index, "no_such_tool", {})
+
+    assert response["error"]["code"] == INVALID_PARAMS
+    assert "no_such_tool" in response["error"]["message"]
+
+
+def test_the_server_still_answers_after_a_bad_call() -> None:
+    """The point of the fix: one malformed call costs one call, not the session."""
+    index = _bad_call_index()
+    _call(index, "search_fields", {"query": "x"})
+
+    good = _call(index, "find_procedure", {"name": "aqu_read"})
+    assert "error" not in good
+    assert "aqu_read" in good["result"]["content"][0]["text"]
+
+
+def test_accepted_arguments_reads_the_published_schema() -> None:
+    assert accepted_arguments("search_fields") == ["text"]
+    assert accepted_arguments("find_procedure") == ["name"]
+    assert accepted_arguments("nope") == []
