@@ -220,8 +220,8 @@ class Procedure:
     read again. Only this surface survives into queries.
 
     Keeping just it is what lets an index be serialised and served with no
-    ``swatplus_reference`` present at all (docs/decisions.md D-8): the parser
-    is a build-time dependency, not a runtime one.
+    ``swatplus_reference`` present at all: the parser is a build-time
+    dependency, not a runtime one.
     """
 
     name: str

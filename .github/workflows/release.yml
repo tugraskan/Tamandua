@@ -2,7 +2,7 @@ name: Release
 
 # Publish the facts file, expression sidecar, and rendered index as release assets, so the
 # MCP server can be run by people who have neither a SWAT+ checkout nor the
-# swatplus-reference-corpus parser (docs/decisions.md D-8).
+# swatplus-reference-corpus parser.
 #
 # The parser repository is public, so the normal GitHub token can check out the
 # pinned commit without a separately managed personal-access-token secret.

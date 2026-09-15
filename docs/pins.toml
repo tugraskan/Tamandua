@@ -26,7 +26,7 @@ commit = "de210d6"                   # tag 62.0.0
 #
 # Public repository, and a BUILD-TIME dependency only: `swatplus-build`
 # produces swatplus-facts.json, which the MCP server answers from with neither
-# this nor the source present (docs/decisions.md D-8).
+# this nor the source present.
 repo   = "https://github.com/tugraskan/swatplus-reference-corpus"
 commit = "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
 # Bumped 2026-09-15. The previous pin (2daa14ae) is unreachable: the corpus

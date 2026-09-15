@@ -22,7 +22,7 @@ a run's numbers actually did.
 
 Building needs the parser in swatplus-reference-corpus; **serving does not**.
 `swatplus-build` writes `swatplus-facts.json`, which the server answers from
-with neither the parser nor a SWAT+ checkout present (docs/decisions.md D-8).
+with neither the parser nor a SWAT+ checkout present.
 
 ## Working here
 

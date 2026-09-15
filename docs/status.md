@@ -153,7 +153,7 @@ Still unverified against the new scanner: the eight-question byte comparison
 outside the team. The facts file and validated expression sidecar split
 building from serving: the parser is now a build-time dependency only, and the
 release workflow publishes JSON the server answers from with neither the
-parser nor a SWAT+ checkout present. See [D-8](decisions.md).
+parser nor a SWAT+ checkout present.
 
 ## Where the findings are
 

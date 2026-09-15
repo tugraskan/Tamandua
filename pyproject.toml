@@ -8,13 +8,13 @@ version = "0.1.1"
 description = "Facts-only index and MCP tools over SWAT+ Fortran source, so any coding assistant answers SWAT+ questions from evidence instead of guesswork."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }  # decision D-7 (docs/decisions.md)
+license = { text = "MIT" }
 authors = [{ name = "SWAT+ Assistant contributors" }]
 keywords = ["swatplus", "swat+", "hydrology", "assistant", "mcp"]
 
 # Nothing at runtime. The index, the MCP server and the output reader are
 # stdlib-only, so serving a published snapshot needs no install beyond Python
-# itself -- which is the point of docs/decisions.md D-8.
+# itself, which is the point: the parser is a build-time dependency only.
 dependencies = []
 
 [project.urls]

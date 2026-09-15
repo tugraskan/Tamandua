@@ -1,4 +1,4 @@
-"""Tests for saving and loading an index as JSON (docs/decisions.md D-8).
+"""Tests for saving and loading an index as JSON.
 
 The round trip is the whole point: a snapshot is only worth publishing if what
 comes back out answers questions identically to what went in. So these build an
@@ -303,7 +303,7 @@ def test_loading_malformed_json_says_so(tmp_path):
 
 
 def test_loading_does_not_need_the_parser(index, tmp_path, monkeypatch):
-    """The point of D-8: serving must not import swatplus_reference.
+    """Serving must not import swatplus_reference.
 
     Poisoning the import proves the load path never reaches for it, rather than
     happening to work because the parser was installed in the test environment.
