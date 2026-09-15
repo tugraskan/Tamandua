@@ -175,6 +175,64 @@ def t_describe_type(index: SourceIndex, name: str) -> Any:
     ]
 
 
+def t_module_variable(index: SourceIndex, name: str, module: str = "") -> Any:
+    """A variable declared in a module body: where it lives, and whether the
+    bare name is ambiguous.
+
+    Answers the question an index of types and locals cannot: `aqu_d` is a
+    module-level instance of `aquifer_dynamic`, and `describe_type` can list
+    that type's components without anything being able to confirm that the
+    instance exists or which module owns it.
+
+    Candidates are returned as a set, never narrowed to one. Intel mangles a
+    module variable as ``<module>_mp_<name>``, so a symbol map keyed on the
+    bare name has to choose a module -- and 15 SWAT+ names are declared in
+    more than one. `hsaltb_d` is in both `output_ls_salt_module` and
+    `salt_module`; a caller that knows its frame's ``use`` statements can pick
+    correctly, and one that does not needs to see the ambiguity rather than a
+    confident wrong answer.
+    """
+
+    def row(item: Any) -> dict:
+        answer = {
+            "variable": item.name,
+            "module": item.module,
+            "type": item.vartype or "none",
+            "declared_at": f"{item.module}:{item.line}",
+            "units": item.units or "none",
+            "means": item.description or "none",
+        }
+        if item.initial is not None:
+            answer["initial"] = item.initial
+        if item.is_parameter:
+            # No runtime storage, so no object symbol to evaluate against.
+            answer["parameter"] = "yes -- compile-time constant, no object symbol"
+        return answer
+
+    if module:
+        found = index.module_variable(module, name)
+        if found is None:
+            return {"variable": name, "module": module, "found": "no"}
+        return row(found)
+
+    candidates = index.module_variables_named(name)
+    if candidates:
+        if len(candidates) == 1:
+            return row(candidates[0])
+        return {
+            "variable": name,
+            "declared_in": [c.module for c in candidates],
+            "ambiguous": "the bare name is not unique; pass module= to choose",
+            "candidates": [row(c) for c in candidates],
+        }
+
+    matches = index.search_module_variables(name)
+    if not matches:
+        return {"variable": name, "found": "no"}
+    return {"variable": name, "exact": "none",
+            "similar": [row(m) for m in matches]}
+
+
 def t_call_path(index: SourceIndex, procedure: str) -> Any:
     """How execution reaches a routine, from an entry point down."""
     paths = index.paths_to(procedure)
@@ -308,6 +366,22 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
     ("describe_type", "Every field of a derived type, with units and meaning -- "
                       "what a state object like aqu_d actually contains.",
      _one("name", "Type name, e.g. aquifer_dynamic"), t_describe_type),
+    ("module_variable", "A variable declared in a module body -- its declaring "
+                        "module, type, declaration line, units and meaning. "
+                        "This is the program's global state: a state object "
+                        "like aqu_d is a module-level instance, which "
+                        "describe_type cannot confirm exists. Where a bare "
+                        "name is declared in more than one module, every "
+                        "candidate is returned rather than one being chosen. "
+                        "Falls back to a name and documented-meaning search "
+                        "when there is no exact match. Exhaustive, not truncated.",
+     {"type": "object",
+      "properties": {
+          "name": {"type": "string", "description": "Variable name, e.g. aqu_d"},
+          "module": {"type": "string",
+                     "description": "Optional declaring module, to disambiguate"},
+      },
+      "required": ["name"]}, t_module_variable),
     ("call_path", "How execution reaches a procedure, from an entry point down.",
      _one("procedure", "Procedure name, e.g. aqu_1d_control"), t_call_path),
     ("read_output", "Summarise a column of a run's output file: count, first, "

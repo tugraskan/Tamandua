@@ -25,6 +25,7 @@ from tamandua.index import (
     IndexError_,
     IOUse,
     Loop,
+    ModuleVariable,
     Procedure,
     Provenance,
     ScannerWarning,
@@ -131,6 +132,42 @@ def index() -> SourceIndex:
                   location="aquifer_module.f90:12"),
         ],
     )
+    for item in (
+        # The module-level instance of the derived type above -- the root of
+        # the name a developer actually types, `aqu_d%rchrg`.
+        ModuleVariable(
+            name="aqu_d", module="aquifer_module",
+            vartype="type (aquifer_dynamic)",
+            declaration="type (aquifer_dynamic), dimension(:), allocatable :: aqu_d",
+            line=18, units=None, description="aquifer state by object",
+        ),
+        # Undocumented, and carrying an initial value.
+        ModuleVariable(
+            name="msh_aqp", module="aquifer_module", vartype="integer",
+            declaration="integer :: msh_aqp = 0", line=19,
+            units=None, description=None, initial="0",
+        ),
+        # A compile-time constant: no runtime storage, so no object symbol.
+        ModuleVariable(
+            name="max_aqu", module="aquifer_module", vartype="integer",
+            declaration="integer, parameter :: max_aqu = 1000", line=20,
+            units=None, description="upper bound", initial="1000",
+            is_parameter=True,
+        ),
+        # The collision, from the real tree: `hsaltb_d` is declared in both of
+        # these modules, and a lookup keyed on the bare name loses one.
+        ModuleVariable(
+            name="hsaltb_d", module="salt_module", vartype="real",
+            declaration="real, dimension(:) :: hsaltb_d", line=44,
+            units="kg", description="salt balance by hru",
+        ),
+        ModuleVariable(
+            name="hsaltb_d", module="output_ls_salt_module", vartype="real",
+            declaration="real, dimension(:) :: hsaltb_d", line=61,
+            units="kg", description="salt balance output",
+        ),
+    ):
+        idx.module_variables[(item.module.lower(), item.name.lower())] = item
     idx.call_paths["aqu_read"] = [["main", "command", "aqu_read"]]
     idx.scanner_warnings.append(ScannerWarning(
         code="unclosed_block",
@@ -167,6 +204,15 @@ def test_round_trip_preserves_every_query_answer(index, tmp_path):
     assert back.scope_at("aquifer_module.f90", 27)[0].index == "ish_aqp"
     assert back.scanner_warnings == index.scanner_warnings
     assert back.warnings_for_procedure("aqu_read") == index.scanner_warnings
+    assert back.module_variables == index.module_variables
+    assert back.module_variable("aquifer_module", "aqu_d").vartype == \
+        "type (aquifer_dynamic)"
+    # Both halves of the collision survive, and neither is chosen.
+    assert [m.module for m in back.module_variables_named("hsaltb_d")] == \
+        ["output_ls_salt_module", "salt_module"]
+    assert back.module_variable("aquifer_module", "max_aqu").is_parameter is True
+    assert back.module_variable("aquifer_module", "msh_aqp").initial == "0"
+    assert back.module_variable("aquifer_module", "msh_aqp").description is None
 
 
 def test_version_one_snapshot_loads_with_warning_defaults(index, tmp_path):
@@ -288,6 +334,28 @@ def test_loading_a_future_format_names_the_fix(index, tmp_path):
     assert "swatplus-build" in str(exc.value)
 
 
+def test_a_format_two_snapshot_loads_without_the_new_section(index, tmp_path):
+    """Formats 1 and 2 predate ``module_variables``, and still have to load.
+
+    The section is read with a default rather than by key, so an older file
+    comes back with it empty instead of raising. Everything else it does carry
+    must still answer.
+    """
+    path = save_snapshot(index, tmp_path / "snap.json")
+    payload = json.loads(path.read_text())
+    payload["snapshot_format"] = "2"
+    del payload["module_variables"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    back = load_snapshot(path)
+    assert back.module_variables == {}
+    assert back.module_variables_named("aqu_d") == []
+    assert back.module_variable("aquifer_module", "aqu_d") is None
+    # The rest of the snapshot is unaffected.
+    assert back.procedure("aqu_read").name == "aqu_read"
+    assert back.loops_in("aqu_read")[0].index == "ish_aqp"
+
+
 def test_loading_a_missing_file_reports_the_path(tmp_path):
     with pytest.raises(IndexError_) as exc:
         load_snapshot(tmp_path / "absent.json")
@@ -386,5 +454,26 @@ def test_the_bundled_snapshot_is_the_current_format():
     locals and uses, and every loop's index and end line.
     """
     payload = json.loads(_bundled(FACTS_NAME).read_text(encoding="utf-8"))
-    assert str(payload["snapshot_format"]) == SNAPSHOT_FORMAT
+    assert str(payload["snapshot_format"]) == SNAPSHOT_FORMAT, (
+        "the bundled snapshot predates the current format; rebuild it with "
+        "`swatplus-build` where a SWAT+ checkout and the parser are present")
     assert str(payload["index_format"]) == INDEX_FORMAT_VERSION
+
+
+def test_the_bundled_snapshot_carries_module_variables():
+    """The section added in format 3, asserted on the shipped file.
+
+    Older formats stay readable and the section loads empty from them, which
+    is exactly how a stale bundle goes unnoticed: every module-variable query
+    would answer "not found" from a file that loads without complaint. That is
+    the format-1 failure repeated, so it gets its own assertion rather than
+    relying on the version number alone.
+    """
+    index = load_snapshot(_bundled(FACTS_NAME))
+    assert index.module_variables, (
+        "the bundled snapshot carries no module variables, so every "
+        "module_variable query answers 'not found'; rebuild it with "
+        "`swatplus-build`")
+    # A state object SWAT+ declares at module level, not a type component.
+    assert index.module_variables_named("aqu_d"), \
+        "aqu_d is not indexed as a module variable"

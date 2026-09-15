@@ -107,6 +107,29 @@ def render_index(index: SourceIndex) -> str:
     w("```")
     w("")
 
+    w("## Module variables")
+    w("")
+    w("The program's global state: variables declared in a module body, outside any")
+    w("procedure. Keyed `module%name` because a bare name is not unique -- 15 SWAT+")
+    w("names are declared in more than one module -- which keeps a row greppable both")
+    w("ways: `^salt_module%` for one module's variables, `%hsaltb_d|` for one name")
+    w("wherever it is declared. `parameter` marks a compile-time constant, which has")
+    w("no runtime storage and so no object symbol.")
+    w("")
+    w("`module%name | line | type | initial | parameter | units | meaning | declaration`")
+    w("")
+    w("```")
+    for item in sorted(index.module_variables.values(),
+                       key=lambda item: (item.module.lower(), item.line)):
+        values = [
+            item.path, str(item.line), item.vartype or "-",
+            item.initial or "-", "parameter" if item.is_parameter else "-",
+            item.units or "-", item.description or "-", item.declaration or "-",
+        ]
+        w("|".join(value.replace("|", "/").replace("\n", " ") for value in values))
+    w("```")
+    w("")
+
     w("## Select cases")
     w("")
     w("`routine | line | subject | cases`")

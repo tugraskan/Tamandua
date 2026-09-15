@@ -78,7 +78,7 @@ tamandua/
 │   ├── render.py      #   SOURCE_INDEX.md
 │   ├── install.py     #   assistant instruction-file pointers
 │   └── scope.py       #   loop nesting, for conditional breakpoints
-├── mcp/server.py      # 14 read-only tools over the same objects
+├── mcp/server.py      # 15 read-only tools over the same objects
 ├── mcp/client.py      # generic MCP stdio client (talk to another server)
 ├── output/reader.py   # query a run's output files
 └── config.py          # loads docs/pins.toml

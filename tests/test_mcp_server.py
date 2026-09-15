@@ -17,11 +17,13 @@ from tamandua.mcp.server import (
     t_file_io,
     t_find_procedure,
     t_loops,
+    t_module_variable,
     t_writers,
     tool_specs,
 )
 from tamandua.index import (
     Loop,
+    ModuleVariable,
     Procedure,
     Provenance,
     ScannerWarning,
@@ -261,3 +263,82 @@ def test_healthy_answer_does_not_pay_for_empty_warning_block() -> None:
         "params": {"name": "find_procedure", "arguments": {"name": "healthy"}},
     }, False)
     assert len(reply["result"]["content"]) == 1
+
+
+# ------------------------------------------- module-level variables
+
+
+def _salt_index() -> SourceIndex:
+    """An index carrying the real `hsaltb_d` collision."""
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src", source_commit=None, source_describe=None,
+        source_fingerprint="abc", generated_at="2026-09-15T00:00:00Z",
+        format_version="3", parser_commit=None,
+    ))
+    for item in (
+        ModuleVariable(
+            name="hsaltb_d", module="salt_module", vartype="real",
+            declaration="real, dimension(:) :: hsaltb_d", line=44,
+            units="kg", description="salt balance by hru",
+        ),
+        ModuleVariable(
+            name="hsaltb_d", module="output_ls_salt_module", vartype="real",
+            declaration="real, dimension(:) :: hsaltb_d", line=61,
+            units="kg", description="salt balance output",
+        ),
+        ModuleVariable(
+            name="max_aqu", module="aquifer_module", vartype="integer",
+            declaration="integer, parameter :: max_aqu = 1000", line=20,
+            units=None, description=None, initial="1000", is_parameter=True,
+        ),
+    ):
+        index.module_variables[(item.module.lower(), item.name.lower())] = item
+    return index
+
+
+def test_an_ambiguous_name_returns_every_candidate_not_a_winner() -> None:
+    """The answer the nm-generated symbol map gets wrong.
+
+    It keys on the bare name and resolves duplicates by sorting the mangled
+    symbols, so the winner is whichever module name sorts first -- unrelated
+    to the scope the question came from. A tool that picked one would repeat
+    exactly that, silently.
+    """
+    answer = t_module_variable(_salt_index(), "hsaltb_d")
+    assert answer["declared_in"] == ["output_ls_salt_module", "salt_module"]
+    assert "ambiguous" in answer
+    assert len(answer["candidates"]) == 2
+
+
+def test_a_module_qualifies_an_ambiguous_name() -> None:
+    answer = t_module_variable(_salt_index(), "hsaltb_d", "salt_module")
+    assert answer["module"] == "salt_module"
+    assert answer["declared_at"] == "salt_module:44"
+    assert answer["units"] == "kg"
+
+
+def test_a_parameter_says_it_has_no_object_symbol() -> None:
+    """Four SWAT+ declarations are compile-time constants. A caller building a
+    debugger symbol map has to exclude them, so the answer says so."""
+    answer = t_module_variable(_salt_index(), "max_aqu")
+    assert "no object symbol" in answer["parameter"]
+    assert answer["initial"] == "1000"
+
+
+def test_an_unknown_name_falls_back_to_a_search() -> None:
+    answer = t_module_variable(_salt_index(), "salt balance")
+    assert answer["exact"] == "none"
+    assert {row["module"] for row in answer["similar"]} == {
+        "salt_module", "output_ls_salt_module"}
+    assert t_module_variable(_salt_index(), "nothing_here")["found"] == "no"
+
+
+def test_every_tool_spec_is_well_formed() -> None:
+    """A malformed schema makes a tool unusable without failing loudly."""
+    for spec in tool_specs():
+        assert spec["name"] and spec["description"]
+        schema = spec["inputSchema"]
+        assert schema["type"] == "object"
+        for required in schema.get("required", []):
+            assert required in schema["properties"], (
+                f"{spec['name']} requires {required}, which it does not declare")

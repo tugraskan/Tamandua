@@ -35,6 +35,7 @@ from tamandua.index.build import (
     IOUse,
     IndexError_,
     Loop,
+    ModuleVariable,
     Procedure,
     Provenance,
     ScannerWarning,
@@ -51,8 +52,14 @@ from tamandua.index.install import RHS_NAME
 #: Bumped when the *snapshot file's* own layout changes. Distinct from
 #: ``INDEX_FORMAT_VERSION``, which describes the facts inside it: a snapshot can
 #: gain a section without the extracted fields changing shape, and vice versa.
-SNAPSHOT_FORMAT = "2"
-READABLE_SNAPSHOT_FORMATS = {"1", SNAPSHOT_FORMAT}
+SNAPSHOT_FORMAT = "3"
+#: Format 3 adds ``module_variables``. Older files stay readable, and the
+#: section loads empty from them -- so the guard against quietly serving a
+#: snapshot that predates a section is the assertion that the *bundled* pair
+#: is current, not this allow-list. A format-1 bundle once loaded silently
+#: while answering every `breakpoint` query with zero loops; see
+#: ``tests/test_snapshot.py``.
+READABLE_SNAPSHOT_FORMATS = {"1", "2", SNAPSHOT_FORMAT}
 RHS_FORMAT = "1"
 
 
@@ -147,6 +154,14 @@ def save_snapshot(index: SourceIndex, path: Path) -> Path:
             for t in index.types.values()
         ],
         "call_paths": {k: [list(p) for p in v] for k, v in index.call_paths.items()},
+        "module_variables": [
+            {"name": item.name, "module": item.module, "vartype": item.vartype,
+             "declaration": item.declaration, "line": item.line,
+             "units": item.units, "description": item.description,
+             "initial": item.initial, "is_parameter": item.is_parameter}
+            for item in sorted(index.module_variables.values(),
+                               key=lambda item: (item.module.lower(), item.line))
+        ],
         "scanner_warnings": [
             {
                 "code": warning.code,
@@ -317,6 +332,11 @@ def load_snapshot(path: Path) -> SourceIndex:
             name=raw["name"], module=raw["module"], location=raw["location"],
             fields=[Field(**f) for f in raw["fields"]],
         )
+    # Absent from formats 1 and 2, so read with a default rather than by key.
+    for raw in payload.get("module_variables", []):
+        item = ModuleVariable(**raw)
+        index.module_variables[(item.module.lower(), item.name.lower())] = item
+
     sidecar = rhs_path_for(path)
     if sidecar.is_file():
         load_rhs(index, sidecar)
