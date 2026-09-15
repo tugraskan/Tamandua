@@ -1,12 +1,19 @@
 """What is in scope at a line, for setting a conditional breakpoint.
 
-The parser records where each loop starts but not where it ends, so nesting is
+The parser recorded where each loop starts but not where it ends, so nesting is
 recovered from the source once, while the index is built. Fortran makes that tractable: `do` opens and
 `end do` closes, with no early exit from the block structure. Across the pinned
 SWAT+ tree 647 of 648 files balance exactly; the one that does not is reported
 as unresolved rather than guessed at, because a breakpoint condition built on a
 wrong loop variable costs a whole compile-and-run cycle to discover. Query-time
 scope lookups use the stored ranges and never reopen this source path.
+
+As of the parser pinned on 2026-09-15 that first sentence is out of date:
+`ControlStep` now carries `end_line`, `depth`, `parent_id` and `branch_of`, so
+the block tree is a parser fact rather than something to re-derive here. This
+module has not been switched over -- doing so changes which loops the index
+reports, so it needs a real-source comparison against the numbers above before
+it is worth it. See docs/status.md.
 """
 
 from __future__ import annotations

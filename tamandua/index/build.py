@@ -35,6 +35,10 @@ INDEX_FORMAT_VERSION = "2"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
+# The parser pinned on 2026-09-15 reports `target`, `target_root` and
+# `expression` on each assignment, which makes re-deriving the target from
+# `raw` here redundant. Not switched over for the same reason as
+# tamandua/index/scope.py: it needs a real-source comparison first.
 _ASSIGN_RE = re.compile(r"^\s*([A-Za-z_]\w*(?:\s*%\s*\w+|\s*\([^=]*?\))*)\s*=(?!=)")
 
 #: Array subscripts carry no identity -- `aqu_d(iaq)` and `aqu_d(3)` are the

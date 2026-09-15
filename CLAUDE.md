@@ -30,7 +30,7 @@ with neither the parser nor a SWAT+ checkout present (docs/decisions.md D-8).
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 151 pass, 9 skipped (128/32 without the parser)
+python -m pytest -q          # 171 pass, 9 skipped (145/35 without the parser)
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and
