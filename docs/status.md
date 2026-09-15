@@ -2,7 +2,7 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-15 (parser pin bumped to the fparser2-migration corpus).
+Last updated 2026-09-15 (parser pin bumped; verified on real source; loop-scope defect fixed).
 
 ---
 
@@ -26,8 +26,11 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | **171 pass, 9 skipped** with the parser; **145/35** without; real-source gate **158/2** (not re-run since the pin bump) |
-| | Both counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
+| Tests | real-source gate **183 pass, 0 skipped**; **174/9** without a SWAT+ checkout; **148/35** without the parser either |
+| | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
+| Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
+| Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
+| Assignment targets vs the parser | **21,770 of 21,770 agree**, neither misses one the other finds |
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these.
@@ -40,11 +43,14 @@ could not resolve that ref and `release.yml` could not have built. The pin is
 now `7a6e21ec` (main), and the two guards in `tests/test_config.py` moved with
 it.
 
-What the corpus changed, and what it means here:
+Verified against a real SWAT+ 62.0.0 checkout (`de210d6`, 648 files), not just
+the synthetic fixtures:
 
-- The scanner is now backed by an **fparser2 AST parser**. Tamandua's two entry
-  points -- `BuildConfig` and `FortranScanner` -- are unchanged, and every field
-  it reads is still there. The suite is green against the new pin.
+- Full-tree build succeeds, 734 procedures and 510 derived types -- the same
+  figures as the previous parser.
+- **183 pass, 0 skipped** with source and the Ames dataset present.
+- Tamandua's two entry points, `BuildConfig` and `FortranScanner`, are
+  unchanged, and every field it reads is still there.
 - `FortranScanner.scan()` still leaves `called_by`, `call_paths` and
   `CallRef.resolved` empty, so `tamandua/index/analyze.py` is still required.
   The corpus grew its own semantic layer (`parser/semantic.py`), but `scan()`
@@ -54,29 +60,48 @@ What the corpus changed, and what it means here:
   `sys.meta_path`. `release.yml` checks the corpus out rather than installing
   it, so this is load-bearing.
 
-**Not yet taken up.** The new parser reports two things Tamandua still derives
-itself, so both sites now carry redundant work:
+## Two defects the pin bump exposed
 
-| Tamandua does it by hand | The parser now reports |
-|---|---|
-| `index/scope.py` re-reads every file to find `end do` | `ControlStep.end_line`, `depth`, `parent_id`, `branch_of` |
-| `index/build.py` `_ASSIGN_RE` re-derives the target from `raw` | `AssignmentDoc.target`, `target_root`, `expression` |
+Neither was caused by the new parser; both were invisible until it gave a
+second opinion to compare against. That is the ninth and tenth entry for
+"found by ordinary use, not by a harness".
 
-Switching changes which loops and writers the index reports, so each needs a
-real-source comparison against the 647/648 figure in `scope.py` before it is
-worth doing. Both sites are commented in place.
+**Loop scope missed 172 real loops.** `index/scope.py` matched `do` only at the
+start of a line, but SWAT+ packs whole loops onto one line behind a `;` --
+`buf = 0.0; do k = 1, n; buf(k) = soil1(j)%str(k)%c; end do`, 133 times in
+soil_nutcarb_write.f90 and 39 in soil_carbvar_write.f90. Every line inside one
+reported **no scope at all**, so `breakpoint` offered no index variable to pin
+-- the exact silent-wrong-answer that module exists to prevent. Fixed with a
+quote-aware statement splitter and guarded by three tests in `test_scope.py`
+(confirmed to fail against the previous code). Measured after the fix: 2,833
+loops in common with the parser, **zero disagreement on any end line, none
+invented**. The 19 the parser still finds are all in gwflow_pond.f90, the one
+file whose `do`/`end do` do not balance, still reported unresolved rather than
+guessed at.
 
-There is also one genuinely new fact nothing here surfaces yet:
-`IOOperation.condition` gives the `if` guard wrapping an I/O statement
-(verified: a guarded `write` reports `if (pco%day_print == "y") then`). That is
-not what `scope.condition_for` builds -- that one pins loop index variables for
-a debugger breakpoint -- so this would be an addition, not a replacement.
+**The bundled snapshot was two formats stale.** `tamandua/data/swatplus-facts
+.json` shipped as `snapshot_format: 1` with `parser_commit: 2daa14ae`. Format 1
+is still *readable*, so it loaded silently while missing everything format 2
+added: per-procedure `arguments`, `locals`, `uses` and `select_cases`, and
+`index`/`end_line` on every loop. Served from that file, `aqu_read` reported 0
+uses and 0 locals, and **every** `breakpoint` query returned 0 loops. Rebuilt
+against `de210d6` with the new parser; `aqu_read` now reports 4 uses and 9
+locals, and a write inside a packed loop yields `k == <value>`. The file grows
+4.34 MB -> 6.39 MB, almost all of it the format-2 procedure detail.
 
-**The bundled snapshot is stale.** `tamandua/data/swatplus-facts.json` still
-records `parser_commit: 2daa14ae`. `index_is_current()` compares against the
-live corpus HEAD, so anyone building from source rebuilds automatically; the
-shipped asset is refreshed by `release.yml` on the next release. Rebuilding it
-here needs a SWAT+ 62.0.0 checkout, which this environment did not have.
+## Not taken up
+
+`AssignmentDoc.target` / `target_root` / `expression` make `build.py`'s
+`_ASSIGN_RE` redundant. Measured on real source: the two agree on **all 21,770
+assignments**, and neither finds a target the other misses. So switching is a
+safe refactor with no behaviour change -- and for that reason not urgent. The
+site is commented.
+
+Likewise `IOOperation.condition` gives the `if` guard wrapping an I/O statement
+(verified: a guarded `write` reports `if (pco%day_print == "y") then`). Nothing
+here surfaces it yet. It is not what `scope.condition_for` builds -- that one
+pins loop index variables for a debugger breakpoint -- so it would be an
+addition, not a replacement.
 
 **Unrelated, but latent.** `pyproject.toml` pins `httpx>=0.27` with no upper
 bound. `tests/test_ant_harness.py` uses `httpx.MockTransport`, which httpx 1.0

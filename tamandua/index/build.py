@@ -37,8 +37,10 @@ INDEX_FORMAT_VERSION = "2"
 # The negative lookahead keeps `==` comparisons out.
 # The parser pinned on 2026-09-15 reports `target`, `target_root` and
 # `expression` on each assignment, which makes re-deriving the target from
-# `raw` here redundant. Not switched over for the same reason as
-# tamandua/index/scope.py: it needs a real-source comparison first.
+# `raw` here redundant. Measured against SWAT+ 62.0.0: both agree on all
+# 21,770 assignments, and neither finds a target the other misses. So this is
+# a safe refactor with no behaviour change -- and, being no behaviour change,
+# not urgent. Left as is deliberately.
 _ASSIGN_RE = re.compile(r"^\s*([A-Za-z_]\w*(?:\s*%\s*\w+|\s*\([^=]*?\))*)\s*=(?!=)")
 
 #: Array subscripts carry no identity -- `aqu_d(iaq)` and `aqu_d(3)` are the
