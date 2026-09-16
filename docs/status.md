@@ -2,13 +2,14 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-15 (parser pin bumped; verified on real source; loop-scope defect fixed).
+Last updated 2026-09-16 (parser pin bumped; verified on real source; loop-scope
+defect fixed; module-level variables indexed and the bundled snapshot rebuilt).
 
 ---
 
 ## What this is
 
-A **facts-only index of SWAT+ Fortran source**, delivered two ways: a 14-tool
+A **facts-only index of SWAT+ Fortran source**, delivered two ways: a 15-tool
 MCP server, and a generated file in the checkout. Both answer the same
 questions — which routine reads this file, what calls this, what assigns this
 variable, what loops are here, where do I set a breakpoint — from static
@@ -26,7 +27,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **187 pass, 0 skipped**; **178/9** without a SWAT+ checkout; **152/35** without the parser either |
+| Tests | real-source gate **206 pass, 0 skipped**; **171/35** with neither source nor parser. Both measured after the format-3 rebuild, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -59,6 +60,85 @@ the synthetic fixtures:
   imports `fparser`. Verified by scanning with `fparser` blocked from
   `sys.meta_path`. `release.yml` checks the corpus out rather than installing
   it, so this is load-bearing.
+
+## Module-level variables are now indexed (format 3)
+
+The index kept two of the three classes of Fortran name -- derived-type
+components and procedure arguments/locals -- and dropped the third. Module-level
+variables were parsed and discarded: `input_filenames` read a name and a type
+off `project.modules` to resolve input filenames and threw the rest away. So
+the index could describe the type `aquifer_dynamic` in full while unable to say
+that `aqu_d` existed, what type it had, or which module owned it -- although
+SWAT+ keeps nearly everything in module-level instances of derived types, as
+`field_path` has always noted.
+
+Measured against the pinned tree (SWAT+ 62.0.0, parser `7a6e21ec`):
+
+| | |
+|---|---|
+| Module-variable declarations | **2,018** across 66 modules |
+| Distinct bare names | 2,003 |
+| Names declared in more than one module | **15** |
+| Records carrying name, type, declaration and line | 2,018 -- all |
+| ... also carrying a description | 539 |
+| ... also carrying units | 154 |
+| ... also carrying an initial value | 474 |
+| Carrying the `parameter` attribute | 10 |
+| Snapshot cost | **+571,536 bytes on the base file, +8.94%** |
+| Source `(module, variable)` pairs matching object symbols | 2,014 of 2,018 |
+| Object-only `_mp_` symbols | 119, all module procedures |
+
+Everything above is reproduced from the pinned tree (`de210d6`, parser
+`7a6e21ec`) except the last two rows, which need a real ifx build and are
+carried from the review that requested this change.
+
+**Three review figures did not survive reproduction.** They were taken on the
+same pins, so the discrepancy is in the measurement, not the tree:
+
+- Documentation was reported as 638. It is **539** descriptions and **154**
+  units -- 638 is neither, nor their union.
+- The `parameter` count was reported as 4, which was the number of source
+  declarations with no matching object symbol. **10** carry the attribute. The
+  two are different questions, and 10 is the right filter for a symbol map: a
+  `parameter` has no runtime storage whether or not the compiler emitted a
+  symbol for it.
+- The snapshot cost was reported as +382,883 bytes (+5.72%) against a
+  6,698,241-byte base. The base is **6,393,448** bytes -- byte-identical to
+  what was already bundled, which is how we know the rebuild is reproducible
+  -- and the section costs **+571,536** bytes, **+8.94%**. Half again as much
+  as reported.
+
+The sidecar decision is unchanged and now rests on the corrected figure: an
+equivalent sidecar carries the same ~572 KB of records, so it still saves
+nothing while adding matching, versioning and stale-artifact failure modes.
+
+**The keying is the point.** `hsaltb_d` is declared in both
+`output_ls_salt_module` and `salt_module`. A lookup on the bare name has to
+pick one, and `tools/generate_fortran_symbols.py` in vsc_ifx_debug picks by
+sorting the mangled symbols -- so the winner is whichever *module name* sorts
+first, unrelated to the scope the question came from, while routines such as
+`gwflow_canal_div` explicitly import `salt_module`'s version. So
+`module_variables` is keyed `(module, name)` and `module_variables_named`
+returns the whole candidate set rather than choosing. `colliding_module_variable_names`
+reports which names cannot be resolved on the bare name at all.
+
+`is_parameter` is stored rather than re-derived by consumers: a `parameter` has
+no runtime storage and therefore no object symbol, so anything projecting a
+debugger symbol map must exclude those 4 -- and should not need its own Fortran
+attribute parser to find out which.
+
+**The bundled snapshot was rebuilt** against the pinned source and parser, so
+both format counters are at `3` and `tamandua/data/` carries the section. From
+a plain install, `aqu_d` now answers `aquifer_module:56` and
+`colliding_module_variable_names` returns its 15 entries.
+
+Two tests guard it, and the second exists because the first is not enough on
+its own: formats 1 and 2 stay readable and the new section loads *empty* from
+them, so a stale bundle would answer every module-variable query with "not
+found" while loading without complaint. That is exactly how the format-1
+bundle went unnoticed while answering every `breakpoint` query with zero loops,
+so `test_the_bundled_snapshot_carries_module_variables` asserts the records are
+really there rather than trusting the version number.
 
 ## Two defects the pin bump exposed
 
@@ -136,7 +216,7 @@ Still unverified against the new scanner: the eight-question byte comparison
 ## What exists
 
 - `tamandua/index/` — parse, render, install pointers, snapshot, scope
-- `tamandua/mcp/server.py` — 14 read-only tools over the same objects
+- `tamandua/mcp/server.py` — 15 read-only tools over the same objects
 - `tamandua/mcp/client.py` — generic MCP stdio client
 - `tamandua/output/reader.py` — query a run's output, refuses files it cannot index safely
 - `swatplus-build` — writes `swatplus-facts.json` plus the optional-by-presence

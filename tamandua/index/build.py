@@ -31,7 +31,7 @@ from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 
 #: Bumped when the extracted fields change shape, so a stale index is
 #: recognisable as stale rather than silently mis-read.
-INDEX_FORMAT_VERSION = "2"
+INDEX_FORMAT_VERSION = "3"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
@@ -55,6 +55,11 @@ _OPEN_HELPER_RE = re.compile(
     r"""open_output_file\s*\(\s*(\d+)\s*,\s*["']([^"']+)["']""",
     re.IGNORECASE,
 )
+
+# The `parameter` attribute, matched only in the attribute list ahead of the
+# `::`. Matching the whole declaration would also hit the word inside an
+# initialiser string or a trailing `!` comment.
+_PARAMETER_RE = re.compile(r"\bparameter\b", re.IGNORECASE)
 
 # `type (input_aqu)` / `type(input_aqu)` -- a variable's declared derived
 # type, which is the first hop from `in_aqu` to the component defaults.
@@ -162,6 +167,48 @@ class VariableDeclaration:
 
 
 @dataclass
+class ModuleVariable:
+    """One variable declared in a module body, outside any procedure.
+
+    The third class of Fortran name, and the one this index used to drop.
+    Derived-type components and procedure arguments/locals were both kept;
+    module-level variables were parsed and discarded, although SWAT+ keeps
+    nearly everything in module-level instances of derived types -- `aqu_d`,
+    `in_aqu`, `sp_ob`. The index could describe the type `aquifer_dynamic`
+    in full while unable to say that `aqu_d` existed or which module owned it.
+
+    ``module`` is half the identity, not decoration: 15 of the 2,003 distinct
+    bare names in SWAT+ 62.0.0 are declared in more than one module, so a
+    lookup keyed on the name alone answers confidently and wrongly 15 times.
+    ``hsaltb_d`` is declared in both `output_ls_salt_module` and `salt_module`.
+
+    ``is_parameter`` is stored rather than left for a consumer to re-derive
+    from ``declaration``. A ``parameter`` is a compile-time constant with no
+    runtime storage, so anything projecting a debugger symbol map has to
+    exclude it, and should not need a Fortran attribute parser to do it. 10 of
+    the 2,018 declarations carry the attribute. That is deliberately a wider
+    filter than the 4 declarations an ifx build showed with no object symbol:
+    whether the compiler emitted a symbol for a constant or not, it is not a
+    variable whose value can be watched change.
+    """
+
+    name: str
+    module: str
+    vartype: str | None
+    declaration: str | None
+    line: int
+    units: str | None
+    description: str | None
+    initial: str | None = None
+    is_parameter: bool = False
+
+    @property
+    def path(self) -> str:
+        """``module%name`` -- unique where the bare name is not."""
+        return f"{self.module}%{self.name}"
+
+
+@dataclass
 class SelectCase:
     """The closed vocabulary parsed from one ``select case`` block."""
 
@@ -253,6 +300,9 @@ class SourceIndex:
     )
     loops: dict[str, list[Loop]] = field(default_factory=lambda: defaultdict(list))
     types: dict[str, DerivedType] = field(default_factory=dict)
+    #: Keyed ``(module, name)``, both lowercased. A flat name key would be
+    #: wrong for the 15 names SWAT+ declares in more than one module.
+    module_variables: dict[tuple[str, str], ModuleVariable] = field(default_factory=dict)
     call_paths: dict[str, list[list[str]]] = field(default_factory=lambda: defaultdict(list))
     scanner_warnings: list[ScannerWarning] = field(default_factory=list)
     unresolved_loop_files: set[str] = field(default_factory=set)
@@ -297,6 +347,81 @@ class SourceIndex:
 
     def derived_type(self, name: str) -> DerivedType | None:
         return self.types.get(name.strip().lower())
+
+    def module_variable(self, module: str, name: str) -> ModuleVariable | None:
+        """One module variable by its full identity."""
+        return self.module_variables.get(
+            (module.strip().lower(), name.strip().lower()))
+
+    def module_variables_named(self, name: str) -> list[ModuleVariable]:
+        """Every module that declares ``name`` -- the candidate set.
+
+        Returning a list rather than a winner is the point. Intel mangles a
+        module variable as ``<module>_mp_<name>``, so a consumer building a
+        symbol map has to pick a module; the existing generator keyed on the
+        bare name and resolved duplicates by sorting the mangled symbols,
+        which means the winner was whichever *module name* sorted first --
+        unrelated to the scope the question was asked from. A caller that
+        knows its frame's ``use`` statements can choose correctly; one that
+        does not should see that the answer is ambiguous.
+        """
+        needle = name.strip().lower()
+        return sorted(
+            (item for (_, key), item in self.module_variables.items()
+             if key == needle),
+            key=lambda item: item.module.lower(),
+        )
+
+    def module_variables_in(self, module: str) -> list[ModuleVariable]:
+        """Every variable a module declares, in source order."""
+        needle = module.strip().lower()
+        return sorted(
+            (item for (key, _), item in self.module_variables.items()
+             if key == needle),
+            key=lambda item: item.line,
+        )
+
+    def search_module_variables(self, text: str, limit: int = 25) -> list[ModuleVariable]:
+        """Find a module variable from ordinary words or a partial name.
+
+        The same three-band ranking as :meth:`search_fields`: an exact name,
+        then a name containing the text, then a documented meaning mentioning
+        it. ``search_fields`` reaches `aquifer_dynamic%rchrg` -- the type's
+        component -- while the name a developer types is `aqu_d%rchrg`, whose
+        root is a module variable. This is the other half of that lookup.
+        """
+        needle = text.strip().lower()
+        if not needle:
+            return []
+        exact: list[ModuleVariable] = []
+        partial: list[ModuleVariable] = []
+        described: list[ModuleVariable] = []
+        for item in self.module_variables.values():
+            name = item.name.lower()
+            if name == needle:
+                exact.append(item)
+            elif needle in name:
+                partial.append(item)
+            elif needle in (item.description or "").lower():
+                described.append(item)
+        def order(item: ModuleVariable) -> tuple[str, str]:
+            return (item.name.lower(), item.module.lower())
+
+        return (sorted(exact, key=order) + sorted(partial, key=order)
+                + sorted(described, key=order))[:limit]
+
+    def colliding_module_variable_names(self) -> dict[str, list[str]]:
+        """Bare names declared in more than one module, to the modules.
+
+        The measured answer for SWAT+ 62.0.0 is 15 names. A consumer
+        projecting a symbol map needs to know which lookups it cannot do on
+        the bare name alone.
+        """
+        by_name: dict[str, list[str]] = defaultdict(list)
+        for item in self.module_variables.values():
+            by_name[item.name.lower()].append(item.module)
+        return {name: sorted(modules) for name, modules in sorted(by_name.items())
+                if len(modules) > 1}
 
     def paths_to(self, procedure: str) -> list[list[str]]:
         """Execution paths from an entry point down to this procedure."""
@@ -734,6 +859,51 @@ def output_unit_filenames(source: Path) -> dict[str, str]:
     return mapping
 
 
+def declares_parameter(declaration: str | None) -> bool:
+    """True when a declaration carries the ``parameter`` attribute.
+
+    Derived once at build time and stored on the record, so a consumer
+    filtering compile-time constants out of a debugger symbol map does not
+    need its own Fortran attribute parser.
+    """
+    if not declaration:
+        return False
+    attributes, separator, _ = declaration.partition("::")
+    # No `::` means no attribute list, so nothing can carry `parameter`.
+    return bool(separator) and bool(_PARAMETER_RE.search(attributes))
+
+
+def module_variables(project: Any) -> list[ModuleVariable]:
+    """Every variable declared in a module body, outside any procedure.
+
+    The parser reports these on ``project.modules``; until this function
+    existed the only caller was :func:`input_filenames`, which read a name and
+    a type to resolve input filenames and discarded the rest.
+    """
+    records: list[ModuleVariable] = []
+    for module in getattr(project, "modules", ()) or ():
+        module_name = getattr(module, "name", None)
+        if not module_name:
+            continue
+        for variable in getattr(module, "variables", ()) or ():
+            name = getattr(variable, "name", None)
+            if not name:
+                continue
+            location = getattr(variable, "location", None)
+            declaration = getattr(variable, "declaration", None)
+            records.append(ModuleVariable(
+                name=name,
+                module=module_name,
+                vartype=getattr(variable, "vartype", None),
+                declaration=declaration,
+                line=getattr(location, "line", 0) or 0,
+                initial=getattr(variable, "initial", None),
+                is_parameter=declares_parameter(declaration),
+                **split_field_doc(getattr(variable, "doc", None)),
+            ))
+    return records
+
+
 def input_filenames(project: Any) -> dict[str, str]:
     """Map an input-file expression to its source-declared default filename.
 
@@ -826,6 +996,12 @@ def build_source_index(
             name=derived.name, module=derived.module,
             location=derived.location.label(), fields=fields,
         )
+
+    for variable in module_variables(project):
+        # Keyed on the pair: a bare-name key would silently drop one of the
+        # two declarations wherever a name is reused across modules.
+        index.module_variables[
+            (variable.module.lower(), variable.name.lower())] = variable
 
     for proc in project.procedures:
         argument_names = {name.lower() for name in proc.args}

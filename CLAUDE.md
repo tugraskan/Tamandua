@@ -13,7 +13,7 @@ written by a model.
 
 Two deliveries over one implementation:
 
-- `tamandua/mcp/server.py` -- 14 read-only tools
+- `tamandua/mcp/server.py` -- 15 read-only tools
 - `tamandua/index/` -- writes `SWATPLUS_INDEX.md` into a checkout,
   plus a pointer in each assistant's instruction file
 
@@ -30,7 +30,7 @@ with neither the parser nor a SWAT+ checkout present.
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 187 pass with SWATPLUS_SOURCE + Ames; 178/9 without
+python -m pytest -q          # 206 pass with SWATPLUS_SOURCE + Ames; 171/35 without
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and

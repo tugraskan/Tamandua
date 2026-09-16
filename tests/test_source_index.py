@@ -21,8 +21,11 @@ from tamandua.index import (
     INDEX_NAME,
     IndexError_,
     POINTER_FILES,
+    Provenance,
     RHS_NAME,
+    SourceIndex,
     build_source_index,
+    declares_parameter,
     field_path,
     find_corpus,
     split_field_doc,
@@ -33,6 +36,7 @@ from tamandua.index import (
     install_hooks,
     install_pointers,
     looks_like_swatplus,
+    module_variables,
     output_unit_filenames,
     pointer_text,
     render_index,
@@ -912,3 +916,143 @@ def test_stored_fingerprint_survives_a_corrupt_file(tmp_path) -> None:
     broken = tmp_path / "swatplus-facts.json"
     broken.write_text('{"provenance": {"source_', encoding="utf-8")
     assert stored_fingerprint(broken) is None
+
+
+# --------------------------------------------- module-level variables
+
+def _fake_provenance() -> Provenance:
+    return Provenance(
+        source_path="/src/swatplus", source_commit=None, source_describe=None,
+        source_fingerprint="abc123", generated_at="2026-09-15T00:00:00Z",
+        format_version="3", parser_commit=None,
+    )
+
+
+def _module_project(*modules):
+    """A parsed-project stand-in: the parser reports module variables here."""
+    return SimpleNamespace(types=[], modules=list(modules))
+
+
+def _module(name, *variables):
+    return SimpleNamespace(name=name, variables=list(variables))
+
+
+def _variable(name, vartype, declaration, line, doc=None, initial=None):
+    return SimpleNamespace(
+        name=name, vartype=vartype, declaration=declaration,
+        location=SimpleNamespace(line=line), doc=doc, initial=initial,
+    )
+
+
+def test_module_variables_are_extracted_with_their_declaring_module() -> None:
+    project = _module_project(_module(
+        "aquifer_module",
+        _variable("aqu_d", "type (aquifer_dynamic)",
+                  "type (aquifer_dynamic), dimension(:), allocatable :: aqu_d", 18,
+                  doc="m3 | aquifer state by object"),
+    ))
+    records = module_variables(project)
+    assert len(records) == 1
+    assert records[0].name == "aqu_d"
+    assert records[0].module == "aquifer_module"
+    assert records[0].path == "aquifer_module%aqu_d"
+    assert records[0].line == 18
+    assert records[0].units == "m3"
+    assert records[0].description == "aquifer state by object"
+    assert records[0].is_parameter is False
+
+
+def test_a_module_variable_name_reused_across_modules_keeps_both() -> None:
+    """The measured collision: 15 SWAT+ names are declared in two modules.
+
+    A lookup keyed on the bare name would drop one of these, which is what
+    the nm-generated symbol map does -- and it resolves to whichever module
+    name sorts first, unrelated to the scope the question came from.
+    """
+    project = _module_project(
+        _module("salt_module",
+                _variable("hsaltb_d", "real", "real, dimension(:) :: hsaltb_d", 44)),
+        _module("output_ls_salt_module",
+                _variable("hsaltb_d", "real", "real, dimension(:) :: hsaltb_d", 61)),
+    )
+    index_obj = SourceIndex(provenance=_fake_provenance())
+    for item in module_variables(project):
+        index_obj.module_variables[(item.module.lower(), item.name.lower())] = item
+
+    candidates = index_obj.module_variables_named("hsaltb_d")
+    assert [c.module for c in candidates] == [
+        "output_ls_salt_module", "salt_module"]
+    assert index_obj.colliding_module_variable_names() == {
+        "hsaltb_d": ["output_ls_salt_module", "salt_module"]}
+    # Each is reachable by its full identity.
+    assert index_obj.module_variable("salt_module", "hsaltb_d").line == 44
+    assert index_obj.module_variable("output_ls_salt_module", "hsaltb_d").line == 61
+
+
+def test_parameter_declarations_are_marked_not_left_to_the_consumer() -> None:
+    """A ``parameter`` has no runtime storage, so no object symbol.
+
+    Four of the 2,018 SWAT+ declarations are compile-time constants. Anything
+    projecting a debugger symbol map has to exclude them, and should not need
+    a Fortran attribute parser to find out which.
+    """
+    project = _module_project(_module(
+        "constant_module",
+        _variable("max_aqu", "integer", "integer, parameter :: max_aqu = 1000", 4),
+        _variable("n_aqu", "integer", "integer :: n_aqu = 0", 5),
+        # `parameter` inside an initialiser is not an attribute.
+        _variable("label", "character(len=9)",
+                  "character(len=9) :: label = 'parameter'", 6),
+    ))
+    by_name = {item.name: item for item in module_variables(project)}
+    assert by_name["max_aqu"].is_parameter is True
+    assert by_name["n_aqu"].is_parameter is False
+    assert by_name["label"].is_parameter is False
+
+
+def test_module_variables_survive_a_module_without_a_name() -> None:
+    """Defensive: the parser reports these, so a missing name is skipped."""
+    project = _module_project(
+        SimpleNamespace(name=None, variables=[_variable("x", "real", "real :: x", 1)]),
+        _module("real_module", _variable("y", "real", "real :: y", 2)),
+    )
+    assert [item.name for item in module_variables(project)] == ["y"]
+
+
+def test_search_module_variables_ranks_an_exact_name_first() -> None:
+    """The other half of ``search_fields``.
+
+    ``search_fields`` reaches `aquifer_dynamic%rchrg`, the type's component,
+    while the name a developer types is `aqu_d%rchrg` -- whose root is a
+    module variable.
+    """
+    project = _module_project(_module(
+        "aquifer_module",
+        _variable("rchrg", "real", "real :: rchrg", 10),
+        _variable("rchrg_prev", "real", "real :: rchrg_prev", 11),
+        _variable("flo", "real", "real :: flo", 12,
+                  doc="mm | recharge entering aquifer"),
+    ))
+    index_obj = SourceIndex(provenance=_fake_provenance())
+    for item in module_variables(project):
+        index_obj.module_variables[(item.module.lower(), item.name.lower())] = item
+
+    hits = index_obj.search_module_variables("rchrg")
+    assert [h.name for h in hits] == ["rchrg", "rchrg_prev"]
+    # Ordinary words reach an identifier through the documented meaning.
+    assert [h.name for h in index_obj.search_module_variables("recharge")] == ["flo"]
+    assert index_obj.search_module_variables("") == []
+
+
+def test_module_variables_in_returns_a_module_in_source_order() -> None:
+    project = _module_project(_module(
+        "aquifer_module",
+        _variable("b", "real", "real :: b", 20),
+        _variable("a", "real", "real :: a", 9),
+    ))
+    index_obj = SourceIndex(provenance=_fake_provenance())
+    for item in module_variables(project):
+        index_obj.module_variables[(item.module.lower(), item.name.lower())] = item
+    assert [item.name for item in index_obj.module_variables_in("aquifer_module")] == \
+        ["a", "b"]
+    assert index_obj.module_variables_in("no_such_module") == []
