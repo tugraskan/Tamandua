@@ -681,8 +681,14 @@ def serve(index: SourceIndex | Current, stdin=sys.stdin, stdout=sys.stdout,
             stdout.flush()
 
 
-def auto_source() -> Current:
+def auto_source(corpus: Path | None = None) -> Current:
     """Serve the working directory when it is a SWAT+ checkout, else the bundle.
+
+    ``corpus`` pins the parser to build with and says nothing about which tree
+    to read, so passing it must not disable the choice made here. Letting it do
+    so broke the one config this feature exists for -- pin the parser once,
+    since it is the same for every project, and let the source follow whatever
+    is open.
 
     An editor starts an MCP server inside the project it has open; a desktop
     chat app has no project and starts somewhere neutral. Deciding from the
@@ -701,14 +707,15 @@ def auto_source() -> Current:
     cwd = Path.cwd()
     if looks_like_swatplus(cwd):
         try:
-            index = build_source_index(None, None)
+            index = build_source_index(None, corpus)
         except IndexError_ as exc:
             return Current(load_bundled_snapshot(), fallback_reason=(
                 f"The working directory {cwd} is a SWAT+ checkout, but it "
                 f"could not be indexed ({exc}), so the bundled snapshot is "
                 "answering instead."
             ))
-        return Current(index, source=Path(index.provenance.source_path))
+        return Current(index, source=Path(index.provenance.source_path),
+                       corpus=corpus)
     return Current(load_bundled_snapshot())
 
 
@@ -744,8 +751,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.facts is not None:
             index = load_snapshot(args.facts)
             current = Current(index, facts=args.facts)
-        elif (args.source is not None or args.corpus is not None
-              or os.environ.get("SWATPLUS_SOURCE")):
+        elif args.source is not None or os.environ.get("SWATPLUS_SOURCE"):
+            # Only a source pin takes this path. --corpus names the parser to
+            # build *with*, never the tree to read, so it must not decide where
+            # the source comes from -- it did, and that silently disabled the
+            # automatic choice for the obvious config: a client that pins the
+            # parser once and leaves the source to the working directory.
             index = build_source_index(args.source, args.corpus)
             # build_source_index resolves repo roots to the actual Fortran
             # directory; provenance records exactly what must be fingerprinted.
@@ -755,7 +766,7 @@ def main(argv: list[str] | None = None) -> int:
             # No explicit pin: decide from the working directory, so one
             # identical config serves an editor open on a checkout and a
             # desktop app with no project at all.
-            current = auto_source()
+            current = auto_source(args.corpus)
     except IndexError_ as exc:
         parser.exit(2, f"error: {exc}\n")
     serve(current, compact=args.compact)

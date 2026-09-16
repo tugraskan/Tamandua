@@ -529,3 +529,38 @@ def test_auto_source_falls_back_loudly_when_the_tree_cannot_be_indexed(
     assert "bundled" in note
     assert "could not be indexed" in note
     assert "cannot find swatplus-reference-corpus" in note
+
+
+def test_pinning_only_the_parser_still_auto_detects_the_source(
+    tmp_path, monkeypatch
+) -> None:
+    """--corpus names the parser to build with, never the tree to read.
+
+    It was in the condition that selects the explicit-source path, so the one
+    config this feature exists for -- pin the parser once, because it is the
+    same for every project, and let the source follow whatever is open --
+    silently skipped auto-detection and lost the bundled fallback with it.
+    """
+    monkeypatch.chdir(tmp_path)  # not a checkout, so the bundle should answer
+
+    current = auto_source(Path("/some/parser"))
+
+    assert "bundled" in current.source_note
+
+
+def test_the_parser_pin_reaches_the_build(tmp_path, monkeypatch) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "demo.f90").write_text("      subroutine demo\n      end subroutine demo\n")
+    monkeypatch.chdir(tmp_path)
+    seen: dict = {}
+
+    def record(source, corpus):
+        seen["corpus"] = corpus
+        return _index_at(str(src), "abc")
+
+    monkeypatch.setattr(_server_module, "build_source_index", record)
+
+    auto_source(Path("/some/parser"))
+
+    assert seen["corpus"] == Path("/some/parser")
