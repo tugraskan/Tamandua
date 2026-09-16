@@ -23,8 +23,10 @@ Issues = "https://github.com/tugraskan/Tamandua/issues"
 
 [project.optional-dependencies]
 # httpx is here for scripts/test_ant_model.py, which drives local models over
-# their HTTP endpoints, and its tests.
-dev = ["pytest>=7", "httpx>=0.27"]
+# their HTTP endpoints, and its tests. Capped below 1.0: those tests drive the
+# harness through httpx.MockTransport, which 1.0 removes, so an uncapped range
+# turns a routine dependency resolution into five failing tests.
+dev = ["pytest>=7", "httpx>=0.27,<1"]
 
 [project.scripts]
 # Build the facts file the MCP server reads (--markdown also renders the

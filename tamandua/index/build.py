@@ -617,7 +617,12 @@ def resolve_source(explicit: Path | None = None) -> Path:
             "cannot find SWAT+ source. Run this from inside a SWAT+ checkout, "
             "set SWATPLUS_SOURCE, or pass --source."
         )
-    candidate = Path(candidate)
+    # Resolved, always. The scanner resolves its own root before listing files,
+    # so it reports absolute paths; a relative root left as-is here reaches
+    # every consumer that compares the two and fails the comparison. `--source
+    # .` from inside a checkout -- the documented way to run it -- crashed in
+    # scan_source_warnings for exactly that reason.
+    candidate = Path(candidate).resolve()
     if not candidate.is_dir():
         raise IndexError_(f"source path does not exist or is not a directory: {candidate}")
     if (candidate / "src").is_dir() and not _contains_fortran(

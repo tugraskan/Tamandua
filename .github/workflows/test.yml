@@ -1,0 +1,97 @@
+name: Tests
+
+# Nothing ran the suite on a change until this existed: release.yml fires only
+# on a version tag, so a pull request showed no checks at all and a regression
+# reached main unnoticed. Two jobs, because the suite answers differently
+# depending on what is present, and both answers are worth protecting:
+#
+#   serve  -- no SWAT+ checkout, no parser. What a plain `pip install` gets,
+#             and the configuration the bundled snapshot has to satisfy alone.
+#   build  -- the pinned source and parser. The only configuration that
+#             exercises the parser and the real 648-file tree.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  serve:
+    name: Serve from the bundled snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - run: pip install -e .[dev]
+
+      - name: Run the suite with neither source nor parser
+        # env -u, not just an absent checkout: a stray variable inherited from
+        # the runner would silently turn this into the other job.
+        run: |
+          env -u SWATPLUS_SOURCE -u SWATPLUS_REFERENCE_CORPUS -u SWATPLUS_AMES \
+            python -m pytest -q
+
+  build:
+    name: Build against the pinned SWAT+ source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - run: pip install -e .[dev]
+
+      - name: Read the pinned source and parser commits
+        id: pins
+        # Same single source of truth release.yml builds from, so CI cannot
+        # pass against a tree the release would not use.
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import tomllib, pathlib
+          pins = tomllib.loads(pathlib.Path("docs/pins.toml").read_text())
+          print(f"source_ref={pins['swatplus_source']['ref']}")
+          print(f"corpus_commit={pins['reference_corpus']['commit']}")
+          PY
+
+      - name: Check out the pinned SWAT+ source
+        uses: actions/checkout@v7
+        with:
+          repository: swat-model/swatplus
+          ref: ${{ steps.pins.outputs.source_ref }}
+          path: .build/swatplus
+
+      - name: Check out the parser
+        # Checked out, not pip-installed: only the schema scanner is used and
+        # it is stdlib-only, so the corpus's own fparser/PyYAML/mkdocs
+        # dependencies never need installing here.
+        uses: actions/checkout@v7
+        with:
+          repository: tugraskan/swatplus-reference-corpus
+          ref: ${{ steps.pins.outputs.corpus_commit }}
+          path: .build/corpus
+
+      - name: Run the full suite, including the real-source gate
+        env:
+          SWATPLUS_SOURCE: ${{ github.workspace }}/.build/swatplus
+          SWATPLUS_REFERENCE_CORPUS: ${{ github.workspace }}/.build/corpus
+          SWATPLUS_AMES: ${{ github.workspace }}/.build/swatplus/refdata/Ames_sub1
+        run: python -m pytest -q
+
+      - name: Check the pinned parser commit still exists
+        # The previous pin became unreachable when the corpus rewrote its
+        # history for its public release, and nothing noticed until a release
+        # failed to check it out. The checkout above would already fail, but
+        # say why rather than leaving a bare "could not find ref".
+        if: failure()
+        run: |
+          echo "If the parser checkout failed, docs/pins.toml may name a commit"
+          echo "that no longer exists on tugraskan/swatplus-reference-corpus."
