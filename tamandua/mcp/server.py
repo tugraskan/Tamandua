@@ -37,6 +37,7 @@ from tamandua.index import (
     SourceIndex,
     build_source_index,
     load_snapshot,
+    looks_like_swatplus,
     source_fingerprint,
 )
 from tamandua.output.reader import OutputError, query as query_output
@@ -478,22 +479,26 @@ def render_compact(payload: Any) -> str:
     return str(payload)
 
 
-def handle(index: SourceIndex, request: dict, compact: bool) -> dict | None:
+def handle(index: SourceIndex, request: dict, compact: bool,
+           source_note: str | None = None) -> dict | None:
     """Turn one JSON-RPC request into a response, or None for a notification."""
     method, rid = request.get("method"), request.get("id")
 
     if method == "initialize":
+        instructions = (
+            "Use these facts-only tools before shell or web search for "
+            "questions about SWAT+ Fortran source. For a named input or "
+            "output file, call file_io first. Scanner warnings are advisory "
+            "structure checks, not proof that the source compiles; call "
+            "provenance for compile-check status."
+        )
+        if source_note:
+            instructions = f"{instructions}\n\n{source_note}"
         result: dict = {
             "protocolVersion": PROTOCOL_VERSION,
             "capabilities": {"tools": {}},
             "serverInfo": {"name": "swatplus-source", "version": "0.1.0"},
-            "instructions": (
-                "Use these facts-only tools before shell or web search for "
-                "questions about SWAT+ Fortran source. For a named input or "
-                "output file, call file_io first. Scanner warnings are advisory "
-                "structure checks, not proof that the source compiles; call "
-                "provenance for compile-check status."
-            ),
+            "instructions": instructions,
         }
     elif method == "tools/list":
         result = {"tools": tool_specs()}
@@ -557,15 +562,54 @@ class Current:
     """
 
     def __init__(self, index: SourceIndex, *, facts: Path | None = None,
-                 source: Path | None = None, corpus: Path | None = None) -> None:
+                 source: Path | None = None, corpus: Path | None = None,
+                 fallback_reason: str | None = None) -> None:
         if facts is not None and source is not None:
             raise ValueError("facts and source modes are mutually exclusive")
         self._index = index
         self._facts = facts
         self._source = source
         self._corpus = corpus
+        self._fallback_reason = fallback_reason
         self._stamp = self._facts_stamp()
         self._stale_message: str | None = None
+
+    @property
+    def source_note(self) -> str:
+        """One line naming what this server is answering from.
+
+        Sent once, in the initialize response, so a client knows which tree it
+        is reading before its first question rather than only if it thinks to
+        call ``provenance``. A server aimed at the wrong checkout answers
+        confidently, correctly, and about code the caller is not looking at;
+        nothing in a tool result gives that away. It cost a real investigation
+        before this existed.
+
+        Once per session, not per call, so the warning is free at the scale
+        that matters.
+        """
+
+        prov = self._index.provenance
+        commit = (prov.source_commit or "unknown")[:12]
+        if self._source is not None:
+            return (
+                f"Source: {prov.source_path} at commit {commit}, re-read "
+                "whenever that tree changes. Confirm it is the checkout you "
+                "are reasoning about before quoting any file and line."
+            )
+        if self._facts is not None:
+            return (
+                f"Source: the facts file {self._facts}, built from "
+                f"{prov.source_path} at commit {commit}. It does not follow "
+                "edits to any checkout."
+            )
+        note = (
+            "Source: the snapshot bundled with Tamandua -- SWAT+ "
+            f"{prov.source_describe or 'unknown'} at commit {commit}. This is "
+            "a fixed release rather than a working tree, and the path recorded "
+            "in its provenance names the machine that built it."
+        )
+        return f"{note} {self._fallback_reason}" if self._fallback_reason else note
 
     @property
     def stale_message(self) -> str | None:
@@ -631,10 +675,41 @@ def serve(index: SourceIndex | Current, stdin=sys.stdin, stdout=sys.stdout,
                 },
             }
         else:
-            response = handle(index, request, compact)
+            response = handle(index, request, compact, current.source_note)
         if response is not None:
             stdout.write(json.dumps(response) + "\n")
             stdout.flush()
+
+
+def auto_source() -> Current:
+    """Serve the working directory when it is a SWAT+ checkout, else the bundle.
+
+    An editor starts an MCP server inside the project it has open; a desktop
+    chat app has no project and starts somewhere neutral. Deciding from the
+    working directory therefore lands on the right answer in both, and needs no
+    path written into any client's config -- which matters because a written
+    path is precisely what goes stale. One config pointed at a checkout that
+    had since been superseded served months-old source under a different branch
+    for a whole investigation, and every answer it gave was internally correct.
+
+    Falls back rather than failing when the tree cannot be indexed: a caller who
+    merely happens to be sitting in a SWAT+ checkout, without the parser
+    installed, is better served by the bundled release than by a dead server.
+    ``source_note`` then says both what is being served and why.
+    """
+
+    cwd = Path.cwd()
+    if looks_like_swatplus(cwd):
+        try:
+            index = build_source_index(None, None)
+        except IndexError_ as exc:
+            return Current(load_bundled_snapshot(), fallback_reason=(
+                f"The working directory {cwd} is a SWAT+ checkout, but it "
+                f"could not be indexed ({exc}), so the bundled snapshot is "
+                "answering instead."
+            ))
+        return Current(index, source=Path(index.provenance.source_path))
+    return Current(load_bundled_snapshot())
 
 
 def load_bundled_snapshot() -> SourceIndex:
@@ -652,8 +727,10 @@ def load_bundled_snapshot() -> SourceIndex:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=None,
-                        help="build from a SWAT+ checkout instead of the "
-                             "bundled snapshot (default: $SWATPLUS_SOURCE)")
+                        help="build from this SWAT+ checkout (default: "
+                             "$SWATPLUS_SOURCE, else the working directory "
+                             "when it is a checkout, else the bundled "
+                             "snapshot)")
     parser.add_argument("--corpus", type=Path, default=None,
                         help="swatplus-reference-corpus checkout (default: $SWATPLUS_REFERENCE_CORPUS)")
     parser.add_argument("--facts", type=Path, default=None, metavar="FILE",
@@ -675,8 +752,10 @@ def main(argv: list[str] | None = None) -> int:
             current = Current(index, source=Path(index.provenance.source_path),
                               corpus=args.corpus)
         else:
-            index = load_bundled_snapshot()
-            current = Current(index)
+            # No explicit pin: decide from the working directory, so one
+            # identical config serves an editor open on a checkout and a
+            # desktop app with no project at all.
+            current = auto_source()
     except IndexError_ as exc:
         parser.exit(2, f"error: {exc}\n")
     serve(current, compact=args.compact)

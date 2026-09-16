@@ -27,7 +27,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **206 pass, 0 skipped**; **171/35** with neither source nor parser. Both measured after the format-3 rebuild, on the pinned tree. |
+| Tests | real-source gate **214 pass, 0 skipped**; **179/35** with neither source nor parser. Both measured after the format-3 rebuild, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -139,6 +139,55 @@ found" while loading without complaint. That is exactly how the format-1
 bundle went unnoticed while answering every `breakpoint` query with zero loops,
 so `test_the_bundled_snapshot_carries_module_variables` asserts the records are
 really there rather than trusting the version number.
+
+## The server now picks its own source (2026-09-16)
+
+A server aimed at the wrong checkout answers confidently, correctly, and about
+code the caller is not looking at. That happened: a Codex config pinned
+`--source` at `swatplus-main`, the checkout had long since been superseded by a
+working branch, and every answer it gave was internally correct and about the
+wrong tree. It took a full investigation to notice, and only because that
+client thought to call `provenance` unprompted.
+
+Two causes, both now addressed.
+
+**Nothing said which tree was being served.** `initialize` returns an
+`instructions` string every client reads before its first tool call. It now
+carries the source:
+
+    Source: /repo/src at commit de210d64db4f, re-read whenever that tree
+    changes. Confirm it is the checkout you are reasoning about before quoting
+    any file and line.
+
+Once per session, not per call, so the warning costs nothing at the scale that
+matters. The bundled case says plainly that it is a fixed release and that the
+path in its provenance names the machine that built it -- the mistake that path
+otherwise invites.
+
+**A path had to be written down at all.** Without `--source`, `--facts` or
+`$SWATPLUS_SOURCE`, the server went straight to the bundled snapshot; the
+working directory was never consulted, even though `resolve_source` already
+knew how to recognise a checkout. So every editor config needed a hand-written
+absolute path, and a hand-written path is exactly what goes stale.
+
+`auto_source()` now decides from the working directory. An editor starts an MCP
+server inside the project it has open; a desktop chat app has no project and
+starts somewhere neutral. That one fact separates the two cases, so the same
+config serves both:
+
+| Where it starts | What it serves |
+|---|---|
+| a SWAT+ checkout | that tree, live |
+| anywhere else | the bundled snapshot |
+| a checkout it cannot index | the bundled snapshot, **and says why** |
+
+That last row matters: falling back is right -- a caller who merely happens to
+be in a checkout without the parser is better served by the release than by a
+dead server -- but falling back *silently* is the defect this whole section is
+about, so the reason is appended to the source note.
+
+`--source` and `--facts` still pin deliberately and win over the automatic
+choice. Verified across all four cases.
 
 ## Two defects the pin bump exposed
 

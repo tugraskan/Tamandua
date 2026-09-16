@@ -9,10 +9,15 @@ a column silently dropped when later rows introduce keys the first row lacked.
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+from tamandua.mcp import server as _server_module
 
 from tamandua.mcp.server import (
     INVALID_PARAMS,
+    Current,
     accepted_arguments,
+    auto_source,
     handle,
     load_bundled_snapshot,
     render_compact,
@@ -24,6 +29,7 @@ from tamandua.mcp.server import (
     tool_specs,
 )
 from tamandua.index import (
+    IndexError_,
     Loop,
     ModuleVariable,
     Procedure,
@@ -411,3 +417,115 @@ def test_accepted_arguments_reads_the_published_schema() -> None:
     assert accepted_arguments("search_fields") == ["text"]
     assert accepted_arguments("find_procedure") == ["name"]
     assert accepted_arguments("nope") == []
+
+
+# ------------------------------------------- which tree is this server reading
+
+def _index_at(path: str, commit: str | None, describe: str | None = None) -> SourceIndex:
+    return SourceIndex(provenance=Provenance(
+        source_path=path, source_commit=commit, source_describe=describe,
+        source_fingerprint="abc", generated_at="2026-09-16T00:00:00Z",
+        format_version="3", parser_commit=None,
+    ))
+
+
+def test_live_source_note_names_the_tree_and_commit() -> None:
+    """The one fact a caller needs before quoting a file and line.
+
+    A server aimed at the wrong checkout answers confidently, correctly, and
+    about code the caller is not looking at. Nothing in a tool result gives
+    that away, so it has to be said up front.
+    """
+    note = Current(_index_at("/repo/src", "de210d64db4f1d75"), source=Path("/repo/src")).source_note
+
+    assert "/repo/src" in note
+    assert "de210d64db4f" in note
+
+
+def test_bundled_source_note_does_not_read_as_a_working_tree() -> None:
+    """Its provenance path names the build machine, which invites the mistake."""
+    note = Current(_index_at("/someone/elses/machine/src", "de210d6", "62.0.0")).source_note
+
+    assert "bundled" in note
+    assert "62.0.0" in note
+    assert "working tree" in note
+
+
+def test_a_fallback_says_why_it_fell_back() -> None:
+    """Silently serving the bundle is the failure this whole change is about."""
+    note = Current(
+        _index_at("/x", "abc", "62.0.0"),
+        fallback_reason="The working directory /repo is a SWAT+ checkout, but "
+                        "it could not be indexed (no parser).",
+    ).source_note
+
+    assert "could not be indexed" in note
+    assert "/repo" in note
+
+
+def test_initialize_carries_the_source_note() -> None:
+    """Sent once per session, so the warning is free at the scale that matters."""
+    request = {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}
+
+    result = handle(_index_at("/repo/src", "abc"), request, True,
+                    "Source: /repo/src at commit abc")["result"]
+
+    assert "Source: /repo/src at commit abc" in result["instructions"]
+    # the standing guidance survives alongside it
+    assert "facts-only tools" in result["instructions"]
+
+
+def test_initialize_without_a_note_is_unchanged() -> None:
+    request = {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}
+
+    result = handle(_index_at("/repo/src", "abc"), request, True)["result"]
+
+    assert "Source:" not in result["instructions"]
+
+
+# ------------------------------------------------- choosing without a config
+
+def test_auto_source_reads_the_working_directory_when_it_is_a_checkout(
+    tmp_path, monkeypatch
+) -> None:
+    """An editor starts the server inside the project it has open."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "demo.f90").write_text("      subroutine demo\n      end subroutine demo\n")
+    monkeypatch.chdir(tmp_path)
+    built = _index_at(str(src), "abc")
+    monkeypatch.setattr(_server_module, "build_source_index", lambda *a, **k: built)
+
+    current = auto_source()
+
+    assert str(src) in current.source_note
+    assert "bundled" not in current.source_note
+
+
+def test_auto_source_uses_the_bundle_when_there_is_no_project(
+    tmp_path, monkeypatch
+) -> None:
+    """A desktop chat app has no project and starts somewhere neutral."""
+    monkeypatch.chdir(tmp_path)
+
+    assert "bundled" in auto_source().source_note
+
+
+def test_auto_source_falls_back_loudly_when_the_tree_cannot_be_indexed(
+    tmp_path, monkeypatch
+) -> None:
+    """Better the bundled release than a dead server -- but say so."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "demo.f90").write_text("      subroutine demo\n      end subroutine demo\n")
+    monkeypatch.chdir(tmp_path)
+
+    def refuse(*_a, **_k):
+        raise IndexError_("cannot find swatplus-reference-corpus")
+
+    monkeypatch.setattr(_server_module, "build_source_index", refuse)
+
+    note = auto_source().source_note
+    assert "bundled" in note
+    assert "could not be indexed" in note
+    assert "cannot find swatplus-reference-corpus" in note
