@@ -2,9 +2,8 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-15 (parser pin bumped; verified on real source; loop-scope
-defect fixed; module-level variables now indexed -- **the bundled snapshot must be
-rebuilt**, see below).
+Last updated 2026-09-16 (parser pin bumped; verified on real source; loop-scope
+defect fixed; module-level variables indexed and the bundled snapshot rebuilt).
 
 ---
 
@@ -28,8 +27,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **187 pass, 0 skipped**; **178/9** without a SWAT+ checkout; **152/35** without the parser either |
-| | Format 3 adds 13 tests, all of which run with neither source nor parser: **163 pass, 35 skipped, 2 fail** here, the two failures being the bundled-snapshot gate below. The source-present figures need re-measuring once `tamandua/data/` is rebuilt. |
+| Tests | real-source gate **206 pass, 0 skipped**; **171/35** with neither source nor parser. Both measured after the format-3 rebuild, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -81,13 +79,38 @@ Measured against the pinned tree (SWAT+ 62.0.0, parser `7a6e21ec`):
 | Module-variable declarations | **2,018** across 66 modules |
 | Distinct bare names | 2,003 |
 | Names declared in more than one module | **15** |
-| Records carrying name, type, declaration and location | 2,018 -- all |
-| ... also carrying documentation | 638 |
+| Records carrying name, type, declaration and line | 2,018 -- all |
+| ... also carrying a description | 539 |
+| ... also carrying units | 154 |
 | ... also carrying an initial value | 474 |
-| Source `(module, variable)` pairs matching object symbols | **2,014 of 2,018** |
-| Source-only declarations | 4, all compile-time `parameter` constants |
+| Carrying the `parameter` attribute | 10 |
+| Snapshot cost | **+571,536 bytes on the base file, +8.94%** |
+| Source `(module, variable)` pairs matching object symbols | 2,014 of 2,018 |
 | Object-only `_mp_` symbols | 119, all module procedures |
-| Snapshot cost | +382,883 bytes on the base file, +5.72% |
+
+Everything above is reproduced from the pinned tree (`de210d6`, parser
+`7a6e21ec`) except the last two rows, which need a real ifx build and are
+carried from the review that requested this change.
+
+**Three review figures did not survive reproduction.** They were taken on the
+same pins, so the discrepancy is in the measurement, not the tree:
+
+- Documentation was reported as 638. It is **539** descriptions and **154**
+  units -- 638 is neither, nor their union.
+- The `parameter` count was reported as 4, which was the number of source
+  declarations with no matching object symbol. **10** carry the attribute. The
+  two are different questions, and 10 is the right filter for a symbol map: a
+  `parameter` has no runtime storage whether or not the compiler emitted a
+  symbol for it.
+- The snapshot cost was reported as +382,883 bytes (+5.72%) against a
+  6,698,241-byte base. The base is **6,393,448** bytes -- byte-identical to
+  what was already bundled, which is how we know the rebuild is reproducible
+  -- and the section costs **+571,536** bytes, **+8.94%**. Half again as much
+  as reported.
+
+The sidecar decision is unchanged and now rests on the corrected figure: an
+equivalent sidecar carries the same ~572 KB of records, so it still saves
+nothing while adding matching, versioning and stale-artifact failure modes.
 
 **The keying is the point.** `hsaltb_d` is declared in both
 `output_ls_salt_module` and `salt_module`. A lookup on the bare name has to
@@ -104,20 +127,18 @@ no runtime storage and therefore no object symbol, so anything projecting a
 debugger symbol map must exclude those 4 -- and should not need its own Fortran
 attribute parser to find out which.
 
-A sidecar was measured and rejected: at 383,045 bytes against 382,883 in-base
-it saves nothing while adding matching, versioning and stale-artifact failure
-modes. The records go in the base file.
+**The bundled snapshot was rebuilt** against the pinned source and parser, so
+both format counters are at `3` and `tamandua/data/` carries the section. From
+a plain install, `aqu_d` now answers `aquifer_module:56` and
+`colliding_module_variable_names` returns its 15 entries.
 
-**The bundled snapshot is now stale and two tests say so.** `SNAPSHOT_FORMAT`
-and `INDEX_FORMAT_VERSION` both moved to `3`, so
-`test_the_bundled_snapshot_is_the_current_format` and
-`test_the_bundled_snapshot_carries_module_variables` fail until
-`tamandua/data/` is rebuilt with `swatplus-build` where a SWAT+ checkout and
-the parser are present. That is the gate working, not a regression -- and the
-second test exists because the first is not enough on its own: formats 1 and 2
-stay readable and the new section loads *empty* from them, which is exactly how
-the format-1 bundle went unnoticed while answering every `breakpoint` query
-with zero loops.
+Two tests guard it, and the second exists because the first is not enough on
+its own: formats 1 and 2 stay readable and the new section loads *empty* from
+them, so a stale bundle would answer every module-variable query with "not
+found" while loading without complaint. That is exactly how the format-1
+bundle went unnoticed while answering every `breakpoint` query with zero loops,
+so `test_the_bundled_snapshot_carries_module_variables` asserts the records are
+really there rather than trusting the version number.
 
 ## Two defects the pin bump exposed
 

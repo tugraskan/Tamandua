@@ -184,9 +184,12 @@ class ModuleVariable:
 
     ``is_parameter`` is stored rather than left for a consumer to re-derive
     from ``declaration``. A ``parameter`` is a compile-time constant with no
-    runtime storage and therefore no object symbol -- 4 of the 2,018
-    declarations -- so anything projecting a debugger symbol map has to
-    exclude them, and should not need a Fortran attribute parser to do it.
+    runtime storage, so anything projecting a debugger symbol map has to
+    exclude it, and should not need a Fortran attribute parser to do it. 10 of
+    the 2,018 declarations carry the attribute. That is deliberately a wider
+    filter than the 4 declarations an ifx build showed with no object symbol:
+    whether the compiler emitted a symbol for a constant or not, it is not a
+    variable whose value can be watched change.
     """
 
     name: str

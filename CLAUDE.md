@@ -30,9 +30,7 @@ with neither the parser nor a SWAT+ checkout present.
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 187 pass with SWATPLUS_SOURCE + Ames; 178/9 without
-                             # +13 as of format 3; re-measure after rebuilding
-                             # tamandua/data/ (2 bundled-snapshot tests gate on it)
+python -m pytest -q          # 206 pass with SWATPLUS_SOURCE + Ames; 171/35 without
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and
