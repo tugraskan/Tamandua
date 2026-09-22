@@ -2,8 +2,10 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-16 (parser pin bumped; verified on real source; loop-scope
-defect fixed; module-level variables indexed and the bundled snapshot rebuilt).
+Last updated 2026-09-22 (derived-type field declarations restored, format 4,
+bundled snapshot rebuilt). Previously updated 2026-09-16 (parser pin bumped;
+verified on real source; loop-scope defect fixed; module-level variables
+indexed and the bundled snapshot rebuilt).
 
 ---
 
@@ -27,7 +29,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **214 pass, 0 skipped**; **179/35** with neither source nor parser. Both measured after the format-3 rebuild, on the pinned tree. |
+| Tests | real-source gate **223 pass, 0 skipped**; **188/35** with neither source nor parser. Both measured after the format-4 rebuild, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -235,6 +237,62 @@ together, matches on fingerprint and parser commit, answers with a real
 expression, and is the current format; `release.yml` runs them against the
 bundled copy before publishing. Three of the four fail if the sidecar is
 removed.
+
+## Derived-type field declarations are now indexed (format 4)
+
+Module variables kept their full declaration string -- `type (soil_profile),
+dimension(:), allocatable :: soil` -- so a consumer could tell an allocatable
+array from a scalar. Derived-type *components* kept only the bare type name:
+`soil_profile%phys` reported `type (soil_physical_properties)` with no way to
+know it was `dimension(:), allocatable`. The parser always carried it --
+components are `VariableRef` objects with a `declaration` attribute, same as
+module variables -- Tamandua's conversion in `build.py` just never read it off
+the component and never stored it on `Field`.
+
+Measured against the pinned tree (SWAT+ 62.0.0, parser `7a6e21ec`), holding
+source commit and parser commit fixed so the only difference from the
+previous bundled snapshot is this field:
+
+| | |
+|---|---|
+| Derived-type fields | **6,877**, across 510 types |
+| ... now carrying a declaration | **6,877 of 6,877** -- all |
+| ... whose declaration says `allocatable` | **355** |
+| ... whose declaration says `dimension` (fixed-size arrays included) | 358 |
+| Snapshot cost | **+426,549 bytes on the base file, +6.12%** (6,964,984 -> 7,391,533 bytes) |
+
+That last row is the whole reason to measure rather than guess: 355 fields
+were reporting as indistinguishable from a scalar to any consumer, for a
+6.12% file-size cost to fix it.
+
+**The same two traps as the module-variable section, handled the same way.**
+`Field` gained `declaration: str | None = None` -- a default, not a required
+argument, so `Field(**f)` still loads every existing snapshot's six-key field
+dicts without raising. `INDEX_FORMAT_VERSION` and `SNAPSHOT_FORMAT` both moved
+to `4`; `READABLE_SNAPSHOT_FORMATS` now lists `1`, `2`, `3` explicitly ahead of
+the current format, so a pre-format-4 file keeps loading -- with `declaration:
+None` on every field, exactly as formats 1 and 2 still load with
+`module_variables` empty. The guard against that going unnoticed a second time
+is `test_the_bundled_snapshot_carries_field_declarations`, which asserts the
+shipped file's fields actually carry declarations (and that at least one says
+`allocatable`) rather than trusting the version number; a companion test,
+`test_a_format_three_snapshot_loads_fields_with_no_declaration`, pins the
+old-format read path itself. Both are new in `tests/test_snapshot.py`, next to
+`test_the_bundled_snapshot_carries_module_variables`, which they were modelled
+on.
+
+`describe_type` (`tamandua/mcp/server.py`) now returns `declaration` alongside
+`type`, `units` and `means` -- it was the obvious consumer, since it answers
+"what does `aqu_d(iaq)` actually contain" field by field. It is ahead of
+`module_variable` here: that tool's response already derives `type`, `units`
+and `parameter` from `ModuleVariable.declaration`, but never hands back the
+declaration string itself, so it cannot say "allocatable" any more directly
+than `describe_type` could before this change. Not touched here -- flagged
+for a follow-up.
+
+**The bundled snapshot was rebuilt** against the pinned source and parser, so
+both format counters read `4` and `tamandua/data/swatplus-facts.json` carries
+a `declaration` on all 6,877 fields.
 
 ## Not taken up
 

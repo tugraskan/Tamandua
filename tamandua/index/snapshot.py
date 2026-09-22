@@ -52,14 +52,15 @@ from tamandua.index.install import RHS_NAME
 #: Bumped when the *snapshot file's* own layout changes. Distinct from
 #: ``INDEX_FORMAT_VERSION``, which describes the facts inside it: a snapshot can
 #: gain a section without the extracted fields changing shape, and vice versa.
-SNAPSHOT_FORMAT = "3"
-#: Format 3 adds ``module_variables``. Older files stay readable, and the
-#: section loads empty from them -- so the guard against quietly serving a
-#: snapshot that predates a section is the assertion that the *bundled* pair
-#: is current, not this allow-list. A format-1 bundle once loaded silently
-#: while answering every `breakpoint` query with zero loops; see
+SNAPSHOT_FORMAT = "4"
+#: Format 3 adds ``module_variables``. Format 4 adds ``declaration`` to
+#: derived-type fields. Older files stay readable, and each added section or
+#: key loads empty/``None`` from them -- so the guard against quietly serving
+#: a snapshot that predates one is the assertion that the *bundled* pair is
+#: current, not this allow-list. A format-1 bundle once loaded silently while
+#: answering every `breakpoint` query with zero loops; see
 #: ``tests/test_snapshot.py``.
-READABLE_SNAPSHOT_FORMATS = {"1", "2", SNAPSHOT_FORMAT}
+READABLE_SNAPSHOT_FORMATS = {"1", "2", "3", SNAPSHOT_FORMAT}
 RHS_FORMAT = "1"
 
 
@@ -147,7 +148,7 @@ def save_snapshot(index: SourceIndex, path: Path) -> Path:
                 "fields": [
                     {"type_name": f.type_name, "name": f.name, "vartype": f.vartype,
                      "units": f.units, "description": f.description,
-                     "location": f.location}
+                     "location": f.location, "declaration": f.declaration}
                     for f in t.fields
                 ],
             }

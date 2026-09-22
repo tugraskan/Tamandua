@@ -21,6 +21,7 @@ from tamandua.mcp.server import (
     handle,
     load_bundled_snapshot,
     render_compact,
+    t_describe_type,
     t_file_io,
     t_find_procedure,
     t_loops,
@@ -29,6 +30,8 @@ from tamandua.mcp.server import (
     tool_specs,
 )
 from tamandua.index import (
+    DerivedType,
+    Field,
     IndexError_,
     Loop,
     ModuleVariable,
@@ -302,6 +305,38 @@ def _salt_index() -> SourceIndex:
     ):
         index.module_variables[(item.module.lower(), item.name.lower())] = item
     return index
+
+
+def test_describe_type_surfaces_the_declaration() -> None:
+    """A derived-type component's declaration, not just its bare type name.
+
+    Without it, `soil_profile%phys` reported only `type
+    (soil_physical_properties)`, with no way to tell a scalar from
+    `dimension(:), allocatable` -- the exact distinction a caller needs
+    before it can serialize, copy, or size the state.
+    """
+    index = SourceIndex(provenance=Provenance(
+        source_path="/src/swatplus", source_commit="de210d6",
+        source_describe="62.0.0", source_fingerprint="abc123",
+        generated_at="2026-09-22T00:00:00Z", format_version="4",
+        parser_commit="7a6e21e",
+    ))
+    index.types["soil_profile"] = DerivedType(
+        name="soil_profile", module="soil_module",
+        location="soil_module.f90:5",
+        fields=[
+            Field(type_name="soil_profile", name="phys",
+                  vartype="type (soil_physical_properties)",
+                  units=None, description=None,
+                  location="soil_module.f90:9",
+                  declaration="type (soil_physical_properties), "
+                              "dimension(:), allocatable :: phys"),
+        ],
+    )
+    answer = t_describe_type(index, "soil_profile")
+    assert answer[0]["declaration"] == (
+        "type (soil_physical_properties), dimension(:), allocatable :: phys")
+    assert "allocatable" in answer[0]["declaration"]
 
 
 def test_an_ambiguous_name_returns_every_candidate_not_a_winner() -> None:

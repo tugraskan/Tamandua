@@ -125,11 +125,15 @@ def index() -> SourceIndex:
         fields=[
             Field(type_name="aquifer_dynamic", name="rchrg", vartype="real",
                   units="mm", description="recharge entering aquifer",
-                  location="aquifer_module.f90:11"),
-            # Undocumented field: units and description are both None.
+                  location="aquifer_module.f90:11",
+                  declaration="real :: rchrg = 0."),
+            # Undocumented field: units and description are both None. Its
+            # declaration is the whole point -- `dimension(:), allocatable`
+            # is not recoverable from `vartype` alone.
             Field(type_name="aquifer_dynamic", name="flo", vartype="real",
                   units=None, description=None,
-                  location="aquifer_module.f90:12"),
+                  location="aquifer_module.f90:12",
+                  declaration="real, dimension(:), allocatable :: flo"),
         ],
     )
     for item in (
@@ -301,6 +305,22 @@ def test_round_trip_preserves_undocumented_fields(index, tmp_path):
     assert undocumented.path == "aquifer_dynamic%flo"
 
 
+def test_round_trip_preserves_field_declarations(index, tmp_path):
+    """The attribute this format exists for: a scalar vs. an allocatable array.
+
+    Before this, a derived-type component kept only its bare type name --
+    `type (soil_physical_properties)` -- with no way to tell a scalar from
+    `dimension(:), allocatable`, even though module variables always carried
+    this string.
+    """
+    back = load_snapshot(save_snapshot(index, tmp_path / "snap.json"))
+
+    documented, undocumented = back.derived_type("aquifer_dynamic").fields
+    assert documented.declaration == "real :: rchrg = 0."
+    assert undocumented.declaration == "real, dimension(:), allocatable :: flo"
+    assert "allocatable" in undocumented.declaration
+
+
 def test_search_fields_works_after_a_round_trip(index, tmp_path):
     """The search path reads types; a lossy round trip would silently narrow it."""
     back = load_snapshot(save_snapshot(index, tmp_path / "snap.json"))
@@ -354,6 +374,29 @@ def test_a_format_two_snapshot_loads_without_the_new_section(index, tmp_path):
     # The rest of the snapshot is unaffected.
     assert back.procedure("aqu_read").name == "aqu_read"
     assert back.loops_in("aqu_read")[0].index == "ish_aqp"
+
+
+def test_a_format_three_snapshot_loads_fields_with_no_declaration(index, tmp_path):
+    """Format 3 predates ``declaration`` on derived-type fields.
+
+    Read with a default rather than by key, so a pre-format-4 file loads
+    every field with ``declaration: None`` instead of raising -- and, just as
+    importantly, without raising at all.
+    """
+    path = save_snapshot(index, tmp_path / "snap.json")
+    payload = json.loads(path.read_text())
+    payload["snapshot_format"] = "3"
+    for t in payload["types"]:
+        for f in t["fields"]:
+            del f["declaration"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    back = load_snapshot(path)
+    documented, undocumented = back.derived_type("aquifer_dynamic").fields
+    assert documented.declaration is None
+    assert undocumented.declaration is None
+    # The rest of the snapshot is unaffected.
+    assert documented.units == "mm"
 
 
 def test_loading_a_missing_file_reports_the_path(tmp_path):
@@ -477,3 +520,23 @@ def test_the_bundled_snapshot_carries_module_variables():
     # A state object SWAT+ declares at module level, not a type component.
     assert index.module_variables_named("aqu_d"), \
         "aqu_d is not indexed as a module variable"
+
+
+def test_the_bundled_snapshot_carries_field_declarations():
+    """The attribute added in format 4, asserted on the shipped file.
+
+    Format 3 stays readable and every field's ``declaration`` loads as
+    ``None`` from it, which is exactly how a stale bundle would go unnoticed:
+    a consumer like ``describe_type`` would answer every component with no
+    declaration at all -- unable to tell a scalar from an allocatable array
+    -- from a file that loads without complaint.
+    """
+    index = load_snapshot(_bundled(FACTS_NAME))
+    declared = [f for t in index.types.values() for f in t.fields if f.declaration]
+    assert declared, (
+        "the bundled snapshot carries no field declarations, so no consumer "
+        "can distinguish a scalar component from an allocatable array; "
+        "rebuild it with `swatplus-build`")
+    assert any("allocatable" in f.declaration for f in declared), (
+        "no bundled field declaration mentions 'allocatable', which is the "
+        "whole reason this attribute is carried")

@@ -175,7 +175,7 @@ def t_describe_type(index: SourceIndex, name: str) -> Any:
         return {"type": name, "found": "no"}
     return [
         {"field": f.name, "type": f.vartype or "none", "units": f.units or "none",
-         "means": f.description or "none"}
+         "means": f.description or "none", "declaration": f.declaration or "none"}
         for f in derived.fields
     ]
 
@@ -368,8 +368,10 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
                       "source says each field means, e.g. 'recharge' or "
                       "'lateral flow', and returns identifiers with units.",
      _one("text", "Words to look for, e.g. lateral flow"), t_search_fields),
-    ("describe_type", "Every field of a derived type, with units and meaning -- "
-                      "what a state object like aqu_d actually contains.",
+    ("describe_type", "Every field of a derived type, with units, meaning and "
+                      "declaration -- what a state object like aqu_d actually "
+                      "contains, including whether a component is a scalar "
+                      "or a dimension(:), allocatable array.",
      _one("name", "Type name, e.g. aquifer_dynamic"), t_describe_type),
     ("module_variable", "A variable declared in a module body -- its declaring "
                         "module, type, declaration line, units and meaning. "

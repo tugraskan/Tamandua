@@ -31,7 +31,11 @@ from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 
 #: Bumped when the extracted fields change shape, so a stale index is
 #: recognisable as stale rather than silently mis-read.
-INDEX_FORMAT_VERSION = "3"
+#: Format 4 adds ``declaration`` to derived-type fields, matching what
+#: module variables already carried -- without it, a component like
+#: ``soil_profile%phys`` reported only its bare type name, with no way to
+#: tell a scalar from ``dimension(:), allocatable``.
+INDEX_FORMAT_VERSION = "4"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
@@ -243,6 +247,7 @@ class Field:
     units: str | None
     description: str | None
     location: str
+    declaration: str | None = None
 
     @property
     def path(self) -> str:
@@ -989,6 +994,7 @@ def build_source_index(
                 type_name=derived.name,
                 name=component.name,
                 vartype=component.vartype,
+                declaration=getattr(component, "declaration", None),
                 location=component.location.label(),
                 **split_field_doc(component.doc),
             ))
