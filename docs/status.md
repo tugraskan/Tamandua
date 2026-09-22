@@ -29,7 +29,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **223 pass, 0 skipped**; **188/35** with neither source nor parser. Both measured after the format-4 rebuild, on the pinned tree. |
+| Tests | real-source gate **224 pass, 0 skipped**; **189/35** with neither source nor parser. Both measured after the format-4 rebuild, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -283,12 +283,15 @@ on.
 
 `describe_type` (`tamandua/mcp/server.py`) now returns `declaration` alongside
 `type`, `units` and `means` -- it was the obvious consumer, since it answers
-"what does `aqu_d(iaq)` actually contain" field by field. It is ahead of
-`module_variable` here: that tool's response already derives `type`, `units`
-and `parameter` from `ModuleVariable.declaration`, but never hands back the
-declaration string itself, so it cannot say "allocatable" any more directly
-than `describe_type` could before this change. Not touched here -- flagged
-for a follow-up.
+"what does `aqu_d(iaq)` actually contain" field by field.
+
+`module_variable` had the same gap one layer up: its response already derived
+`type`, `units` and `parameter` from `ModuleVariable.declaration`, but never
+handed back the declaration string itself, so it could not say "allocatable"
+any more directly than `describe_type` could before this change. Fixed the
+same day, no format bump needed -- `declaration` was already stored on
+`ModuleVariable` since format 3, so this was only the tool's response
+shape, guarded by `test_module_variable_surfaces_the_declaration`.
 
 **The bundled snapshot was rebuilt** against the pinned source and parser, so
 both format counters read `4` and `tamandua/data/swatplus-facts.json` carries
