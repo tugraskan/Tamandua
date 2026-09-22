@@ -204,6 +204,7 @@ def t_module_variable(index: SourceIndex, name: str, module: str = "") -> Any:
             "module": item.module,
             "type": item.vartype or "none",
             "declared_at": f"{item.module}:{item.line}",
+            "declaration": item.declaration or "none",
             "units": item.units or "none",
             "means": item.description or "none",
         }
@@ -374,14 +375,16 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
                       "or a dimension(:), allocatable array.",
      _one("name", "Type name, e.g. aquifer_dynamic"), t_describe_type),
     ("module_variable", "A variable declared in a module body -- its declaring "
-                        "module, type, declaration line, units and meaning. "
-                        "This is the program's global state: a state object "
-                        "like aqu_d is a module-level instance, which "
-                        "describe_type cannot confirm exists. Where a bare "
-                        "name is declared in more than one module, every "
-                        "candidate is returned rather than one being chosen. "
-                        "Falls back to a name and documented-meaning search "
-                        "when there is no exact match. Exhaustive, not truncated.",
+                        "module, type, full declaration (so an allocatable "
+                        "array is distinguishable from a scalar), line, "
+                        "units and meaning. This is the program's global "
+                        "state: a state object like aqu_d is a module-level "
+                        "instance, which describe_type cannot confirm exists. "
+                        "Where a bare name is declared in more than one "
+                        "module, every candidate is returned rather than one "
+                        "being chosen. Falls back to a name and "
+                        "documented-meaning search when there is no exact "
+                        "match. Exhaustive, not truncated.",
      {"type": "object",
       "properties": {
           "name": {"type": "string", "description": "Variable name, e.g. aqu_d"},

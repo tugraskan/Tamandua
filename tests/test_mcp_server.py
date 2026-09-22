@@ -360,6 +360,18 @@ def test_a_module_qualifies_an_ambiguous_name() -> None:
     assert answer["units"] == "kg"
 
 
+def test_module_variable_surfaces_the_declaration() -> None:
+    """The full declaration string, not just what's derived from it.
+
+    `type`, `units` and `parameter` are all derived from `declaration`, but
+    the tool never handed back the string itself -- so a caller could not
+    tell `dimension(:)` from a scalar any more directly than `describe_type`
+    could before it carried the same field.
+    """
+    answer = t_module_variable(_salt_index(), "hsaltb_d", "salt_module")
+    assert answer["declaration"] == "real, dimension(:) :: hsaltb_d"
+
+
 def test_a_parameter_says_it_has_no_object_symbol() -> None:
     """Four SWAT+ declarations are compile-time constants. A caller building a
     debugger symbol map has to exclude them, so the answer says so."""
