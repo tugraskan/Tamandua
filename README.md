@@ -20,10 +20,19 @@ inline. Nothing in it is written by a model.
 pip install "git+https://github.com/tugraskan/Tamandua.git@v0.1.1"
 ```
 
-The tagged package includes the pinned SWAT+ facts snapshot. The future PyPI
-distribution name is `swatplus-tamandua` (`tamandua` is already owned by an
-unrelated project). Point your assistant at the server with no machine-specific
-paths:
+The tagged package includes the pinned SWAT+ facts snapshot, verified fresh by
+the release workflow -- pin a tag for that guarantee. Drop the `@tag` to track
+`main` instead, which is the better choice once you have your own SWAT+
+checkout (the server reparses that live, so the bundled snapshot is unused
+anyway):
+
+```bash
+pip install --upgrade "git+https://github.com/tugraskan/Tamandua.git"
+```
+
+The future PyPI distribution name is `swatplus-tamandua` (`tamandua` is already
+owned by an unrelated project). Point your assistant at the server with no
+machine-specific paths:
 
 ```jsonc
 // .mcp.json (Claude Code) — VS Code uses .vscode/mcp.json, where these
