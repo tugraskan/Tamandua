@@ -2,10 +2,11 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-22 (derived-type field declarations restored, format 4,
-bundled snapshot rebuilt). Previously updated 2026-09-16 (parser pin bumped;
-verified on real source; loop-scope defect fixed; module-level variables
-indexed and the bundled snapshot rebuilt).
+Last updated 2026-09-29 (input-file layouts derived from the facts;
+filenames passed as arguments followed to their callers; parser pin bumped to
+`110c2a2` for a field-doc attribution fix; bundled snapshot rebuilt).
+Previously updated 2026-09-22 (derived-type field declarations restored,
+format 4, bundled snapshot rebuilt).
 
 ---
 
@@ -29,7 +30,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **224 pass, 0 skipped**; **189/35** with neither source nor parser. Both measured after the format-4 rebuild, on the pinned tree. |
+| Tests | real-source gate **255 pass, 0 skipped**; **219/36** with neither source nor parser. Both measured 2026-09-29 after the layouts change, on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -37,6 +38,59 @@ and more accurate on SWAT+, not to be an assistant.
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these.
+
+## Input-file layouts (2026-09-29)
+
+`tamandua/index/layouts.py` and `swatplus-layouts` derive what SWAT+ reads
+from each input file, column by column, in read order: the read statement's
+variables (`IOUse.fields`) expanded through the derived types they land in.
+It runs on any facts file, the bundled one included, so it needs neither the
+parser nor a checkout. The first consumer is the dataselector, whose schema is
+otherwise a static extraction from one swatplus-editor commit.
+
+- **252 of 252** layouts on 62.0.0 have a complete main record; 255 of 255 on
+  `97ca231`.
+- On Ames, **44** of 109 files have a layout, against 37 in the dataselector's
+  static schema. Of those, 25 are read value-for-value and 9 read a leading run
+  with the tail (usually `description`) unread; the 2 that read more than the
+  row holds are `file.cio` and `soil_plant.ini`, whose Ames form is the
+  layout's `alternative`.
+- Between 62.0.0 and `97ca231`, 10 files' records changed and 8 files
+  appeared -- what a frozen schema misses.
+
+Two build fixes came with it, both changing what the bundled snapshot says:
+the twelve `.con` files were filed under `hyd_read_connect`'s dummy argument
+`con_file`, and are now resolved through its call sites; and the two
+`backspace 107` statements written without parentheses were dropped, and are
+now kept on the right file. Method, numbers and caveats (header names differ
+from Fortran names; foreign keys and branch conditions are not in the facts):
+`layouts_experiment.md`.
+
+The dataselector pin moved to its published v0.2.0 (`0c73c64`) the same day:
+it compiles, and its standalone MCP server lists the same six tools and
+answers against Ames through `tamandua.mcp.client`. Its "Set Up This
+Workspace" installs Tamandua but not the parser, which building layouts from a
+live checkout needs.
+
+## The parser pin moved again (2026-09-29)
+
+`7a6e21ec` → `110c2a2`, for the corpus's `01adce1`. A comment aligned under a
+declaration's inline comment, with no leading `|`, was attributed to the *next*
+declaration: `basin_control_codes%nam1` carried `pet`'s method codes
+("0 = Priestley-Taylor ... not used") under `nam1`'s own correct file and line.
+
+Rebuilt on 62.0.0 with both parsers and diffed:
+
+- **102** derived-type fields changed description. Nothing else moved:
+  procedures, I/O, loops, writers and module variables are identical, and the
+  source fingerprint is unchanged.
+- **221 pass, 0 skipped** with source, parser and Ames present (excluding
+  `tests/test_ant_harness.py`), before and after.
+- The schema scanner is still stdlib-only: both builds ran with `fparser`
+  not installed.
+
+The bundled snapshot and its RHS sidecar are rebuilt from the new pin; only
+`provenance.parser_commit`, `generated_at` and those field descriptions differ.
 
 ## The parser pin moved (2026-09-15)
 
@@ -329,10 +383,13 @@ Still unverified against the new scanner: the eight-question byte comparison
 - `tamandua/mcp/server.py` — 15 read-only tools over the same objects
 - `tamandua/mcp/client.py` — generic MCP stdio client
 - `tamandua/output/reader.py` — query a run's output, refuses files it cannot index safely
+- `tamandua/index/layouts.py` — input-file column layouts in read order, from the facts
 - `swatplus-build` — writes `swatplus-facts.json` plus the optional-by-presence
   `swatplus-rhs.json` expression sidecar (both are release assets; use
   `--no-rhs` for base facts only); `--markdown` adds the greppable rendering and
   the instruction pointers for tools that cannot run a server
+- `swatplus-layouts` — writes those layouts as JSON from a facts file (default:
+  the bundled one)
 
 
 
@@ -351,6 +408,7 @@ parser nor a SWAT+ checkout present.
 |---|---|
 | `index_experiment.md` | Index vs grep, measured, with the script |
 | `output_reader_experiment.md` | Reading a run's output, and the files that cannot be indexed safely |
+| `layouts_experiment.md` | Deriving input-file layouts from the facts, measured on Ames and across two SWAT+ trees |
 | `ant_integration.md` | Testing local models, and whether to fold this into ANT |
 | `launch_checklist.md` | Everything between "code is ready" and "someone else can install it" |
 

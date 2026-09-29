@@ -28,7 +28,15 @@ commit = "de210d6"                   # tag 62.0.0
 # produces swatplus-facts.json, which the MCP server answers from with neither
 # this nor the source present.
 repo   = "https://github.com/tugraskan/swatplus-reference-corpus"
-commit = "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
+commit = "110c2a24fd584b181e15cec8e3eeb9233c0945ad"
+# Bumped 2026-09-29 from 7a6e21ec for the corpus's 01adce1, which keeps a
+# gutter-aligned comment with the field above it instead of handing it to the
+# next declaration (`nam1` had been documented with `pet`'s method codes).
+# Rebuilt on 62.0.0, only derived-type field descriptions moved: 102 fields
+# changed text, and procedures, I/O, loops, writers and module variables are
+# identical to the 7a6e21ec build. Suite: 221 passed, 0 skipped with source,
+# parser and Ames present. Still stdlib-only: built with fparser absent.
+#
 # Bumped 2026-09-15. The previous pin (2daa14ae) is unreachable: the corpus
 # rewrote its history for the public release, so `actions/checkout` could no
 # longer resolve that ref and release.yml could not build. Verified against
@@ -58,7 +66,16 @@ commit = "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
 # TxtInOut indexing + MCP server (six tools, docs-only mode). Complementary,
 # not overlapping: it covers input-file columns and real dataset rows.
 repo   = "https://github.com/tugraskan/swatplus-dataselector"
-commit = "fd7af35"                   # PR #136; verified standalone MCP server
+commit = "0c73c64"                   # tag v0.2.0, the published release
+# Bumped 2026-09-29 from fd7af35 (PR #136). v0.2.0 adds the one-click
+# "Set Up This Workspace" (pip-installs Tamandua and writes its MCP entry) and
+# native VS Code MCP registration (#139). Verified at this commit: `npm run
+# compile` passes (types, lint, webview check); dist/mcp-server.js, driven by
+# tamandua.mcp.client, lists the same six tools in docs-only mode and answers
+# describe_entity against Ames. Its setup does not install the parser, so a
+# workspace it configures serves the bundled snapshot or a live checkout only
+# where swatplus-reference-corpus is already present.
+#
 # Do NOT pin between 345b24f and fd7af35: an intermediate merge left the tree
 # broken (Plan 03/07 reverted), repaired in fd7af35.
 avoid_commits = ["345b24f"]

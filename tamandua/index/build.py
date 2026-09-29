@@ -69,6 +69,11 @@ _PARAMETER_RE = re.compile(r"\bparameter\b", re.IGNORECASE)
 # type, which is the first hop from `in_aqu` to the component defaults.
 _TYPE_DECL_RE = re.compile(r"\s*type\s*\(\s*([A-Za-z_]\w*)\s*\)", re.IGNORECASE)
 
+#: A positioning statement that names its unit without parentheses,
+#: ``backspace 107``. The parenthesised form is the scanner's; this one is not.
+_BARE_POSITIONING_RE = re.compile(
+    r"^\s*(?:backspace|rewind|endfile)\s+(\w+)\s*$", re.IGNORECASE)
+
 # Keep this in step with the corpus scanner. Suffix matching is deliberately
 # case-insensitive: Git checkouts on Linux distinguish ``.F90`` from ``.f90``.
 FORTRAN_SUFFIXES = {".f90", ".for", ".f", ".f95"}
@@ -944,6 +949,96 @@ def input_filenames(project: Any) -> dict[str, str]:
     return resolved
 
 
+def call_arguments(raw: str, callee: str) -> list[str] | None:
+    """The actual arguments of the first call to ``callee`` in a statement.
+
+    Commas inside parentheses or quotes do not split, so
+    ``call f(a(i, j), "x, y")`` gives ``["a(i, j)", '"x, y"']``. ``None`` when
+    the statement does not call ``callee`` with an argument list.
+    """
+    match = re.search(rf"\b{re.escape(callee)}\s*\(", raw, re.IGNORECASE)
+    if not match:
+        return None
+    args: list[str] = []
+    depth, quote, current = 0, "", []
+    for char in raw[match.end():]:
+        if quote:
+            current.append(char)
+            if char == quote:
+                quote = ""
+            continue
+        if char in "'\"":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            if depth == 0:
+                args.append("".join(current).strip())
+                return [arg for arg in args if arg]
+            depth -= 1
+        elif char == "," and depth == 0:
+            args.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+    return None
+
+
+def argument_filenames(
+    routine: str,
+    dummies: list[str],
+    dummy: str,
+    call_sites: list[str],
+    inputs: dict[str, str],
+) -> list[str]:
+    """Resolve a filename a routine receives as an argument, via its callers.
+
+    ``hyd_read_connect`` opens ``con_file``, its first dummy argument; all
+    twelve connectivity files reach it from ``hyd_connect`` as
+    ``in_con%hru_con``, ``in_con%aqu_con``, and so on. Keyed on the dummy name,
+    every one of those reads is filed under ``con_file`` and a question about
+    ``hru.con`` finds nothing.
+
+    Each call site's actual argument is resolved the same way a direct
+    ``open`` is: a quoted literal is the filename, and an input-file
+    expression maps to its source-declared default. Anything else stays as the
+    caller's expression, which still names more than the dummy did. Returns
+    the distinct names in call-site order, or ``[]`` when no call site passes
+    the argument -- the caller then keeps the dummy name rather than guess.
+    """
+    wanted = dummy.lower()
+    positions = [name.lower() for name in dummies]
+    if wanted not in positions:
+        return []
+    position = positions.index(wanted)
+    found: list[str] = []
+    for raw in call_sites:
+        actuals = call_arguments(raw, routine)
+        if actuals is None:
+            continue
+        value: str | None = None
+        positional: list[str] = []
+        for actual in actuals:
+            keyword = re.match(r"^\s*(\w+)\s*=(?!=)\s*(.*)$", actual, re.DOTALL)
+            if keyword:
+                if keyword.group(1).lower() == wanted:
+                    value = keyword.group(2)
+            else:
+                positional.append(actual)
+        if value is None and position < len(positional):
+            value = positional[position]
+        if value is None:
+            continue
+        value = value.strip()
+        if len(value) > 1 and value[0] in "'\"" and value[-1] == value[0]:
+            value = value[1:-1].strip()
+        else:
+            value = inputs.get(re.sub(r"\s+", "", value).lower(), value)
+        if value and value not in found:
+            found.append(value)
+    return found
+
+
 def build_source_index(
     source: Path | None = None,
     corpus: Path | None = None,
@@ -982,6 +1077,12 @@ def build_source_index(
     project = analyze_project(scanner.scan())
     units = output_unit_filenames(source_dir)
     inputs = input_filenames(project)
+    # Every call statement, by the routine it calls: what argument_filenames
+    # needs to follow a filename passed in as a dummy argument.
+    call_sites: dict[str, list[str]] = defaultdict(list)
+    for caller in project.procedures:
+        for call in caller.calls:
+            call_sites[call.name.lower()].append(call.raw)
     index = SourceIndex(
         provenance=_provenance(source_dir, corpus_src),
         scanner_warnings=scanner_warnings,
@@ -1064,23 +1165,45 @@ def build_source_index(
         if proc.call_paths:
             index.call_paths[proc.name.lower()] = [list(p) for p in proc.call_paths]
 
+        # The file(s) each unit was last seen on in this procedure, for the
+        # positioning statement that names only a unit.
+        bound: dict[str, list[str]] = {}
         for op in proc.io:
+            unit = op.unit
+            bare = _BARE_POSITIONING_RE.match(op.raw or "") if unit is None else None
+            if bare:
+                # `backspace 107` without parentheses: the scanner reports no
+                # unit, so the statement was dropped. There are two in 62.0.0,
+                # and without the one in soil_db_read its peek-then-reread of
+                # every soil record reads as two records.
+                unit = bare.group(1)
             name = (op.file_resolved or op.file_expr or "").strip().strip("'\"")
             # The scanner labels an unresolved write target `unit_2520`; the
             # helper map turns that back into the real output filename.
-            if (not name or name.startswith("unit_")) and op.unit in units:
-                name = units[op.unit]
+            if (not name or name.startswith("unit_")) and unit in units:
+                name = units[unit]
             # Defence in depth around the parser contract: a compatible parser
             # may still report `in_aqu%aqu` instead of its default filename.
             name = inputs.get(name.lower(), name)
-            if not name:
+            names = [name] if name else []
+            if name.lower() in argument_names:
+                names = argument_filenames(
+                    proc.name, list(proc.args), name,
+                    call_sites.get(proc.name.lower(), []), inputs,
+                ) or names
+            if not names and bare:
+                names = bound.get(unit, [])
+            if not names:
                 continue
-            use = IOUse(file=name, op=op.kind, unit=op.unit,
-                        procedure=proc.name, line=op.location.line,
-                        fields=tuple(op.fields))
-            index.io_by_file[name.lower()].append(use)
-            if op.unit:
-                index.io_by_unit[op.unit].append(use)
+            if unit:
+                bound[unit] = names
+            for resolved in names:
+                use = IOUse(file=resolved, op=op.kind, unit=unit,
+                            procedure=proc.name, line=op.location.line,
+                            fields=tuple(op.fields))
+                index.io_by_file[resolved.lower()].append(use)
+                if unit:
+                    index.io_by_unit[unit].append(use)
 
         for step in proc.assignments:
             match = _ASSIGN_RE.match(step.raw)
