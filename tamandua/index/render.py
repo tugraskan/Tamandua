@@ -2,7 +2,8 @@
 
 One record per line, ``|``-separated, so an assistant answers a question with a
 single grep instead of reading the source tree. Measured at ~97% fewer bytes
-than grepping raw Fortran (docs/index_experiment.md).
+than grepping raw Fortran (docs/index_experiment.md in the archived
+SWATPLUS-TACI repository, at 8760e3d).
 """
 
 from __future__ import annotations
