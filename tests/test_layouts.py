@@ -233,6 +233,34 @@ def test_a_read_in_a_nested_loop_is_a_child_record(index) -> None:
     assert child.loops == ["do", "ihru", "j"]
 
 
+def test_a_leading_count_is_preamble_not_the_main_record(index) -> None:
+    proc = index.procedures["hru_read"]
+    proc.locals.extend([
+        _local("count", "integer :: count", 92, "integer"),
+        _local("value", "real :: value", 95, "real"),
+    ])
+    counted = "counted.dat"
+    for use in [
+        _io(counted, "read", 91, "titldum"),
+        _io(counted, "read", 92, "count"),
+        _io(counted, "read", 93, "header"),
+        _io(counted, "read", 95, "k", "value"),
+    ]:
+        index.io_by_file[counted].append(use)
+    index.loops["hru_read"].append(
+        Loop(procedure="hru_read", line=94, header="do i = 1, count",
+             end_line=96, index="i"))
+
+    layout = file_layout(index, counted)
+    assert [(line.kind, line.reads) for line in layout.preamble] == [
+        ("text", ["titldum"]),
+        ("values", ["count"]),
+        ("text", ["header"]),
+    ]
+    assert layout.main.at == "hru_read.f90:95"
+    assert [column.name for column in layout.main.columns] == ["k", "value"]
+
+
 def test_implied_do_columns_repeat_by_their_count(index) -> None:
     child = file_layout(index, "hru-data.hru").records[1]
     assert [(c.name, c.repeat) for c in child.columns] == [("topo", "nout"), ("frac", "nout")]
@@ -370,6 +398,18 @@ def test_bundled_soils_have_a_layer_record_per_soil(bundled) -> None:
 def test_bundled_plants_are_read_two_ways(bundled) -> None:
     roles = sorted(r.role for r in file_layout(bundled, "plants.plt").records)
     assert roles == ["alternative", "main"]
+
+
+def test_bundled_count_line_is_preamble_not_the_table_schema(bundled) -> None:
+    layout = file_layout(bundled, "cal_parms.cal")
+    assert [(line.kind, line.reads) for line in layout.preamble] == [
+        ("text", ["titldum"]),
+        ("values", ["mchg_par"]),
+        ("text", ["header"]),
+    ]
+    assert layout.main.at == "cal_parm_read.f90:42"
+    assert [column.name for column in layout.main.columns] == [
+        "name", "ob_typ", "absmin", "absmax", "units"]
 
 
 def test_bundled_connectivity_files_are_named_not_con_file(bundled) -> None:

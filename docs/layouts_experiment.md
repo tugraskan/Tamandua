@@ -28,11 +28,12 @@ Per file and reader:
 - Only the pass after the last `rewind` counts; SWAT+ commonly counts records
   in a first pass and reads them in a second.
 - A read followed by a `backspace` before the next read is a peek, not a record.
-- Leading reads of one character value are the preamble (title, header), so
-  `data_starts_after` is how many there are.
-- Of the remaining reads, the one at the shallowest loop depth with the most
-  columns is `main`; deeper reads are `child` (soil layers, monthly weather);
-  a read whose variable list begins the same way as `main`'s is an
+- Leading scalar metadata is the preamble (titles, counts and headers), with
+  text and value lines distinguished, so `data_starts_after` is how many
+  there are.
+- Of the remaining row-shaped reads, the one at the shallowest loop depth with
+  the most columns is `main`; deeper reads are `child` (soil layers, monthly
+  weather); a read whose variable list begins the same way as `main`'s is an
   `alternative`; anything else at `main`'s depth is a `line`.
 - Whole structures expand component by component; fixed arrays expand by their
   extent, including a `parameter` extent (`dimension(mlyr)`); arrays sized at

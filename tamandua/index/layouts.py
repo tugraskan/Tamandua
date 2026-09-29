@@ -468,11 +468,40 @@ def _procedure_records(
             continue
         data.append(item)
 
+    loop_lists = [_loops(index, proc, use.line) for use, _, _ in data]
+    depths: list[int] = [len(loops) if loops is not None else 0
+                         for loops in loop_lists]
+
+    # A scalar beside a wider record in a deeper loop is file metadata, not
+    # the table row. SWAT+ commonly writes a count and a header
+    # before ``do i = 1, count; read (...) row``. Treating the count as data
+    # made it the shallowest ``main`` record and demoted the real row to a
+    # child. ``PreambleLine`` has always allowed value lines for this case.
+    metadata = {
+        position
+        for position, (_, columns, _) in enumerate(data)
+        if len(columns) == 1 and any(
+            len(other_columns) > 1 and other_depth > depths[position]
+            for (_, other_columns, _), other_depth in zip(data, depths)
+        )
+    }
+    prefix = 0
+    while prefix < len(data) and prefix in metadata:
+        use, columns, _ = data[prefix]
+        preamble.append(PreambleLine(
+            at=f"{_location_name(proc)}:{use.line}",
+            kind="text" if _is_text(columns, use) else "values",
+            reads=list(use.fields),
+        ))
+        prefix += 1
+    if prefix:
+        data = data[prefix:]
+        loop_lists = loop_lists[prefix:]
+        depths = depths[prefix:]
+        metadata = {position - prefix for position in metadata if position >= prefix}
+
     records: list[Record] = []
-    depths: list[int] = []
-    for use, columns, problems in data:
-        loops = _loops(index, proc, use.line)
-        depths.append(len(loops) if loops is not None else 0)
+    for (use, columns, problems), loops in zip(data, loop_lists):
         records.append(Record(
             role="", procedure=proc.name,
             at=f"{_location_name(proc)}:{use.line}",
@@ -480,8 +509,11 @@ def _procedure_records(
         ))
     if not records:
         return preamble, []
-    shallowest = min(depths)
-    top = [k for k, depth in enumerate(depths) if depth == shallowest]
+    candidates = [k for k in range(len(records)) if k not in metadata]
+    if not candidates:
+        candidates = list(range(len(records)))
+    main_depth = min(depths[k] for k in candidates)
+    top = [k for k in candidates if depths[k] == main_depth]
     main = max(top, key=lambda k: (len(records[k].columns), -k))
     main_fields = [item.lower() for item in data[main][0].fields]
     for k, record in enumerate(records):
@@ -489,7 +521,9 @@ def _procedure_records(
         shared = min(len(fields), len(main_fields))
         if k == main:
             record.role = "main"
-        elif depths[k] > shallowest:
+        elif k in metadata:
+            record.role = "line"
+        elif depths[k] > main_depth:
             record.role = "child"
         elif fields[:shared] == main_fields[:shared]:
             # One read's list begins the other's: the same record read two
