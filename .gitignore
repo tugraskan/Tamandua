@@ -17,7 +17,7 @@ env/
 htmlcov/
 
 # Local, pinned external checkouts and datasets (kept out of the assistant repo;
-# resolved from docs/pins.toml). See SPEC.md §4 — capabilities live upstream.
+# resolved from docs/pins.toml).
 /external/
 /vendor/
 *.local.toml

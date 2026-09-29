@@ -107,7 +107,7 @@ tamandua/
 ├── index/             # build the facts, render, install pointers, snapshot
 │   ├── build.py       #   static analysis -> SourceIndex
 │   ├── snapshot.py    #   read/write swatplus-facts.json, so serving needs no parser
-│   ├── render.py      #   SOURCE_INDEX.md
+│   ├── render.py      #   SWATPLUS_INDEX.md
 │   ├── install.py     #   assistant instruction-file pointers
 │   ├── scope.py       #   loop nesting, for conditional breakpoints
 │   └── layouts.py     #   input-file column layouts and the links between files

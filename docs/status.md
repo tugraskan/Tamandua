@@ -38,7 +38,8 @@ and more accurate on SWAT+, not to be an assistant.
 | Assignment targets vs the parser | **21,770 of 21,770 agree**, neither misses one the other finds |
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
-the caveats for these.
+the caveats for these. Neither came across in the fork; both are in the
+archived repository (see "Where the findings are").
 
 ## Input-file links (format 5, 2026-09-29)
 
@@ -431,10 +432,11 @@ here surfaces it yet. It is not what `scope.condition_for` builds -- that one
 pins loop index variables for a debugger breakpoint -- so it would be an
 addition, not a replacement.
 
-**Unrelated, but latent.** `pyproject.toml` pins `httpx>=0.27` with no upper
-bound. `tests/test_ant_harness.py` uses `httpx.MockTransport`, which httpx 1.0
-removes -- those 5 tests fail on an httpx 1.0 prerelease. Nothing to do with
-the parser.
+**Unrelated, and resolved.** `tests/test_ant_harness.py` uses
+`httpx.MockTransport`, which httpx 1.0 removes -- those 5 tests fail on an
+httpx 1.0 prerelease. `pyproject.toml` has capped the dev extra at
+`httpx>=0.27,<1` since `ae0b9f7`, with a comment saying why; it resolves to
+0.28.1 and the 5 pass (2026-09-29). Nothing to do with the parser.
 
 **Verified on real source 2026-08-27.** The pinned parser handles the complete
 648-file SWAT+ 62.0.0 tree, and the frozen navigation evaluation is 12/12.
@@ -473,12 +475,15 @@ parser nor a SWAT+ checkout present.
 
 | Document | Question it answers |
 |---|---|
-| `index_experiment.md` | Index vs grep, measured, with the script |
-| `output_reader_experiment.md` | Reading a run's output, and the files that cannot be indexed safely |
+| [`index_experiment.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/index_experiment.md) (archived) | Index vs grep, measured, with the script |
+| [`output_reader_experiment.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/output_reader_experiment.md) (archived) | Reading a run's output, and the files that cannot be indexed safely |
 | `layouts_experiment.md` | Deriving input-file layouts from the facts, measured on Ames and across two SWAT+ trees |
 | `links_experiment.md` | Which column names a row of another file, from the comparisons SWAT+ makes, against the editor schema's foreign keys |
 | `ant_integration.md` | Testing local models, and whether to fold this into ANT |
-| `launch_checklist.md` | Everything between "code is ready" and "someone else can install it" |
+| [`launch_checklist.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/launch_checklist.md) (archived) | Everything between "code is ready" and "someone else can install it" |
+
+The three marked archived never came across in the fork; the links pin the
+archived repository's last commit, `8760e3d`.
 
 Three earlier experiment write-ups (`three_arms.md`, `mcp_vs_index.md`,
 `adoption_eval.md`) were removed in the 2026-08-26 declutter: their headline
