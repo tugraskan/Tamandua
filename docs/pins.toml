@@ -28,7 +28,15 @@ commit = "de210d6"                   # tag 62.0.0
 # produces swatplus-facts.json, which the MCP server answers from with neither
 # this nor the source present.
 repo   = "https://github.com/tugraskan/swatplus-reference-corpus"
-commit = "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d"
+commit = "110c2a24fd584b181e15cec8e3eeb9233c0945ad"
+# Bumped 2026-09-29 from 7a6e21ec for the corpus's 01adce1, which keeps a
+# gutter-aligned comment with the field above it instead of handing it to the
+# next declaration (`nam1` had been documented with `pet`'s method codes).
+# Rebuilt on 62.0.0, only derived-type field descriptions moved: 102 fields
+# changed text, and procedures, I/O, loops, writers and module variables are
+# identical to the 7a6e21ec build. Suite: 221 passed, 0 skipped with source,
+# parser and Ames present. Still stdlib-only: built with fparser absent.
+#
 # Bumped 2026-09-15. The previous pin (2daa14ae) is unreachable: the corpus
 # rewrote its history for the public release, so `actions/checkout` could no
 # longer resolve that ref and release.yml could not build. Verified against

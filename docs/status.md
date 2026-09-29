@@ -2,10 +2,9 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-22 (derived-type field declarations restored, format 4,
-bundled snapshot rebuilt). Previously updated 2026-09-16 (parser pin bumped;
-verified on real source; loop-scope defect fixed; module-level variables
-indexed and the bundled snapshot rebuilt).
+Last updated 2026-09-29 (parser pin bumped to `110c2a2` for a field-doc
+attribution fix; bundled snapshot rebuilt). Previously updated 2026-09-22
+(derived-type field declarations restored, format 4, bundled snapshot rebuilt).
 
 ---
 
@@ -37,6 +36,26 @@ and more accurate on SWAT+, not to be an assistant.
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these.
+
+## The parser pin moved again (2026-09-29)
+
+`7a6e21ec` → `110c2a2`, for the corpus's `01adce1`. A comment aligned under a
+declaration's inline comment, with no leading `|`, was attributed to the *next*
+declaration: `basin_control_codes%nam1` carried `pet`'s method codes
+("0 = Priestley-Taylor ... not used") under `nam1`'s own correct file and line.
+
+Rebuilt on 62.0.0 with both parsers and diffed:
+
+- **102** derived-type fields changed description. Nothing else moved:
+  procedures, I/O, loops, writers and module variables are identical, and the
+  source fingerprint is unchanged.
+- **221 pass, 0 skipped** with source, parser and Ames present (excluding
+  `tests/test_ant_harness.py`), before and after.
+- The schema scanner is still stdlib-only: both builds ran with `fparser`
+  not installed.
+
+The bundled snapshot and its RHS sidecar are rebuilt from the new pin; only
+`provenance.parser_commit`, `generated_at` and those field descriptions differ.
 
 ## The parser pin moved (2026-09-15)
 

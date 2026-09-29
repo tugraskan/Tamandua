@@ -232119,8 +232119,8 @@
  "provenance": {
   "compile_status": "not_checked",
   "format_version": "4",
-  "generated_at": "2026-09-22T20:21:53Z",
-  "parser_commit": "7a6e21ec8c15bcdf9a6b8a839cd4c1e0d7340b4d",
+  "generated_at": "2026-09-29T15:42:53Z",
+  "parser_commit": "110c2a24fd584b181e15cec8e3eeb9233c0945ad",
   "source_commit": "de210d64db4f1d75e110bd6af33ea9c333d27b8a",
   "source_describe": "62.0.0",
   "source_fingerprint": "6b6f7a7354fe23997aa7ad049e455d76",
@@ -233458,7 +233458,7 @@
     },
     {
      "declaration": "integer  :: pet = 0",
-     "description": "potential ET method code",
+     "description": "potential ET method code\n0 = Priestley-Taylor\n1 = Penman-Monteith\n2 = Hargreaves method",
      "location": "basin_module.f90:20",
      "name": "pet",
      "type_name": "basin_control_codes",
@@ -233467,7 +233467,7 @@
     },
     {
      "declaration": "integer  :: nam1 = 0",
-     "description": "0 = Priestley-Taylor\n1 = Penman-Monteith\n2 = Hargreaves method\nnot used",
+     "description": "not used",
      "location": "basin_module.f90:24",
      "name": "nam1",
      "type_name": "basin_control_codes",
@@ -233476,7 +233476,7 @@
     },
     {
      "declaration": "integer  :: crk = 0",
-     "description": "crack flow code",
+     "description": "crack flow code\n1 = compute flow in cracks",
      "location": "basin_module.f90:25",
      "name": "crk",
      "type_name": "basin_control_codes",
@@ -233485,7 +233485,7 @@
     },
     {
      "declaration": "integer  :: swift_out = 0",
-     "description": "1 = compute flow in cracks\nwrite to SWIFT input file",
+     "description": "write to SWIFT input file\n0 = do not write\n1 = write to swift_hru.inp",
      "location": "basin_module.f90:27",
      "name": "swift_out",
      "type_name": "basin_control_codes",
@@ -233494,7 +233494,7 @@
     },
     {
      "declaration": "integer  :: sed_det = 0",
-     "description": "0 = do not write\n1 = write to swift_hru.inp\npeak rate method",
+     "description": "peak rate method\n0 = NRCS dimensionless hydrograph with PRF\n1 = half hour rainfall intensity method",
      "location": "basin_module.f90:30",
      "name": "sed_det",
      "type_name": "basin_control_codes",
@@ -233503,7 +233503,7 @@
     },
     {
      "declaration": "integer  :: rte = 0",
-     "description": "0 = NRCS dimensionless hydrograph with PRF\n1 = half hour rainfall intensity method\nwater routing method",
+     "description": "water routing method\n0 variable storage method\n1 Muskingum method",
      "location": "basin_module.f90:33",
      "name": "rte",
      "type_name": "basin_control_codes",
@@ -233512,7 +233512,7 @@
     },
     {
      "declaration": "integer  :: deg = 0",
-     "description": "0 variable storage method\n1 Muskingum method\nnot used",
+     "description": "not used",
      "location": "basin_module.f90:36",
      "name": "deg",
      "type_name": "basin_control_codes",
@@ -233530,7 +233530,7 @@
     },
     {
      "declaration": "integer  :: nostress = 0",
-     "description": "redefined to the sequence number  -- changed to no nutrient stress",
+     "description": "redefined to the sequence number  -- changed to no nutrient stress\n0 = all stresses applied\n1 = turn off all plant stress\n2 = turn off nutrient plant stress only",
      "location": "basin_module.f90:38",
      "name": "nostress",
      "type_name": "basin_control_codes",
@@ -233539,7 +233539,7 @@
     },
     {
      "declaration": "integer  :: cn = 0",
-     "description": "0 = all stresses applied\n1 = turn off all plant stress\n2 = turn off nutrient plant stress only\nnot used",
+     "description": "not used",
      "location": "basin_module.f90:42",
      "name": "cn",
      "type_name": "basin_control_codes",
@@ -233557,7 +233557,7 @@
     },
     {
      "declaration": "integer  :: cswat = 0",
-     "description": "carbon code: 0 = off (static), 1 = C-FARM (reserved,",
+     "description": "carbon code: 0 = off (static), 1 = C-FARM (reserved,\nnot implemented), 2 = dynamic CENTURY/SWAT-C model.\nnumbering aligned with legacy SWAT as directed by Srinivasan.\n= 0 Static soil carbon (old mineralization routines)\n= 1 C-FARM one carbon pool model\n= 2 Century model",
      "location": "basin_module.f90:44",
      "name": "cswat",
      "type_name": "basin_control_codes",
@@ -233566,7 +233566,7 @@
     },
     {
      "declaration": "integer  :: lapse = 0",
-     "description": "not implemented), 2 = dynamic CENTURY/SWAT-C model.\nnumbering aligned with legacy SWAT as directed by Srinivasan.\n= 0 Static soil carbon (old mineralization routines)\n= 1 C-FARM one carbon pool model\n= 2 Century model\nprecip and temperature lapse rate control",
+     "description": "precip and temperature lapse rate control\n0 = do not adjust for elevation\n1 = adjust for elevation",
      "location": "basin_module.f90:50",
      "name": "lapse",
      "type_name": "basin_control_codes",
@@ -233575,7 +233575,7 @@
     },
     {
      "declaration": "integer  :: uhyd = 1",
-     "description": "0 = do not adjust for elevation\n1 = adjust for elevation\nUnit hydrograph method:",
+     "description": "Unit hydrograph method:\n0 = triangular UH\n1 = gamma function UH",
      "location": "basin_module.f90:53",
      "name": "uhyd",
      "type_name": "basin_control_codes",
@@ -233584,7 +233584,7 @@
     },
     {
      "declaration": "integer  :: sed_ch = 0",
-     "description": "0 = triangular UH\n1 = gamma function UH\nnot used",
+     "description": "not used",
      "location": "basin_module.f90:56",
      "name": "sed_ch",
      "type_name": "basin_control_codes",
@@ -233593,7 +233593,7 @@
     },
     {
      "declaration": "integer  :: tdrn = 0",
-     "description": "tile drainage eq code",
+     "description": "tile drainage eq code\n0 = tile flow using drawdown days equation\n1 = tile flow using drainmod equations",
      "location": "basin_module.f90:57",
      "name": "tdrn",
      "type_name": "basin_control_codes",
@@ -233602,7 +233602,7 @@
     },
     {
      "declaration": "integer  :: wtdn = 0",
-     "description": "0 = tile flow using drawdown days equation\n1 = tile flow using drainmod equations\nshallow water table depth algorithms code",
+     "description": "shallow water table depth algorithms code\n0 = depth using orig water table depth routine - fill to upper limit\n1 = depth using drainmod water table depth routine",
      "location": "basin_module.f90:60",
      "name": "wtdn",
      "type_name": "basin_control_codes",
@@ -233611,7 +233611,7 @@
     },
     {
      "declaration": "integer  :: sol_p_model=0",
-     "description": "0 = depth using orig water table depth routine - fill to upper limit\n1 = depth using drainmod water table depth routine\n0 = original soil P model in SWAT documentation",
+     "description": "0 = original soil P model in SWAT documentation\n1 = new soil P model in Vadas and White (2010)",
      "location": "basin_module.f90:63",
      "name": "sol_p_model",
      "type_name": "basin_control_codes",
@@ -233620,7 +233620,7 @@
     },
     {
      "declaration": "integer  :: gampt = 0",
-     "description": "1 = new soil P model in Vadas and White (2010)\n0 = curve number; 1 = Green and Ampt",
+     "description": "0 = curve number; 1 = Green and Ampt",
      "location": "basin_module.f90:65",
      "name": "gampt",
      "type_name": "basin_control_codes",
@@ -233647,7 +233647,7 @@
     },
     {
      "declaration": "integer  :: qual2e = 0",
-     "description": "0 = instream nutrient routing using QUAL2E",
+     "description": "0 = instream nutrient routing using QUAL2E\n1 = instream nutrient routing using QUAL2E - with simplified nutrient transformations",
      "location": "basin_module.f90:68",
      "name": "qual2e",
      "type_name": "basin_control_codes",
@@ -233656,7 +233656,7 @@
     },
     {
      "declaration": "integer  :: gwflow = 0",
-     "description": "1 = instream nutrient routing using QUAL2E - with simplified nutrient transformations\n0 = gwflow module not active; 1 = gwflow module active",
+     "description": "0 = gwflow module not active; 1 = gwflow module active",
      "location": "basin_module.f90:70",
      "name": "gwflow",
      "type_name": "basin_control_codes",
@@ -233665,7 +233665,7 @@
     },
     {
      "declaration": "integer  :: idc_till = 3",
-     "description": "1 = Use dssat tillage method to use if cswat = 2",
+     "description": "1 = Use dssat tillage method to use if cswat = 2\n2 = Use epic tillage method to use if cswat = 2\n3 = Use Kemanian tillage method to use if cswat = 2\n4 = Use dndc tillage method to use if cswat = 2",
      "location": "basin_module.f90:71",
      "name": "idc_till",
      "type_name": "basin_control_codes",
@@ -233771,7 +233771,7 @@
     },
     {
      "declaration": "real  :: nperco = 0.10",
-     "description": "nitrate perc coeff (0-1)",
+     "description": "nitrate perc coeff (0-1)\n0 = conc of nitrate in surface runoff is zero\n1 = perc has same conc of nitrate as surf runoff",
      "location": "basin_module.f90:90",
      "name": "nperco",
      "type_name": "basin_parms",
@@ -233780,7 +233780,7 @@
     },
     {
      "declaration": "real  :: pperco = 10.0",
-     "description": "0 = conc of nitrate in surface runoff is zero\n1 = perc has same conc of nitrate as surf runoff\nphos perc coeff (0-1)",
+     "description": "phos perc coeff (0-1)\n0 = conc of sol P in surf runoff is zero\n1 = percolate has some conc of sol P as surf runoff",
      "location": "basin_module.f90:93",
      "name": "pperco",
      "type_name": "basin_parms",
@@ -233789,7 +233789,7 @@
     },
     {
      "declaration": "real  :: phoskd = 175.0",
-     "description": "0 = conc of sol P in surf runoff is zero\n1 = percolate has some conc of sol P as surf runoff\nphos soil partitioning coef",
+     "description": "phos soil partitioning coef",
      "location": "basin_module.f90:96",
      "name": "phoskd",
      "type_name": "basin_parms",
@@ -233825,7 +233825,7 @@
     },
     {
      "declaration": "real  :: msk_co1 = 0.75",
-     "description": "calibration coeff to control impact of the storage",
+     "description": "calibration coeff to control impact of the storage\ntime constant for the reach at bankfull depth",
      "location": "basin_module.f90:100",
      "name": "msk_co1",
      "type_name": "basin_parms",
@@ -233834,7 +233834,7 @@
     },
     {
      "declaration": "real  :: msk_co2 = 0.25",
-     "description": "time constant for the reach at bankfull depth\ncalibration coefficient used to control impact of the",
+     "description": "calibration coefficient used to control impact of the\nstorage time constant for low flow (where low flow is when\nriver is at 0.1 bankfull depth) upon the Km value calculated\nfor the reach",
      "location": "basin_module.f90:102",
      "name": "msk_co2",
      "type_name": "basin_parms",
@@ -233843,7 +233843,7 @@
     },
     {
      "declaration": "real  :: msk_x = 0.20",
-     "description": "storage time constant for low flow (where low flow is when\nriver is at 0.1 bankfull depth) upon the Km value calculated\nfor the reach\nweighting factor control relative importance of inflow rate",
+     "description": "weighting factor control relative importance of inflow rate\nand outflow rate in determining storage on reach",
      "location": "basin_module.f90:106",
      "name": "msk_x",
      "type_name": "basin_parms",
@@ -233852,7 +233852,7 @@
     },
     {
      "declaration": "real  :: nperco_lchtile = .5",
-     "description": "and outflow rate in determining storage on reach\nn concentration coeff for tile flow and leach from bottom layer",
+     "description": "n concentration coeff for tile flow and leach from bottom layer",
      "location": "basin_module.f90:108",
      "name": "nperco_lchtile",
      "type_name": "basin_parms",
@@ -234032,7 +234032,7 @@
     },
     {
      "declaration": "real  :: c_factor = 0.",
-     "description": "scaling parameter for cover and management factor for",
+     "description": "scaling parameter for cover and management factor for\noverland flow erosion",
      "location": "basin_module.f90:128",
      "name": "c_factor",
      "type_name": "basin_parms",
@@ -234041,7 +234041,7 @@
     },
     {
      "declaration": "real  :: ch_d50 = 0.",
-     "description": "overland flow erosion\nmedian particle diameter of main channel (mm)",
+     "description": "median particle diameter of main channel (mm)",
      "location": "basin_module.f90:130",
      "name": "ch_d50",
      "type_name": "basin_parms",
@@ -234059,7 +234059,7 @@
     },
     {
      "declaration": "integer  :: day_lag_mx = 0",
-     "description": "max days to lag hydrographs for hru, ru and channels",
+     "description": "max days to lag hydrographs for hru, ru and channels\nnon-draining soils",
      "location": "basin_module.f90:132",
      "name": "day_lag_mx",
      "type_name": "basin_parms",
@@ -234068,7 +234068,7 @@
     },
     {
      "declaration": "integer  :: igen = 5",
-     "description": "non-draining soils\nrandom generator code:",
+     "description": "random generator code:\n0 = use default numbers\n1 = generate new numbers in every simulation",
      "location": "basin_module.f90:134",
      "name": "igen",
      "type_name": "basin_parms",
@@ -234253,7 +234253,7 @@
     },
     {
      "declaration": "character(len=1)  :: use_obj_labels  = \"n\"",
-     "description": "code to read in the print.prt print objects respecting the label of",
+     "description": "code to read in the print.prt print objects respecting the label of\nin the row (1st column) to identify name of the print object",
      "location": "basin_module.f90:171",
      "name": "use_obj_labels",
      "type_name": "basin_print_codes",
@@ -234775,7 +234775,7 @@
     },
     {
      "declaration": "type(print_interval)  :: pest",
-     "description": "all constituents pesticide output files (hru, chan, res, basin_chan, basin_res,",
+     "description": "all constituents pesticide output files (hru, chan, res, basin_chan, basin_res,\nbasin_ls",
      "location": "basin_module.f90:246",
      "name": "pest",
      "type_name": "basin_print_codes",
@@ -234784,7 +234784,7 @@
     },
     {
      "declaration": "type(print_interval)  :: salt_basin",
-     "description": "basin_ls\nSALT (rtb salt)\nsalt output for the basin",
+     "description": "SALT (rtb salt)\nsalt output for the basin",
      "location": "basin_module.f90:249",
      "name": "salt_basin",
      "type_name": "basin_print_codes",
@@ -235819,7 +235819,7 @@
    "fields": [
     {
      "declaration": "character (len=1)  :: hyd_hru = \"n\"",
-     "description": "if a, calibrate all hydrologic balance processes for hru by land use in each region",
+     "description": "if a, calibrate all hydrologic balance processes for hru by land use in each region\nif b, calibrate baseflow and total runoff for hru by land use in each region\nif y, defaults to b for existing NAM simulations",
      "location": "calibration_data_module.f90:55",
      "name": "hyd_hru",
      "type_name": "soft_calibration_codes",
@@ -235828,7 +235828,7 @@
     },
     {
      "declaration": "character (len=1)  :: hyd_hrul = \"n\"",
-     "description": "if b, calibrate baseflow and total runoff for hru by land use in each region\nif y, defaults to b for existing NAM simulations\nif y, calibrate hydrologic balance for hru_lte by land use in each region",
+     "description": "if y, calibrate hydrologic balance for hru_lte by land use in each region",
      "location": "calibration_data_module.f90:58",
      "name": "hyd_hrul",
      "type_name": "soft_calibration_codes",
@@ -244070,7 +244070,7 @@
     },
     {
      "declaration": "integer  :: eqn  = 0",
-     "description": "sediment routine methods:",
+     "description": "sediment routine methods:\n0 = original SWAT method\n1 = Bagnold\"seqn\n2 = Kodatie\n3 = Molinas WU\n4 = Yang",
      "location": "channel_data_module.f90:88",
      "name": "eqn",
      "type_name": "channel_sed_data",
@@ -244083,7 +244083,7 @@
      "location": "channel_data_module.f90:94",
      "name": "cov1",
      "type_name": "channel_sed_data",
-     "units": "0 = original SWAT method\n1 = Bagnold\"seqn\n2 = Kodatie\n3 = Molinas WU\n4 = Yang\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
@@ -244169,7 +244169,7 @@
     },
     {
      "declaration": "real , dimension(12) :: erod  = 0.",
-     "description": "value of 0.0 indicates a non-erosive channel while a value",
+     "description": "value of 0.0 indicates a non-erosive channel while a value\nof 1.0 indicates no resistance to erosion",
      "location": "channel_data_module.f90:104",
      "name": "erod",
      "type_name": "channel_sed_data",
@@ -244365,7 +244365,7 @@
     },
     {
      "declaration": "real  :: lao  = 2",
-     "description": "Qual2E light averaging option. Qual2E defines four light averaging options. The only option",
+     "description": "Qual2E light averaging option. Qual2E defines four light averaging options. The only option\ncurrently available in SWAT is #2.",
      "location": "channel_data_module.f90:132",
      "name": "lao",
      "type_name": "channel_nut_data",
@@ -244374,11 +244374,11 @@
     },
     {
      "declaration": "integer  :: igropt = 2",
-     "description": "Qual2E option for calculating the local specific growth rate of algae",
+     "description": "Qual2E option for calculating the local specific growth rate of algae\n1: multiplicative: u = mumax * fll * fnn * fpp\n2: limiting nutrient: u = mumax * fll * Min(fnn, fpp)\n3: harmonic mean: u = mumax * fll * 2. / ((1/fnn)+(1/fpp))",
      "location": "channel_data_module.f90:134",
      "name": "igropt",
      "type_name": "channel_nut_data",
-     "units": "currently available in SWAT is #2.\nnone",
+     "units": "none",
      "vartype": "integer"
     },
     {
@@ -244387,7 +244387,7 @@
      "location": "channel_data_module.f90:138",
      "name": "ai0",
      "type_name": "channel_nut_data",
-     "units": "1: multiplicative: u = mumax * fll * fnn * fpp\n2: limiting nutrient: u = mumax * fll * Min(fnn, fpp)\n3: harmonic mean: u = mumax * fll * 2. / ((1/fnn)+(1/fpp))\nug chla/mg alg",
+     "units": "ug chla/mg alg",
      "vartype": "real"
     },
     {
@@ -244464,7 +244464,7 @@
     },
     {
      "declaration": "real  :: tfact = 0.3",
-     "description": "fraction of solar radiation computed in the temperature heat balance that is",
+     "description": "fraction of solar radiation computed in the temperature heat balance that is\nphotosynthetically active",
      "location": "channel_data_module.f90:147",
      "name": "tfact",
      "type_name": "channel_nut_data",
@@ -244477,7 +244477,7 @@
      "location": "channel_data_module.f90:149",
      "name": "k_l",
      "type_name": "channel_nut_data",
-     "units": "photosynthetically active\nMJ/(m2*hr)",
+     "units": "MJ/(m2*hr)",
      "vartype": "real"
     },
     {
@@ -248784,7 +248784,7 @@
     },
     {
      "declaration": "character(len=40)  :: option = \"\"",
-     "description": "action option - specific to type of action (ie for reservoir, option to",
+     "description": "action option - specific to type of action (ie for reservoir, option to\ninput rate, days of drawdown, weir equation pointer, etc",
      "location": "conditional_module.f90:21",
      "name": "option",
      "type_name": "actions_var",
@@ -248793,7 +248793,7 @@
     },
     {
      "declaration": "real  :: const = 0.",
-     "description": "input rate, days of drawdown, weir equation pointer, etc\nconstant used for rate, days, etc",
+     "description": "constant used for rate, days, etc",
      "location": "conditional_module.f90:23",
      "name": "const",
      "type_name": "actions_var",
@@ -254977,7 +254977,7 @@
    "fields": [
     {
      "declaration": "character(len=64)  :: name = \" \"",
-     "description": "Identifier used to crosswalk fertilizer entries, constructed from",
+     "description": "Identifier used to crosswalk fertilizer entries, constructed from\nmanure_region, manure_source, and manure_type",
      "location": "fertilizer_data_module.f90:36",
      "name": "name",
      "type_name": "manure_attributes",
@@ -254990,7 +254990,7 @@
      "location": "fertilizer_data_module.f90:38",
      "name": "frac_water",
      "type_name": "manure_attributes",
-     "units": "manure_region, manure_source, and manure_type\nkg water/(kg manure + kg_water)",
+     "units": "kg water/(kg manure + kg_water)",
      "vartype": "real"
     },
     {
@@ -258999,7 +258999,7 @@
     },
     {
      "declaration": "real  :: vfsch = 0.",
-     "description": "none          |fraction of flow entering the most concentrated 10% of the VFS.",
+     "description": "none          |fraction of flow entering the most concentrated 10% of the VFS.\nwhich is fully channelized",
      "location": "hru_module.f90:187",
      "name": "vfsch",
      "type_name": "land_use_mgt_variables",
@@ -259008,7 +259008,7 @@
     },
     {
      "declaration": "integer  :: ngrwat = 0",
-     "description": "which is fully channelized",
+     "description": null,
      "location": "hru_module.f90:189",
      "name": "ngrwat",
      "type_name": "land_use_mgt_variables",
@@ -260542,7 +260542,7 @@
     },
     {
      "declaration": "integer  :: num = 1",
-     "description": "spatial object number- ie hru number corresponding to sequential command number",
+     "description": "spatial object number- ie hru number corresponding to sequential command number\nthis is the first column in hru_dat (doesn\"t have to be sequential)",
      "location": "hydrograph_module.f90:334",
      "name": "num",
      "type_name": "object_connectivity",
@@ -260551,7 +260551,7 @@
     },
     {
      "declaration": "integer  :: gis_id = 0",
-     "description": "this is the first column in hru_dat (doesn\"t have to be sequential)\ngis number for database purposes",
+     "description": "gis number for database purposes",
      "location": "hydrograph_module.f90:336",
      "name": "gis_id",
      "type_name": "object_connectivity",
@@ -266768,7 +266768,7 @@
     },
     {
      "declaration": "real  :: erorgn = 0.",
-     "description": "organic N enrichment ratio, if left blank",
+     "description": "organic N enrichment ratio, if left blank\n%             |the model will calculate for every event",
      "location": "hydrology_data_module.f90:13",
      "name": "erorgn",
      "type_name": "hydrology_db",
@@ -266777,25 +266777,25 @@
     },
     {
      "declaration": "real  :: erorgp = 0.",
-     "description": "the model will calculate for every event\nnone          |organic P enrichment ratio, if left blank",
+     "description": "organic P enrichment ratio, if left blank\n%             |the model will calculate for every event",
      "location": "hydrology_data_module.f90:15",
      "name": "erorgp",
      "type_name": "hydrology_db",
-     "units": "%",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: cn3_swf = 0.",
-     "description": "the model will calculate for every event\nnone          |soil water at cn3 - 0=fc; .99=near saturation",
+     "description": "soil water at cn3 - 0=fc; .99=near saturation",
      "location": "hydrology_data_module.f90:17",
      "name": "cn3_swf",
      "type_name": "hydrology_db",
-     "units": "%",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: biomix = 0.",
-     "description": "biological mixing efficiency.",
+     "description": "biological mixing efficiency.\n%             |Mixing of soil due to activity of earthworms and other soil biota.\n%             |Mixing is performed at the end of every calendar year.",
      "location": "hydrology_data_module.f90:18",
      "name": "biomix",
      "type_name": "hydrology_db",
@@ -266804,11 +266804,11 @@
     },
     {
      "declaration": "real  :: perco = 0.",
-     "description": "Mixing of soil due to activity of earthworms and other soil biota.\n%             |Mixing is performed at the end of every calendar year.\nnone          |0-1           |percolation coefficient - linear adjustment to daily perc",
+     "description": "0-1           |percolation coefficient - linear adjustment to daily perc",
      "location": "hydrology_data_module.f90:21",
      "name": "perco",
      "type_name": "hydrology_db",
-     "units": "%",
+     "units": "none",
      "vartype": "real"
     },
     {
@@ -268538,7 +268538,7 @@
     },
     {
      "declaration": "character (len=40)  :: urb_ro = \"\"",
-     "description": "urban runoff model",
+     "description": "urban runoff model\n\"usgs_reg\", simulate using USGS regression eqs\n\"buildup_washoff\", simulate using build up/wash off alg",
      "location": "landuse_data_module.f90:13",
      "name": "urb_ro",
      "type_name": "land_use_management",
@@ -268547,7 +268547,7 @@
     },
     {
      "declaration": "character (len=40)  :: ovn = \"\"",
-     "description": "\"usgs_reg\", simulate using USGS regression eqs\n\"buildup_washoff\", simulate using build up/wash off alg\nManning\"s \"n\" land use type for overland flow (ovn_table.lum)",
+     "description": "Manning\"s \"n\" land use type for overland flow (ovn_table.lum)",
      "location": "landuse_data_module.f90:16",
      "name": "ovn",
      "type_name": "land_use_management",
@@ -271170,7 +271170,7 @@
     },
     {
      "declaration": "real  :: vfsch = 0.",
-     "description": "fraction of flow entering the most concentrated 10% of the VFS.",
+     "description": "fraction of flow entering the most concentrated 10% of the VFS.\nwhich is fully channelized",
      "location": "mgt_operations_module.f90:35",
      "name": "vfsch",
      "type_name": "filtstrip_operation",
@@ -271707,7 +271707,7 @@
     },
     {
      "declaration": "real  :: eff = 0.",
-     "description": "harvest efficiency: fraction of harvested yield that is removed",
+     "description": "harvest efficiency: fraction of harvested yield that is removed\nthe remainder becomes residue on the soil surface",
      "location": "mgt_operations_module.f90:114",
      "name": "eff",
      "type_name": "harvest_operation",
@@ -271720,7 +271720,7 @@
      "location": "mgt_operations_module.f90:116",
      "name": "bm_min",
      "type_name": "harvest_operation",
-     "units": "the remainder becomes residue on the soil surface\nkg/ha",
+     "units": "kg/ha",
      "vartype": "real"
     }
    ],
@@ -271820,7 +271820,7 @@
     },
     {
      "declaration": "real  :: fr_curb = 0.",
-     "description": "availability factor, the fraction of the",
+     "description": "availability factor, the fraction of the\ncurb length that is sweepable",
      "location": "mgt_operations_module.f90:137",
      "name": "fr_curb",
      "type_name": "streetsweep_operation",
@@ -274087,7 +274087,7 @@
     },
     {
      "declaration": "real  :: rsd_nitorg_n = 0.",
-     "description": "nitrogen moving from the fresh organic pool (residue) to the nitrate (80%)",
+     "description": "nitrogen moving from the fresh organic pool (residue) to the nitrate (80%)\nand active org (20%) pools",
      "location": "output_landscape_module.f90:94",
      "name": "rsd_nitorg_n",
      "type_name": "output_nutbal",
@@ -274096,11 +274096,11 @@
     },
     {
      "declaration": "real  :: rsd_laborg_p = 0.",
-     "description": "phosphorus moving from the fresh organic pool (residue) to the labile (80%)",
+     "description": "phosphorus moving from the fresh organic pool (residue) to the labile (80%)\nand org (20%) pools",
      "location": "output_landscape_module.f90:96",
      "name": "rsd_laborg_p",
      "type_name": "output_nutbal",
-     "units": "and active org (20%) pools\nkg P/ha",
+     "units": "kg P/ha",
      "vartype": "real"
     },
     {
@@ -274109,7 +274109,7 @@
      "location": "output_landscape_module.f90:98",
      "name": "no3atmo",
      "type_name": "output_nutbal",
-     "units": "and org (20%) pools\nkg N/ha",
+     "units": "kg N/ha",
      "vartype": "real"
     },
     {
@@ -274245,7 +274245,7 @@
     },
     {
      "declaration": "real  :: rsd_laborg_p = 0.",
-     "description": "phosphorus moving from the fresh organic pool (residue) to the labile (80%)",
+     "description": "phosphorus moving from the fresh organic pool (residue) to the labile (80%)\nand org (20%) pools",
      "location": "output_landscape_module.f90:143",
      "name": "rsd_laborg_p",
      "type_name": "output_nutcarb_cycling",
@@ -280589,7 +280589,7 @@
     },
     {
      "declaration": "real  :: det_thrshd = 0.",
-     "description": "Threshold detection level for less pers bac when pathogen levels",
+     "description": "Threshold detection level for less pers bac when pathogen levels\ndrop to this amt the model considers bac in the soil to be\ninsignificant and sets the levels to zero",
      "location": "pathogen_data_module.f90:18",
      "name": "det_thrshd",
      "type_name": "pathogen_db",
@@ -280602,7 +280602,7 @@
      "location": "pathogen_data_module.f90:21",
      "name": "do_stream",
      "type_name": "pathogen_db",
-     "units": "drop to this amt the model considers bac in the soil to be\ninsignificant and sets the levels to zero\n1/day",
+     "units": "1/day",
      "vartype": "real"
     },
     {
@@ -281288,7 +281288,7 @@
     },
     {
      "declaration": "real  :: gmaxfr = 0.75",
-     "description": "fraction of max stomatal conductance that is",
+     "description": "fraction of max stomatal conductance that is\nachieved at the vapor pressure deficit defined by VPDFR",
      "location": "plant_data_module.f90:72",
      "name": "gmaxfr",
      "type_name": "plant_db",
@@ -281301,12 +281301,12 @@
      "location": "plant_data_module.f90:74",
      "name": "wavp",
      "type_name": "plant_db",
-     "units": "achieved at the vapor pressure deficit defined by VPDFR\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: co2hi = 660.",
-     "description": "CO2 concentration higher than the ambient corresponding",
+     "description": "CO2 concentration higher than the ambient corresponding\nto the 2nd point on radiation use efficiency curve",
      "location": "plant_data_module.f90:75",
      "name": "co2hi",
      "type_name": "plant_db",
@@ -281315,11 +281315,11 @@
     },
     {
      "declaration": "real  :: bioehi = 16.",
-     "description": "biomass-energy ratio when plant is in an environment with",
+     "description": "biomass-energy ratio when plant is in an environment with\nCO2 level equal to the value of CO2HI.",
      "location": "plant_data_module.f90:77",
      "name": "bioehi",
      "type_name": "plant_db",
-     "units": "to the 2nd point on radiation use efficiency curve\n(kg/ha)/(MJ/m**2)",
+     "units": "(kg/ha)/(MJ/m**2)",
      "vartype": "real"
     },
     {
@@ -281328,7 +281328,7 @@
      "location": "plant_data_module.f90:79",
      "name": "rsdco_pl",
      "type_name": "plant_db",
-     "units": "CO2 level equal to the value of CO2HI.\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
@@ -281423,7 +281423,7 @@
     },
     {
      "declaration": "real  :: pop1 = 0.",
-     "description": "plant population corresponding to the 1st point on the",
+     "description": "plant population corresponding to the 1st point on the\npopulation lai curve",
      "location": "plant_data_module.f90:91",
      "name": "pop1",
      "type_name": "plant_db",
@@ -281432,38 +281432,38 @@
     },
     {
      "declaration": "real  :: frlai1 = 0.",
-     "description": "frac of max leaf area index corresponding to the 1st",
+     "description": "frac of max leaf area index corresponding to the 1st\npoint on the leaf area development curve",
      "location": "plant_data_module.f90:93",
      "name": "frlai1",
      "type_name": "plant_db",
-     "units": "population lai curve\nfrac",
+     "units": "frac",
      "vartype": "real"
     },
     {
      "declaration": "real  :: pop2 = 0.",
-     "description": "plant population corresponding to the 2nd point on the",
+     "description": "plant population corresponding to the 2nd point on the\npopulation lai curve",
      "location": "plant_data_module.f90:95",
      "name": "pop2",
      "type_name": "plant_db",
-     "units": "point on the leaf area development curve\nplants/m^2",
+     "units": "plants/m^2",
      "vartype": "real"
     },
     {
      "declaration": "real  :: frlai2 = 0.",
-     "description": "frac of max leaf area index corresponding to the 2nd",
+     "description": "frac of max leaf area index corresponding to the 2nd\npoint on the leaf area development curve",
      "location": "plant_data_module.f90:97",
      "name": "frlai2",
      "type_name": "plant_db",
-     "units": "population lai curve\nfrac",
+     "units": "frac",
      "vartype": "real"
     },
     {
      "declaration": "real  :: frsw_gro = .5",
-     "description": "30 day sum of P-PET to initiate growth of tropical",
+     "description": "30 day sum of P-PET to initiate growth of tropical\nplants during monsoon season - pcom()%plcur()%iseason",
      "location": "plant_data_module.f90:99",
      "name": "frsw_gro",
      "type_name": "plant_db",
-     "units": "point on the leaf area development curve\nfrac",
+     "units": "frac",
      "vartype": "real"
     },
     {
@@ -281472,7 +281472,7 @@
      "location": "plant_data_module.f90:101",
      "name": "aeration",
      "type_name": "plant_db",
-     "units": "plants during monsoon season - pcom()%plcur()%iseason",
+     "units": null,
      "vartype": "real"
     },
     {
@@ -281601,7 +281601,7 @@
     },
     {
      "declaration": "real  :: gmaxfr = 0.",
-     "description": "fraction of max stomatal conductance that is",
+     "description": "fraction of max stomatal conductance that is\nachieved at the vapor pressure deficit defined by VPDFR",
      "location": "plant_data_module.f90:121",
      "name": "gmaxfr",
      "type_name": "plant_cp",
@@ -281614,12 +281614,12 @@
      "location": "plant_data_module.f90:123",
      "name": "vpdfr",
      "type_name": "plant_cp",
-     "units": "achieved at the vapor pressure deficit defined by VPDFR\nkPa",
+     "units": "kPa",
      "vartype": "real"
     },
     {
      "declaration": "real  :: cvm = 0.",
-     "description": "fraction of the maximum leaf area index corresponding",
+     "description": "fraction of the maximum leaf area index corresponding\nto the second point of the optimal leaf area dev curve",
      "location": "plant_data_module.f90:124",
      "name": "cvm",
      "type_name": "plant_cp",
@@ -281628,11 +281628,11 @@
     },
     {
      "declaration": "real  :: vpd2 = 0.",
-     "description": "vapor pressure deficit corresponding to the second point",
+     "description": "vapor pressure deficit corresponding to the second point\non the stomatal conductance curve",
      "location": "plant_data_module.f90:126",
      "name": "vpd2",
      "type_name": "plant_cp",
-     "units": "to the second point of the optimal leaf area dev curve\nkPa",
+     "units": "kPa",
      "vartype": "real"
     }
    ],
@@ -282199,7 +282199,7 @@
    "fields": [
     {
      "declaration": "real  :: reg = 0.",
-     "description": "stress factor that most limits plant growth",
+     "description": "stress factor that most limits plant growth\non current day",
      "location": "plant_module.f90:66",
      "name": "reg",
      "type_name": "plant_stress",
@@ -282208,56 +282208,56 @@
     },
     {
      "declaration": "real  :: strsw = 1.",
-     "description": "frac of potential plant growth achieved on the day where the",
+     "description": "frac of potential plant growth achieved on the day where the\nreduction is caused by water stress",
      "location": "plant_module.f90:68",
      "name": "strsw",
      "type_name": "plant_stress",
-     "units": "on current day\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: strsa = 1.",
-     "description": "frac of potential plant growth achieved on the day where the",
+     "description": "frac of potential plant growth achieved on the day where the\nreduction is caused by air stress",
      "location": "plant_module.f90:70",
      "name": "strsa",
      "type_name": "plant_stress",
-     "units": "reduction is caused by water stress",
+     "units": null,
      "vartype": "real"
     },
     {
      "declaration": "real  :: strsn = 1.",
-     "description": "frac of potential plant growth achieved on the day where the reduction",
+     "description": "frac of potential plant growth achieved on the day where the reduction\nis caused by nit stress",
      "location": "plant_module.f90:72",
      "name": "strsn",
      "type_name": "plant_stress",
-     "units": "reduction is caused by air stress\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: strsp = 1.",
-     "description": "frac of potential plant growth achieved on the day where the reduction",
+     "description": "frac of potential plant growth achieved on the day where the reduction\nis caused by phos stress",
      "location": "plant_module.f90:74",
      "name": "strsp",
      "type_name": "plant_stress",
-     "units": "is caused by nit stress\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: strst = 1.",
-     "description": "frac of potential plant growth achieved on the day where the reduction",
+     "description": "frac of potential plant growth achieved on the day where the reduction\nis caused by temp stress",
      "location": "plant_module.f90:76",
      "name": "strst",
      "type_name": "plant_stress",
-     "units": "is caused by phos stress\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
      "declaration": "real  :: strss = 1.",
-     "description": "frac of potential plant growth achieved on the day where the reduction",
+     "description": "frac of potential plant growth achieved on the day where the reduction\nis caused by salt stress (rtb salt)",
      "location": "plant_module.f90:78",
      "name": "strss",
      "type_name": "plant_stress",
-     "units": "is caused by temp stress\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
@@ -282266,7 +282266,7 @@
      "location": "plant_module.f90:80",
      "name": "sum_w",
      "type_name": "plant_stress",
-     "units": "is caused by salt stress (rtb salt)\nnone",
+     "units": "none",
      "vartype": "real"
     },
     {
@@ -285122,7 +285122,7 @@
     },
     {
      "declaration": "real  :: pvol = 0.",
-     "description": "vol of water needed to fill the res to the princ spillway (read in as ha-m",
+     "description": "vol of water needed to fill the res to the princ spillway (read in as ha-m\nand converted to m^3)",
      "location": "reservoir_data_module.f90:69",
      "name": "pvol",
      "type_name": "reservoir_hyd_data",
@@ -285135,12 +285135,12 @@
      "location": "reservoir_data_module.f90:71",
      "name": "esa",
      "type_name": "reservoir_hyd_data",
-     "units": "and converted to m^3)\nha",
+     "units": "ha",
      "vartype": "real"
     },
     {
      "declaration": "real  :: evol = 0.",
-     "description": "vol of water needed to fill the res to the emerg spillway (read in as ha-m",
+     "description": "vol of water needed to fill the res to the emerg spillway (read in as ha-m\nand converted to m^3)",
      "location": "reservoir_data_module.f90:72",
      "name": "evol",
      "type_name": "reservoir_hyd_data",
@@ -285153,7 +285153,7 @@
      "location": "reservoir_data_module.f90:74",
      "name": "k",
      "type_name": "reservoir_hyd_data",
-     "units": "and converted to m^3)\nmm/hr",
+     "units": "mm/hr",
      "vartype": "real"
     },
     {
@@ -295668,7 +295668,7 @@
     },
     {
      "declaration": "integer  :: step = 0",
-     "description": "number of time steps in a day for rainfall, runoff and routing",
+     "description": "number of time steps in a day for rainfall, runoff and routing\n0 = daily; 1=increment(12 hrs); 24=hourly; 96=15 mins; 1440=minute;",
      "location": "time_module.f90:34",
      "name": "step",
      "type_name": "time_current",
@@ -295677,7 +295677,7 @@
     },
     {
      "declaration": "real  :: dtm = 0.",
-     "description": "0 = daily; 1=increment(12 hrs); 24=hourly; 96=15 mins; 1440=minute;\ntime step in minutes for rainfall, runoff and routing",
+     "description": "time step in minutes for rainfall, runoff and routing",
      "location": "time_module.f90:36",
      "name": "dtm",
      "type_name": "time_current",
@@ -296056,7 +296056,7 @@
     },
     {
      "declaration": "integer  :: start_row_numbr = 1",
-     "description": "the number of the row in the file to start reading table data",
+     "description": "the number of the row in the file to start reading table data\nThis number cannot greater than the line number of the header row.",
      "location": "utils.f90:22",
      "name": "start_row_numbr",
      "type_name": "table_reader",
@@ -296065,7 +296065,7 @@
     },
     {
      "declaration": "integer  :: start_data_row_numbr = 3",
-     "description": "This number cannot greater than the line number of the header row.\nThe line number that the actual data starts.",
+     "description": "The line number that the actual data starts.",
      "location": "utils.f90:24",
      "name": "start_data_row_numbr",
      "type_name": "table_reader",
@@ -296092,7 +296092,7 @@
     },
     {
      "declaration": "logical , allocatable :: col_okay(:)",
-     "description": "array used to track if warning message has already",
+     "description": "array used to track if warning message has already\nbeen printed out for unknown column headers",
      "location": "utils.f90:27",
      "name": "col_okay",
      "type_name": "table_reader",
@@ -296101,7 +296101,7 @@
     },
     {
      "declaration": "logical  :: file_exists  = .false.",
-     "description": "been printed out for unknown column headers\nflag to indicate if file exists",
+     "description": "flag to indicate if file exists",
      "location": "utils.f90:29",
      "name": "file_exists",
      "type_name": "table_reader",
