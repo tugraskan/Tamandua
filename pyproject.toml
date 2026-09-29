@@ -34,6 +34,9 @@ dev = ["pytest>=7", "httpx>=0.27,<1"]
 swatplus-build = "tamandua.index.cli:main"
 # The MCP server itself, so a client config needs one word and no module path.
 swatplus-mcp = "tamandua.mcp.server:main"
+# Column layouts of the input files, derived from a facts file (default: the
+# bundled one), so a consumer can build its schema from the source.
+swatplus-layouts = "tamandua.index.layouts_cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["tamandua"]

@@ -69,6 +69,21 @@ That writes `swatplus-facts.json` and nothing else. A server started with
 snapshot without restarting. The package-bundled release snapshot remains
 static by design.
 
+**Input-file layouts.** What SWAT+ reads from each input file, column by
+column, in read order -- derived from the facts, with every column citing its
+declaration and every record the statement that reads it:
+
+```bash
+swatplus-layouts --file hru-data.hru                 # one file, bundled facts
+swatplus-layouts --facts swatplus-facts.json --out swatplus-layouts.json
+```
+
+It needs neither the parser nor a checkout. To follow your own tree, build its
+facts with `swatplus-build` first and pass them with `--facts`. It reports
+what the model reads, not everything a file may hold, and carries no header
+names or foreign keys; see
+[`docs/layouts_experiment.md`](docs/layouts_experiment.md).
+
 ## Pairs with dataselector
 
 [`swatplus-dataselector`](https://github.com/tugraskan/swatplus-dataselector)
@@ -86,7 +101,8 @@ tamandua/
 │   ├── snapshot.py    #   read/write swatplus-facts.json, so serving needs no parser
 │   ├── render.py      #   SOURCE_INDEX.md
 │   ├── install.py     #   assistant instruction-file pointers
-│   └── scope.py       #   loop nesting, for conditional breakpoints
+│   ├── scope.py       #   loop nesting, for conditional breakpoints
+│   └── layouts.py     #   input-file column layouts, derived from the facts
 ├── mcp/server.py      # 15 read-only tools over the same objects
 ├── mcp/client.py      # generic MCP stdio client (talk to another server)
 ├── output/reader.py   # query a run's output files

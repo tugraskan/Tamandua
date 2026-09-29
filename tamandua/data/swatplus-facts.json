@@ -38229,7 +38229,7 @@
   },
   {
    "fields": [],
-   "file": "source",
+   "file": "file_list(i)",
    "line": 16,
    "op": "open",
    "procedure": "copy_file",
@@ -38239,7 +38239,7 @@
    "fields": [
     "line"
    ],
-   "file": "source",
+   "file": "file_list(i)",
    "line": 21,
    "op": "read",
    "procedure": "copy_file",
@@ -38247,7 +38247,7 @@
   },
   {
    "fields": [],
-   "file": "source",
+   "file": "file_list(i)",
    "line": 26,
    "op": "close",
    "procedure": "copy_file",
@@ -38255,7 +38255,7 @@
   },
   {
    "fields": [],
-   "file": "destination",
+   "file": "\"SWIFT/\" // trim(adjustl(file_list(i)))",
    "line": 17,
    "op": "open",
    "procedure": "copy_file",
@@ -38265,7 +38265,7 @@
    "fields": [
     "trim(line)"
    ],
-   "file": "destination",
+   "file": "\"SWIFT/\" // trim(adjustl(file_list(i)))",
    "line": 23,
    "op": "write",
    "procedure": "copy_file",
@@ -38273,7 +38273,7 @@
   },
   {
    "fields": [],
-   "file": "destination",
+   "file": "\"SWIFT/\" // trim(adjustl(file_list(i)))",
    "line": 27,
    "op": "close",
    "procedure": "copy_file",
@@ -70087,7 +70087,7 @@
   },
   {
    "fields": [],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 37,
    "op": "open",
    "procedure": "hru_fr_change",
@@ -70097,7 +70097,7 @@
    "fields": [
     "titldum"
    ],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 39,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70107,7 +70107,7 @@
    "fields": [
     "header"
    ],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 41,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70117,7 +70117,7 @@
    "fields": [
     "i"
    ],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 45,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70125,7 +70125,7 @@
   },
   {
    "fields": [],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 47,
    "op": "backspace",
    "procedure": "hru_fr_change",
@@ -70140,7 +70140,7 @@
     "ru_elem(i)%frac",
     "ru_elem(i)%dr_name"
    ],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 48,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70148,7 +70148,7 @@
   },
   {
    "fields": [],
-   "file": "ru_elem_upd",
+   "file": "d_tbl%act(iac)%file_pointer",
    "line": 66,
    "op": "close",
    "procedure": "hru_fr_change",
@@ -70156,7 +70156,7 @@
   },
   {
    "fields": [],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 72,
    "op": "open",
    "procedure": "hru_fr_change",
@@ -70166,7 +70166,7 @@
    "fields": [
     "titldum"
    ],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 74,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70176,7 +70176,7 @@
    "fields": [
     "header"
    ],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 76,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70186,7 +70186,7 @@
    "fields": [
     "i"
    ],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 80,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70194,7 +70194,7 @@
   },
   {
    "fields": [],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 82,
    "op": "backspace",
    "procedure": "hru_fr_change",
@@ -70209,7 +70209,7 @@
     "lsu_elem(i)%bsn_frac",
     "lsu_elem(i)%ru_frac"
    ],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 83,
    "op": "read",
    "procedure": "hru_fr_change",
@@ -70217,7 +70217,7 @@
   },
   {
    "fields": [],
-   "file": "lsu_elem_upd",
+   "file": "d_tbl%act(iac)%option",
    "line": 91,
    "op": "close",
    "procedure": "hru_fr_change",
@@ -73474,7 +73474,7 @@
   },
   {
    "fields": [],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 57,
    "op": "open",
    "procedure": "hyd_read_connect",
@@ -73484,7 +73484,7 @@
    "fields": [
     "titldum"
    ],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 58,
    "op": "read",
    "procedure": "hyd_read_connect",
@@ -73494,7 +73494,7 @@
    "fields": [
     "header"
    ],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 60,
    "op": "read",
    "procedure": "hyd_read_connect",
@@ -73516,7 +73516,7 @@
     "ob(i)%ruleset",
     "ob(i)%src_tot"
    ],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 220,
    "op": "read",
    "procedure": "hyd_read_connect",
@@ -73524,7 +73524,7 @@
   },
   {
    "fields": [],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 297,
    "op": "backspace",
    "procedure": "hyd_read_connect",
@@ -73547,7 +73547,7 @@
     "ob(i)%src_tot",
     "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
    ],
-   "file": "con_file",
+   "file": "hru.con",
    "line": 298,
    "op": "read",
    "procedure": "hyd_read_connect",
@@ -73555,7 +73555,986 @@
   },
   {
    "fields": [],
-   "file": "con_file",
+   "file": "hru.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "hru-lte.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "hru-lte.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "hru-lte.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "hru-lte.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "hru-lte.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "hru-lte.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "hru-lte.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "rout_unit.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "rout_unit.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "rout_unit.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "rout_unit.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "rout_unit.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "rout_unit.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "rout_unit.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "aquifer.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "aquifer.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "aquifer.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "aquifer.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "aquifer.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "aquifer.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "aquifer.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "channel.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "channel.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "channel.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "channel.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "channel.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "channel.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "channel.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "reservoir.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "reservoir.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "reservoir.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "reservoir.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "reservoir.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "reservoir.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "reservoir.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "recall.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "recall.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "recall.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "recall.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "recall.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "recall.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "recall.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "exco.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "exco.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "exco.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "exco.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "exco.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "exco.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "exco.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "delratio.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "delratio.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "delratio.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "delratio.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "delratio.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "delratio.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "delratio.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "outlet.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "outlet.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "outlet.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "outlet.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "outlet.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "outlet.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "outlet.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "chandeg.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "chandeg.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "chandeg.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "chandeg.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "chandeg.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "chandeg.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "chandeg.con",
+   "line": 342,
+   "op": "close",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "gwflow.con",
+   "line": 57,
+   "op": "open",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "titldum"
+   ],
+   "file": "gwflow.con",
+   "line": 58,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "header"
+   ],
+   "file": "gwflow.con",
+   "line": 60,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot"
+   ],
+   "file": "gwflow.con",
+   "line": 220,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "gwflow.con",
+   "line": 297,
+   "op": "backspace",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [
+    "ob(i)%num",
+    "ob(i)%name",
+    "ob(i)%gis_id",
+    "ob(i)%area_ha",
+    "ob(i)%lat",
+    "ob(i)%long",
+    "ob(i)%elev",
+    "ob(i)%props",
+    "ob(i)%wst_c",
+    "ob(i)%constit",
+    "ob(i)%props2",
+    "ob(i)%ruleset",
+    "ob(i)%src_tot",
+    "(ob(i)%obtyp_out(isp), ob(i)%obtypno_out(isp), ob(i)%htyp_out(isp), ob(i)%frac_out(isp), isp = 1, nout)"
+   ],
+   "file": "gwflow.con",
+   "line": 298,
+   "op": "read",
+   "procedure": "hyd_read_connect",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "gwflow.con",
    "line": 342,
    "op": "close",
    "procedure": "hyd_read_connect",
@@ -87182,6 +88161,14 @@
    "unit": "107"
   },
   {
+   "fields": [],
+   "file": "soils.sol",
+   "line": 64,
+   "op": "backspace",
+   "procedure": "soil_db_read",
+   "unit": "107"
+  },
+  {
    "fields": [
     "soildb(isol)%s%snam",
     "soildb(isol)%s%nly",
@@ -87474,6 +88461,14 @@
    "file": "soil_lyr_depths.sol",
    "line": 212,
    "op": "read",
+   "procedure": "soils_init",
+   "unit": "107"
+  },
+  {
+   "fields": [],
+   "file": "soil_lyr_depths.sol",
+   "line": 222,
+   "op": "backspace",
    "procedure": "soils_init",
    "unit": "107"
   },
@@ -232119,7 +233114,7 @@
  "provenance": {
   "compile_status": "not_checked",
   "format_version": "4",
-  "generated_at": "2026-09-29T15:42:53Z",
+  "generated_at": "2026-09-29T15:55:16Z",
   "parser_commit": "110c2a24fd584b181e15cec8e3eeb9233c0945ad",
   "source_commit": "de210d64db4f1d75e110bd6af33ea9c333d27b8a",
   "source_describe": "62.0.0",
