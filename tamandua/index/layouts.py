@@ -540,8 +540,8 @@ def _procedure_records(
     # child. ``PreambleLine`` has always allowed value lines for this case.
     metadata = {
         position
-        for position, (_, columns, _) in enumerate(data)
-        if len(columns) == 1 and any(
+        for position, (use, columns, _) in enumerate(data)
+        if len(columns) == 1 and not per_row(use) and any(
             len(other_columns) > 1 and other_depth > depths[position]
             for (_, other_columns, _), other_depth in zip(data, depths)
         )
@@ -767,15 +767,33 @@ class _Reads:
                 seen.add(at)
                 columns, problems = _Resolver(index, proc).read(use)
                 self._add(index, key, Record(
-                    role="other", procedure=proc.name, at=at, loops=[],
-                    columns=columns, unresolved=problems))
+                    role="other", procedure=proc.name, at=at,
+                    loops=_loops(index, proc, use.line) or [],
+                    columns=columns, unresolved=problems), layout)
 
-    def _add(self, index: SourceIndex, file: str, record: Record) -> None:
+    def _add(self, index: SourceIndex, file: str, record: Record,
+             layout: FileLayout | None = None) -> None:
         reader = index.procedure(record.procedure)
         for position, column in enumerate(record.columns, start=1):
             local = _is_local(reader, column.path.split("%")[0])
+            # Some files are read twice: an early pass stores a lookup name in
+            # a temporary array, then the final pass reads the same position
+            # into the row represented by the layout. Keep the temporary path
+            # as the lookup key, but make the resulting link cite the real
+            # layout column. Equal loop nesting and declaration family are the
+            # evidence that the two reads consume the same kind of row.
+            result_record, result_column = record, column
+            main = layout.main if layout is not None else None
+            if (record.role == "other" and main is not None
+                    and record.loops == main.loops
+                    and position <= len(main.columns)):
+                candidate = main.columns[position - 1]
+                before = (column.vartype or "").lower().split("(", 1)[0].strip()
+                after = (candidate.vartype or "").lower().split("(", 1)[0].strip()
+                if before and before == after:
+                    result_record, result_column = main, candidate
             self.by_path.setdefault(column.path, []).append(
-                _Read(file, record, position, column, local))
+                _Read(file, result_record, position, result_column, local))
 
     def find(self, path: str, procedure: str, local: bool) -> list[_Read]:
         """Columns read into the variable ``path`` names inside ``procedure``.
@@ -827,6 +845,22 @@ class _Sources:
         proc = self.index.procedure(procedure)
         return f"{_location_name(proc) if proc else procedure}:{line}"
 
+    def _called_reads(self, found: list[_Read]) -> list[_Read]:
+        """Prefer readers with a stored path from an entry point.
+
+        A module variable can be populated by both a current reader and an
+        obsolete routine that nothing calls. If at least one competing read
+        has call evidence, the unreachable reads cannot supply the running
+        program's value. With no call evidence at all, keep the old,
+        conservative answer rather than guessing which root routine runs.
+        """
+        called = []
+        for read in found:
+            proc = self.index.procedure(read.record.procedure)
+            if proc is not None and (proc.called_by or self.index.paths_to(proc.name)):
+                called.append(read)
+        return called or found
+
     def resolve(self, path: str, procedure: str, line: int,
                 ) -> tuple[list[_Read], list[str]] | str:
         """The columns ``path`` holds inside ``procedure`` at ``line``, and
@@ -856,7 +890,7 @@ class _Sources:
             reaching = _reaching(self.index, direct, path, procedure, line)
             return reaching if isinstance(reaching, str) else (reaching, [])
         if direct:
-            return direct, []
+            return self._called_reads(direct), []
         if len(visiting) >= 4:
             return f"{path} is copied more than four times over"
         terminals: list[_Read] = []

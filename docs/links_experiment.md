@@ -15,7 +15,7 @@ do ilum = 1, db_mx%landuse
 
 The index now keeps every such comparison as a fact, and derives from it that
 `hru-data.hru`'s `land_use_mgt` names a row of `landuse.lum` by its `name`,
-evidence `hru_read.f90:71`. On SWAT+ 62.0.0 that gives **163 links** from 159
+evidence `hru_read.f90:71`. On SWAT+ 62.0.0 that gives **162 links** from 159
 comparison sites. **75** file pairs are in both Tamandua's links and the
 editor schema; on 73 of them the two name the same column, and in the other
 two the editor has a column SWAT+ never compares (`urb_ro`) or names a
@@ -97,7 +97,11 @@ index; nothing is matched by name.
    names into `pcp_n(i)` in a pass the layout does not show. A module variable
    is the same variable everywhere; a local matches only its own routine's
    reads, and only the nearest read before the comparison (gwflow_read reads
-   `dum_id` from ponds.gw and then from pond_cell.gw).
+   `dum_id` from ponds.gw and then from pond_cell.gw). When an earlier pass and
+   the final row read have the same loop nesting and declaration kind, the
+   earlier variable is reported as the corresponding layout column. When a
+   module variable has competing readers and only some have a stored call path,
+   only those reachable readers can supply the running program's value.
 5. Or it holds one **through copies**: every assignment to the path, or to a
    structure holding it, is a stored copy, and all of them lead back to one
    column. A copy back from itself adds nothing (`hru = hru_init` after
@@ -123,10 +127,10 @@ comparison that shows none with the reason.
 
 | | |
 |---|---|
-| Links (source column → target column) | **163**, from 159 comparison sites |
+| Links (source column → target column) | **162**, from 159 comparison sites |
 | ... through `search()` | 20 (12 `.con` → `weather-sta.cli`; 8 `weather-sta.cli` → weather files) |
 | ... through a copy | 18 |
-| File pairs | 161 |
+| File pairs | 160 |
 | Input files with a column that references another | 51 |
 | Comparisons that show no link | 352 |
 
@@ -169,11 +173,11 @@ holds).
 
 | File pairs | strict | aliased |
 |---|---|---|
-| Tamandua | 161 | 161 |
+| Tamandua | 160 | 160 |
 | Editor | 185 | 201 |
 | **Both** | **75** | **79** |
 | Only the editor | 110 | 122 |
-| Only Tamandua | 86 | 82 |
+| Only Tamandua | 85 | 81 |
 
 **Where both have the pair, they almost always agree on the column.** 46
 (strict) match by name: the editor's column is the Fortran name, or the name
@@ -223,11 +227,11 @@ where SWAT+ reads both files:
   joins them; routing-unit elements are assigned by `rout_unit.def`'s
   numbers.
 
-**Only Tamandua (strict, 86).** 72 involve a file the editor has no table
+**Only Tamandua (strict, 85).** 71 involve a file the editor has no table
 for. Half of those, 36, involve a decision table under the name SWAT+ opens
 it by (`lum.dtl`, `flo_con.dtl`, `res_rel.dtl`, `scen_lu.dtl`; the editor
 keeps them as one `d_table.dtl`), among them all twelve `.con` files'
-`ruleset` → `flo_con.dtl`. The other 36 involve the constituent files
+`ruleset` → `flo_con.dtl`. The other 35 involve the constituent files
 (`initial.aqu_cs`, `initial.cha_cs`, `reservoir.res_cs`, `wetland.wet_cs`,
 `cs_hru.ini`, `cs_res`, `salt_res`, `cs_urban`, `salt_urban`), five `.con`
 files the editor has no table for, `transplant.plt`, `puddle.ops`, the

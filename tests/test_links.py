@@ -367,6 +367,15 @@ def test_a_search_in_a_called_routine_is_a_link(index) -> None:
     assert link.through == ["search.f90:22"]
 
 
+def test_an_uncalled_legacy_reader_does_not_create_a_second_target(index) -> None:
+    _reader(index, "legacy_wgn_read", "legacy-wgn.cli", "i", "wgn_n(i)")
+    index.procedures["wgn_read"].called_by = ["proc_db"]
+    links = [item for item in input_links(index)[0]
+             if item.at == "sta_read.f90:30"]
+    assert [(item.target_file, item.target_path) for item in links] == [
+        ("weather-wgn.cli", "wgn_n")]
+
+
 def test_nothing_is_linked_by_a_name_alone(index) -> None:
     # `lum%mgt` and `sched%name` look made for each other; no comparison
     # joins them, so no link does either.
@@ -473,6 +482,41 @@ def test_bundled_weather_stations_link_through_search(bundled) -> None:
                 if item.source_file == "weather-sta.cli"}
     assert {"pcp.cli", "tmp.cli", "slr.cli", "hmd.cli", "wnd.cli",
             "weather-wgn.cli"} <= stations
+
+
+def test_bundled_weather_links_target_layout_columns(bundled_layouts) -> None:
+    pcp = next(ref for ref in next(
+        column for column in bundled_layouts["weather-sta.cli"].main.columns
+        if column.name == "pgage").references if ref.file == "pcp.cli")
+    assert (pcp.column, pcp.path, pcp.role, pcp.position) == (
+        "filename", "pcp%filename", "main", 1)
+
+
+def test_bundled_references_have_existing_target_columns(bundled_layouts) -> None:
+    targets = {
+        (layout.file, record.role, position, column.path)
+        for layout in bundled_layouts.values()
+        for record in layout.records
+        for position, column in enumerate(record.columns, start=1)
+    }
+    dangling = [
+        (layout.file, column.path, ref.file, ref.role, ref.position, ref.path)
+        for layout in bundled_layouts.values()
+        for record in layout.records
+        for column in record.columns
+        for ref in column.references
+        if (ref.file, ref.role, ref.position, ref.path) not in targets
+    ]
+    assert dangling == []
+
+
+def test_bundled_uncalled_manure_reader_is_not_a_target(bundled) -> None:
+    links, _ = input_links(bundled)
+    management_targets = {
+        item.target_file for item in links if item.source_file == "management.sch"
+    }
+    assert "manure_db.frt" in management_targets
+    assert "manure.frt" not in management_targets
 
 
 def test_bundled_management_operations_are_under_management_sch(bundled_layouts) -> None:

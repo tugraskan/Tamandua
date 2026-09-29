@@ -56,9 +56,9 @@ matched by name, and the dataselector's static links are a comparison only.
 |---|---|
 | Comparisons stored | **389** in `if`/`else if` conditions, plus **122** restated at a call to the routine that makes them |
 | Copies stored | **277**, the assignments that carry a column's value to a comparison |
-| Links | **163**, from 159 comparison sites; 20 through `search()`, 18 through a copy |
+| Links | **162**, from 159 comparison sites; 20 through `search()`, 18 through a copy |
 | Grep baseline, `if (x == a(i)%name)` | **105 of 113** sites become links; the 8 others are `d_tbl` (a pointer at four tables), a value never read from a file, and a loop over one table's conditions |
-| File pairs shared with the editor schema | **75** (Tamandua 161, editor 185); same column on 73 |
+| File pairs shared with the editor schema | **75** (Tamandua 160, editor 185); same column on 73 |
 | Snapshot cost | **+150,941 bytes, +2.04%** |
 
 The two column disagreements favour the source: the editor makes
