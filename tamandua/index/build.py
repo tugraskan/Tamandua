@@ -35,7 +35,11 @@ from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 #: module variables already carried -- without it, a component like
 #: ``soil_profile%phys`` reported only its bare type name, with no way to
 #: tell a scalar from ``dimension(:), allocatable``.
-INDEX_FORMAT_VERSION = "4"
+#: Format 5 adds ``comparisons``: the equality tests between two variables in
+#: an ``if`` condition, which is how SWAT+ joins one input file's column to
+#: another file's rows -- by matching names at run time, declared nowhere --
+#: and ``copies``, the assignments that carry a column's value to one.
+INDEX_FORMAT_VERSION = "5"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
@@ -73,6 +77,16 @@ _TYPE_DECL_RE = re.compile(r"\s*type\s*\(\s*([A-Za-z_]\w*)\s*\)", re.IGNORECASE)
 #: ``backspace 107``. The parenthesised form is the scanner's; this one is not.
 _BARE_POSITIONING_RE = re.compile(
     r"^\s*(?:backspace|rewind|endfile)\s+(\w+)\s*$", re.IGNORECASE)
+
+#: The opening of an ``if`` or ``else if`` condition.
+_IF_RE = re.compile(r"^\s*(?:else\s*)?if\s*\(", re.IGNORECASE)
+#: Logical connectives, which separate the comparisons inside one condition.
+_LOGICAL_RE = re.compile(r"\.(?:and|or|not|eqv|neqv)\.", re.IGNORECASE)
+#: Equality and inequality in both spellings. `<=` and `>=` are not matched.
+_EQUALITY_RE = re.compile(r"==|/=|\.eq\.|\.ne\.", re.IGNORECASE)
+#: Intrinsics that change a string's padding and nothing else, so a
+#: comparison through them still compares the variable's value.
+_PADDING_RE = re.compile(r"^(?:trim|adjustl|adjustr)\s*\(", re.IGNORECASE)
 
 # Keep this in step with the corpus scanner. Suffix matching is deliberately
 # case-insensitive: Git checkouts on Linux distinguish ``.F90`` from ``.f90``.
@@ -150,6 +164,77 @@ class Loop:
     header: str
     end_line: int | None = None
     index: str | None = None
+
+
+@dataclass
+class Comparison:
+    """One equality test between two variables in an ``if`` condition.
+
+    SWAT+ never declares that a column of one input file names a row of
+    another. It finds out at run time, by searching:
+
+        do ilum = 1, db_mx%landuse
+          if (hru_db(i)%dbsc%land_use_mgt == lum(ilum)%name) then
+
+    This is that statement, kept: both operands as written, and the loops the
+    line sits in. The operands keep their subscripts because the subscript is
+    what shows which side is being searched -- ``lum(ilum)`` is indexed by the
+    loop, ``hru_db(i)`` is not. Operands are whitespace-free, with any
+    ``trim``/``adjustl``/``adjustr`` removed; only comparisons whose two sides
+    are both variables declared in scope are kept, so a literal
+    (``== "null"``) or a function result is not.
+    """
+
+    procedure: str
+    line: int
+    left: str
+    #: ``==`` or ``/=``; ``.eq.`` and ``.ne.`` are stored as these.
+    op: str
+    right: str
+    #: Enclosing loops, outermost first, each by index variable or, for an
+    #: uncounted loop, its header. ``None`` when the file's loops could not be
+    #: resolved, which is not the same as "in no loop".
+    loops: tuple[str, ...] | None = ()
+    #: Set when the test is made in a called routine on its dummy arguments:
+    #: ``search:22``, where ``search`` compares ``sch(nn) == cfind``. This
+    #: record is then the call site, ``line`` its line, and the operands the
+    #: actual arguments -- an array passed whole written ``wst_n(:)``, since
+    #: the callee compares against its elements.
+    via: str | None = None
+
+    @property
+    def left_path(self) -> str | None:
+        return field_path(self.left)
+
+    @property
+    def right_path(self) -> str | None:
+        return field_path(self.right)
+
+
+@dataclass
+class Copy:
+    """One assignment of a variable to another, ``mgt = sched(isched)%mgt_ops(iop)``.
+
+    Kept only where the assigned variable, or a structure containing it, is
+    an operand of a :class:`Comparison` -- the value a comparison tests may
+    have been copied there from a column. Pointer association (``=>``) is
+    kept too, with ``op`` saying which.
+    """
+
+    procedure: str
+    line: int
+    target: str
+    #: ``=`` or ``=>``.
+    op: str
+    source: str
+
+    @property
+    def target_path(self) -> str | None:
+        return field_path(self.target)
+
+    @property
+    def source_path(self) -> str | None:
+        return field_path(self.source)
 
 
 @dataclass
@@ -309,6 +394,11 @@ class SourceIndex:
         default_factory=lambda: defaultdict(list)
     )
     loops: dict[str, list[Loop]] = field(default_factory=lambda: defaultdict(list))
+    #: Keyed like ``loops``, by lowercased procedure name.
+    comparisons: dict[str, list[Comparison]] = field(
+        default_factory=lambda: defaultdict(list))
+    #: Keyed by the lowercased field path assigned, like ``writers``.
+    copies: dict[str, list[Copy]] = field(default_factory=lambda: defaultdict(list))
     types: dict[str, DerivedType] = field(default_factory=dict)
     #: Keyed ``(module, name)``, both lowercased. A flat name key would be
     #: wrong for the 15 names SWAT+ declares in more than one module.
@@ -354,6 +444,12 @@ class SourceIndex:
 
     def loops_in(self, procedure: str) -> list[Loop]:
         return self.loops.get(procedure.strip().lower(), [])
+
+    def comparisons_in(self, procedure: str) -> list[Comparison]:
+        return self.comparisons.get(procedure.strip().lower(), [])
+
+    def copies_to(self, variable: str) -> list[Copy]:
+        return self.copies.get(variable.strip().lower(), [])
 
     def derived_type(self, name: str) -> DerivedType | None:
         return self.types.get(name.strip().lower())
@@ -984,6 +1080,34 @@ def call_arguments(raw: str, callee: str) -> list[str] | None:
     return None
 
 
+def actual_argument(raw: str, routine: str, dummies: list[str], dummy: str) -> str | None:
+    """What one call statement passes for ``dummy``, by keyword or position.
+
+    ``None`` when the statement does not call ``routine`` or passes nothing
+    for that dummy (an optional argument left out).
+    """
+    wanted = dummy.lower()
+    positions = [name.lower() for name in dummies]
+    if wanted not in positions:
+        return None
+    actuals = call_arguments(raw, routine)
+    if actuals is None:
+        return None
+    value: str | None = None
+    positional: list[str] = []
+    for actual in actuals:
+        keyword = re.match(r"^\s*(\w+)\s*=(?!=)\s*(.*)$", actual, re.DOTALL)
+        if keyword:
+            if keyword.group(1).lower() == wanted:
+                value = keyword.group(2)
+        else:
+            positional.append(actual)
+    position = positions.index(wanted)
+    if value is None and position < len(positional):
+        value = positional[position]
+    return value
+
+
 def argument_filenames(
     routine: str,
     dummies: list[str],
@@ -1006,27 +1130,11 @@ def argument_filenames(
     the distinct names in call-site order, or ``[]`` when no call site passes
     the argument -- the caller then keeps the dummy name rather than guess.
     """
-    wanted = dummy.lower()
-    positions = [name.lower() for name in dummies]
-    if wanted not in positions:
+    if dummy.lower() not in (name.lower() for name in dummies):
         return []
-    position = positions.index(wanted)
     found: list[str] = []
     for raw in call_sites:
-        actuals = call_arguments(raw, routine)
-        if actuals is None:
-            continue
-        value: str | None = None
-        positional: list[str] = []
-        for actual in actuals:
-            keyword = re.match(r"^\s*(\w+)\s*=(?!=)\s*(.*)$", actual, re.DOTALL)
-            if keyword:
-                if keyword.group(1).lower() == wanted:
-                    value = keyword.group(2)
-            else:
-                positional.append(actual)
-        if value is None and position < len(positional):
-            value = positional[position]
+        value = actual_argument(raw, routine, dummies, dummy)
         if value is None:
             continue
         value = value.strip()
@@ -1037,6 +1145,290 @@ def argument_filenames(
         if value and value not in found:
             found.append(value)
     return found
+
+
+def caller_opened_files(
+    callee: str,
+    unit: str,
+    call_lines: dict[str, list[tuple[str, int]]],
+    unit_events: dict[str, list[tuple[int, str, str, str]]],
+) -> list[str]:
+    """The file a unit is open on at every call of a routine that never opens it.
+
+    ``read_mgtops`` reads unit 107 with no ``open`` of its own: its one caller,
+    ``mgt_read_mgtops``, has ``management.sch`` open on 107 when it makes the
+    call. Filed under the scanner's ``unit_107``, the operation lines had no
+    file and their layout was lost.
+
+    Each call site must find the unit open -- an ``open`` of it earlier in the
+    caller with no ``close`` in between. One call site that does not, and the
+    answer is ``[]``: the caller then keeps the unit rather than guess.
+    """
+    found: list[str] = []
+    sites = call_lines.get(callee.lower(), [])
+    for caller, line in sites:
+        state: str | None = None
+        for event_line, kind, event_unit, name in sorted(unit_events.get(caller, [])):
+            if event_unit == unit.lower() and event_line < line:
+                state = name if kind == "open" else None
+        if not state:
+            return []
+        if state not in found:
+            found.append(state)
+    return found
+
+
+def _closing(text: str, open_at: int) -> int | None:
+    """Where the parenthesis opening at ``open_at`` closes, outside quotes."""
+    depth, quote = 0, ""
+    for position in range(open_at, len(text)):
+        char = text[position]
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return position
+    return None
+
+
+def _top_level(text: str, pattern: re.Pattern[str]) -> list[tuple[int, int]]:
+    """Spans of ``pattern`` outside parentheses and quotes."""
+    spans: list[tuple[int, int]] = []
+    depth, quote, position = 0, "", 0
+    while position < len(text):
+        char = text[position]
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0:
+            match = pattern.match(text, position)
+            if match:
+                spans.append(match.span())
+                position = match.end()
+                continue
+        position += 1
+    return spans
+
+
+def _unparenthesise(text: str) -> str:
+    text = text.strip()
+    while text.startswith("(") and _closing(text, 0) == len(text) - 1:
+        text = text[1:-1].strip()
+    return text
+
+
+def if_condition(statement: str) -> str | None:
+    """The condition of an ``if`` or ``else if`` statement, parentheses removed."""
+    match = _IF_RE.match(statement)
+    if not match:
+        return None
+    close = _closing(statement, match.end() - 1)
+    return None if close is None else statement[match.end():close]
+
+
+def comparison_operand(text: str) -> str | None:
+    """A comparison operand as a whitespace-free variable reference.
+
+    ``trim(adjustl(lum(ilum)%name))`` gives ``lum(ilum)%name``. ``None`` for
+    a literal, a number, or an expression -- anything :func:`field_path`
+    cannot reduce to a field path.
+    """
+    text = _unparenthesise(text)
+    while (match := _PADDING_RE.match(text)) and \
+            _closing(text, match.end() - 1) == len(text) - 1:
+        text = _unparenthesise(text[match.end():-1])
+    text = re.sub(r"\s+", "", text)
+    return text if text and field_path(text) is not None else None
+
+
+def condition_comparisons(condition: str) -> list[tuple[str, str, str]]:
+    """Every ``(left, op, right)`` equality test between two references.
+
+    Split on the logical connectives first, so each side of an ``.and.`` or
+    ``.or.`` is its own comparison, and parentheses are looked through.
+    """
+    text = _unparenthesise(condition)
+    connectives = _top_level(text, _LOGICAL_RE)
+    if connectives:
+        found: list[tuple[str, str, str]] = []
+        start = 0
+        for begin, end in [*connectives, (len(text), len(text))]:
+            found.extend(condition_comparisons(text[start:begin]))
+            start = end
+        return found
+    operators = _top_level(text, _EQUALITY_RE)
+    if len(operators) != 1:
+        return []
+    begin, end = operators[0]
+    left = comparison_operand(text[:begin])
+    right = comparison_operand(text[end:])
+    if left is None or right is None:
+        return []
+    op = "==" if text[begin:end].lower() in ("==", ".eq.") else "/="
+    return [(left, op, right)]
+
+
+def substitute_actual(
+    operand: str, routine: str, dummies: list[str], call: str,
+) -> str | None:
+    """Restate a routine's operand in its caller's terms, for one call.
+
+    ``search`` compares ``sch(nn) == cfind``; ``call search (wst_n,
+    db_mx%wst, ob(i)%wst_c, ob(i)%wst)`` makes that ``wst_n(:) ==
+    ob(i)%wst_c``. A subscripted dummy handed a whole array becomes
+    ``array(:)``, every element, since which one the callee reaches is its
+    own business. An operand whose root is not a dummy comes back unchanged.
+    ``None`` when the call passes something other than a variable, or an
+    element or section where the callee indexes the dummy itself.
+    """
+    match = re.match(r"[A-Za-z_]\w*", operand)
+    if match is None:
+        return None
+    root, tail = match.group(0), operand[match.end():]
+    if root.lower() not in {name.lower() for name in dummies}:
+        return operand
+    subscript = ""
+    if tail.startswith("("):
+        close = _closing(tail, 0)
+        if close is None:
+            return None
+        subscript, tail = tail[:close + 1], tail[close + 1:]
+    actual = actual_argument(call, routine, dummies, root)
+    actual = comparison_operand(actual) if actual is not None else None
+    if actual is None:
+        return None
+    if subscript:
+        if actual.endswith(")"):
+            return None
+        return f"{actual}(:){tail}"
+    return f"{actual}{tail}"
+
+
+def path_prefixes(path: str) -> list[str]:
+    """``a%b%c`` -> ``["a", "a%b", "a%b%c"]``: every structure holding it."""
+    parts = path.split("%")
+    return ["%".join(parts[:count]) for count in range(1, len(parts) + 1)]
+
+
+def _loops_at(index: SourceIndex, procedure: str, line: int) -> tuple[str, ...] | None:
+    """The loops enclosing a line, as ``scope_at`` reports them from the facts."""
+    proc = index.procedures.get(procedure.lower())
+    if proc is None or proc.path.replace("\\", "/") in index.unresolved_loop_files:
+        return None
+    return tuple(
+        item.index or item.header for item in index.loops.get(procedure.lower(), ())
+        if item.end_line is not None and item.line <= line <= item.end_line)
+
+
+def _add_call_comparisons(
+    index: SourceIndex,
+    project: Any,
+    call_statements: dict[str, list[tuple[str, int, str]]],
+    scopes: dict[str, tuple[set[str], set[str]]],
+) -> None:
+    """Restate each comparison a routine makes on its dummies at every call.
+
+    One level only: a routine that passes its own dummies on to another is
+    not followed further.
+    """
+    dummies_of = {proc.name.lower(): list(proc.args) for proc in project.procedures}
+    for callee, items in list(index.comparisons.items()):
+        dummies = dummies_of.get(callee, [])
+        wanted = {name.lower() for name in dummies}
+        on_dummies = [
+            item for item in items if item.via is None and any(
+                (path or "").split("%")[0] in wanted
+                for path in (item.left_path, item.right_path))
+        ]
+        if not on_dummies:
+            continue
+        for caller, line, raw in call_statements.get(callee, []):
+            caller_proc = index.procedures.get(caller)
+            in_scope = scopes.get(caller, (set(), set()))[0]
+            seen: set[tuple[str, str, str]] = set()
+            for item in on_dummies:
+                left = substitute_actual(item.left, callee, dummies, raw)
+                right = substitute_actual(item.right, callee, dummies, raw)
+                if left is None or right is None or caller_proc is None:
+                    continue
+                if not all((field_path(side) or "").split("%")[0] in in_scope
+                           for side in (left, right)):
+                    continue
+                if (left, item.op, right) in seen:
+                    continue
+                seen.add((left, item.op, right))
+                index.comparisons[caller].append(Comparison(
+                    procedure=caller_proc.name, line=line, left=left, op=item.op,
+                    right=right, loops=_loops_at(index, caller, line),
+                    via=f"{index.procedures[callee].name}:{item.line}"))
+            if seen:
+                index.comparisons[caller].sort(
+                    key=lambda item: (item.line, item.via or ""))
+
+
+def _add_copies(
+    index: SourceIndex, project: Any, scopes: dict[str, tuple[set[str], set[str]]],
+) -> None:
+    """Every copy into a variable a comparison tests, three hops back.
+
+    A copy's source may itself have been copied, so the wanted set grows by
+    each hop's sources; three hops is the bound, not a measured need.
+    """
+    def key(procedure: str, path: str) -> tuple[str, str]:
+        # Module-level names are one variable everywhere; a local is not.
+        own = scopes.get(procedure.lower(), (set(), set()))[1]
+        return (procedure.lower() if path.split("%")[0] in own else "", path)
+
+    wanted: set[tuple[str, str]] = set()
+    for procedure, items in index.comparisons.items():
+        for item in items:
+            for path in (item.left_path, item.right_path):
+                if path:
+                    wanted.update(key(procedure, prefix) for prefix in path_prefixes(path))
+    assignments = [
+        (proc, step) for proc in project.procedures for step in proc.assignments
+        if getattr(step, "target", None) and getattr(step, "expression", None)
+    ]
+    found: dict[tuple[str, int], Copy] = {}
+    for _ in range(3):
+        grown: set[tuple[str, str]] = set()
+        for proc, step in assignments:
+            target = comparison_operand(step.target)
+            target_path = field_path(target) if target else None
+            if not target_path or key(proc.name, target_path) not in wanted:
+                continue
+            source = comparison_operand(step.expression)
+            source_path = field_path(source) if source else None
+            if not source_path:
+                continue
+            in_scope = scopes.get(proc.name.lower(), (set(), set()))[0]
+            if source_path.split("%")[0] not in in_scope:
+                continue
+            site = (proc.name.lower(), step.location.line)
+            if site in found:
+                continue
+            found[site] = Copy(
+                procedure=proc.name, line=step.location.line, target=target,
+                op="=>" if step.kind == "pointer_association" else "=",
+                source=source)
+            grown.update(key(proc.name, prefix) for prefix in path_prefixes(source_path))
+        if not grown - wanted:
+            break
+        wanted |= grown
+    for copy in sorted(found.values(), key=lambda c: (c.procedure.lower(), c.line)):
+        index.copies[copy.target_path].append(copy)
 
 
 def build_source_index(
@@ -1080,9 +1472,32 @@ def build_source_index(
     # Every call statement, by the routine it calls: what argument_filenames
     # needs to follow a filename passed in as a dummy argument.
     call_sites: dict[str, list[str]] = defaultdict(list)
+    # And by line, with where each caller opens and closes each unit: what
+    # caller_opened_files needs for a routine reading a unit it never opened.
+    call_lines: dict[str, list[tuple[str, int]]] = defaultdict(list)
+    call_statements: dict[str, list[tuple[str, int, str]]] = defaultdict(list)
+    unit_events: dict[str, list[tuple[int, str, str, str]]] = defaultdict(list)
     for caller in project.procedures:
+        caller_arguments = {name.lower() for name in caller.args}
         for call in caller.calls:
             call_sites[call.name.lower()].append(call.raw)
+            if getattr(call, "kind", "subroutine") == "subroutine":
+                call_lines[call.name.lower()].append(
+                    (caller.name.lower(), call.location.line))
+                call_statements[call.name.lower()].append(
+                    (caller.name.lower(), call.location.line, call.raw))
+        for op in caller.io:
+            if op.kind not in ("open", "close") or not op.unit:
+                continue
+            opened = (op.file_resolved or op.file_expr or "").strip().strip("'\"")
+            opened = inputs.get(opened.lower(), opened)
+            if op.kind == "open" and (not opened or opened.startswith("unit_")
+                                      or opened.lower() in caller_arguments):
+                # Not a name this build can vouch for; the unit counts as
+                # closed, so a routine reading it is left alone.
+                opened = ""
+            unit_events[caller.name.lower()].append(
+                (op.location.line, op.kind, op.unit.lower(), opened))
     index = SourceIndex(
         provenance=_provenance(source_dir, corpus_src),
         scanner_warnings=scanner_warnings,
@@ -1109,6 +1524,9 @@ def build_source_index(
         # two declarations wherever a name is reused across modules.
         index.module_variables[
             (variable.module.lower(), variable.name.lower())] = variable
+    module_names = {name for _, name in index.module_variables}
+    #: Per procedure: every name in scope, and its own arguments and locals.
+    scopes: dict[str, tuple[set[str], set[str]]] = {}
 
     for proc in project.procedures:
         argument_names = {name.lower() for name in proc.args}
@@ -1193,6 +1611,11 @@ def build_source_index(
                 ) or names
             if not names and bare:
                 names = bound.get(unit, [])
+            if names == [f"unit_{unit}"] and unit not in bound:
+                # A unit this routine reads but never opens: the file its
+                # callers have open on it, when every call site agrees.
+                names = caller_opened_files(proc.name, unit, call_lines,
+                                            unit_events) or names
             if not names:
                 continue
             if unit:
@@ -1228,6 +1651,10 @@ def build_source_index(
         range_by_start = {
             item.start: item for item in (file_ranges or [])
         }
+        # A comparison operand must be a variable, not an intrinsic called
+        # with an argument (`len_trim(name)` reduces to a path just as well).
+        in_scope = argument_names | set(variables) | module_names
+        scopes[proc.name.lower()] = (in_scope, argument_names | set(variables))
         for step in proc.control_steps:
             if step.kind == "loop":
                 resolved = range_by_start.get(step.location.line)
@@ -1237,5 +1664,20 @@ def build_source_index(
                          end_line=resolved.end if resolved else None,
                          index=resolved.index if resolved else None)
                 )
+            elif step.kind in ("if", "else"):
+                condition = if_condition(step.raw)
+                if condition is None:
+                    continue
+                line = step.location.line
+                for left, op, right in condition_comparisons(condition):
+                    roots = [path.split("%")[0] for path in
+                             (field_path(left) or "", field_path(right) or "")]
+                    if not all(root in in_scope for root in roots):
+                        continue
+                    index.comparisons[proc.name.lower()].append(Comparison(
+                        procedure=proc.name, line=line, left=left, op=op,
+                        right=right, loops=_loops_at(index, proc.name, line)))
 
+    _add_call_comparisons(index, project, call_statements, scopes)
+    _add_copies(index, project, scopes)
     return index

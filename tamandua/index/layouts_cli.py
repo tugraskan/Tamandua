@@ -8,7 +8,10 @@ consumes, in order -- as JSON, derived from a facts file:
 With no ``--facts`` it reads the snapshot bundled with the package, so it
 needs neither the parser nor a SWAT+ checkout. To follow a checkout, build its
 facts first with ``swatplus-build`` (a no-op when they are already current)
-and pass that file. ``--file hru-data.hru`` prints one layout.
+and pass that file. ``--file hru-data.hru`` prints one layout. ``--links``
+prints every input-file link instead -- a column whose value names a row of
+another file, with the comparison that shows it -- and every comparison between
+two variables that shows none, with why.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from importlib import resources
 from pathlib import Path
 
 from tamandua.index.build import IndexError_, SourceIndex
-from tamandua.index.layouts import file_layout, layout_json, layouts_json
+from tamandua.index.layouts import file_layout, layout_json, layouts_json, links_json
 from tamandua.index.snapshot import load_snapshot
 
 BUNDLED_FACTS = "data/swatplus-facts.json"
@@ -44,8 +47,12 @@ def build_parser() -> argparse.ArgumentParser:
                              "snapshot bundled with this package)")
     parser.add_argument("--out", type=Path, default=None,
                         help="write the JSON here (default: standard output)")
-    parser.add_argument("--file", default=None,
+    choice = parser.add_mutually_exclusive_group()
+    choice.add_argument("--file", default=None,
                         help="only this input file's layout, e.g. hru-data.hru")
+    choice.add_argument("--links", action="store_true",
+                        help="the links between input files, and the "
+                             "comparisons that show none")
     return parser
 
 
@@ -62,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
         if layout is None:
             parser.exit(1, f"error: nothing in the facts reads {args.file}\n")
         payload = layout_json(layout)
+    elif args.links:
+        payload = links_json(index)
     else:
         payload = layouts_json(index)
 

@@ -9627,7 +9627,8628 @@
    ]
   ]
  },
- "index_format": "4",
+ "comparisons": {
+  "actions": [
+   {
+    "left": "d_tbl%act(iac)%option",
+    "line": 405,
+    "loops": [
+     "iac",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%option",
+    "line": 463,
+    "loops": [
+     "iac",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 504,
+    "loops": [
+     "iac",
+     "ipl",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "mgt%op_char",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%option",
+    "line": 537,
+    "loops": [
+     "iac",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%option",
+    "line": 579,
+    "loops": [
+     "iac",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 622,
+    "loops": [
+     "iac",
+     "ipl",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "d_tbl%act(iac)%option",
+    "via": null
+   },
+   {
+    "left": "wet_dat(ires)%name",
+    "line": 885,
+    "loops": [
+     "iac",
+     "ires"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "d_tbl%act(iac)%file_pointer",
+    "via": null
+   },
+   {
+    "left": "pudl_db(ipdl)%name",
+    "line": 923,
+    "loops": [
+     "iac",
+     "ipdl"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "d_tbl%act(iac)%option",
+    "via": null
+   },
+   {
+    "left": "tilldb(idb)%tillnm",
+    "line": 935,
+    "loops": [
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "d_tbl%act(iac)%name",
+    "via": null
+   },
+   {
+    "left": "pcom(j)%pl(ipl)",
+    "line": 997,
+    "loops": [
+     "iac",
+     "ipl",
+     "iplt"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "plts_bsn(iplt)",
+    "via": null
+   },
+   {
+    "left": "iplt",
+    "line": 998,
+    "loops": [
+     "iac",
+     "ipl",
+     "iplt"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "basin_plants",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%file_pointer",
+    "line": 1097,
+    "loops": [
+     "iac",
+     "istr"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "sdr(istr)%name",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%file_pointer",
+    "line": 1118,
+    "loops": [
+     "iac",
+     "istr"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "sep(istr)%name",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%file_pointer",
+    "line": 1137,
+    "loops": [
+     "iac",
+     "istr"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "filtstrip_db(istr)%name",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%file_pointer",
+    "line": 1156,
+    "loops": [
+     "iac",
+     "istr"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "grwaterway_db(istr)%name",
+    "via": null
+   },
+   {
+    "left": "d_tbl%act(iac)%file_pointer",
+    "line": 1183,
+    "loops": [
+     "iac",
+     "istr"
+    ],
+    "op": "==",
+    "procedure": "actions",
+    "right": "bmpuser_db(istr)%name",
+    "via": null
+   }
+  ],
+  "aqu_pesticide_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 32,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "aqu_pesticide_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "aqu_read_init_cs": [
+   {
+    "left": "aqu_init_dat_c_cs(isp_ini)%name",
+    "line": 82,
+    "loops": [
+     "iaq",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "aqudb(iaq)%aqu_ini",
+    "via": null
+   },
+   {
+    "left": "aqu_init_dat_c_cs(isp_ini)%pest",
+    "line": 84,
+    "loops": [
+     "iaq",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "pest_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "aqu_init_dat_c_cs(isp_ini)%name",
+    "line": 99,
+    "loops": [
+     "iaq",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "aqudb(iaq)%aqu_ini",
+    "via": null
+   },
+   {
+    "left": "aqu_init_dat_c_cs(isp_ini)%path",
+    "line": 101,
+    "loops": [
+     "iaq",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "path_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "aqu_init_dat_c_cs(iaq)%salt",
+    "line": 115,
+    "loops": [
+     "iaq",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "salt_aqu_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "aqu_init_dat_c_cs(iaq)%cs",
+    "line": 133,
+    "loops": [
+     "iaq",
+     "ictr"
+    ],
+    "op": "==",
+    "procedure": "aqu_read_init_cs",
+    "right": "cs_aqu_ini(ictr)%name",
+    "via": null
+   }
+  ],
+  "aquifer_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 20,
+    "loops": [],
+    "op": "==",
+    "procedure": "aquifer_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_aqu_pest_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 39,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "basin_aqu_pest_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_aquifer_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 27,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_aquifer_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_ch_pest_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 36,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "basin_ch_pest_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_chanbud_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 21,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_chanbud_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_chanmorph_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 23,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_chanmorph_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_channel_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 23,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_channel_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_ls_pest_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 39,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "basin_ls_pest_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 68,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_recall_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 21,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_recall_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_res_pest_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 36,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "basin_res_pest_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_reservoir_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 37,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_reservoir_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "basin_sdchannel_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 32,
+    "loops": [],
+    "op": "==",
+    "procedure": "basin_sdchannel_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "cal_cond_read": [
+   {
+    "left": "upd_cond(i)%dtbl",
+    "line": 61,
+    "loops": [
+     "do",
+     "i",
+     "icond"
+    ],
+    "op": "==",
+    "procedure": "cal_cond_read",
+    "right": "dtbl_scen(icond)%name",
+    "via": null
+   }
+  ],
+  "cal_conditions": [
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 69,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "soil(ielem)%hydgrp",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 73,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "dtbl_res(ielem)%name",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 77,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "soil(ielem)%texture",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 83,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "cal_conditions",
+    "right": "pcom(ielem)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 90,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "pl_class(ielem)",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 94,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "hru(ielem)%land_use_mgt_c",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 100,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "cal_conditions",
+    "right": "hru(ielem)%cal_group",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 185,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ipl",
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "cal_conditions",
+    "right": "pcom(ielem)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 215,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ipl",
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "cal_conditions",
+    "right": "pcom(ielem)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "cal_upd(ichg_par)%cond(ic)%targc",
+    "line": 225,
+    "loops": [
+     "ichg_par",
+     "ispu",
+     "ipl",
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "cal_conditions",
+    "right": "pcom(ielem)%pl(ipl)",
+    "via": null
+   }
+  ],
+  "cal_parmchg_read": [
+   {
+    "left": "cal_upd(i)%name",
+    "line": 83,
+    "loops": [
+     "do",
+     "i",
+     "ical"
+    ],
+    "op": "==",
+    "procedure": "cal_parmchg_read",
+    "right": "cal_parms(ical)%name",
+    "via": null
+   }
+  ],
+  "calsoft_hyd": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 81,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 157,
+    "loops": [
+     "iterall",
+     "ietco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 237,
+    "loops": [
+     "iterall",
+     "ietco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 298,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 368,
+    "loops": [
+     "iterall",
+     "icn",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 442,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 507,
+    "loops": [
+     "iterall",
+     "ik",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 571,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 655,
+    "loops": [
+     "iterall",
+     "iperco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 739,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 809,
+    "loops": [
+     "iterall",
+     "icn",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_hyd_bfr_et": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 74,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_et",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 150,
+    "loops": [
+     "ietco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_et",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_hyd_bfr_latq": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 78,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_latq",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 144,
+    "loops": [
+     "ik",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_latq",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_hyd_bfr_perc": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 75,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_perc",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 159,
+    "loops": [
+     "iperco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_perc",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_hyd_bfr_pet": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 72,
+    "loops": [
+     "ietco",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_pet",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_hyd_bfr_surq": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 73,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_surq",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 143,
+    "loops": [
+     "icn",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_hyd_bfr_surq",
+    "right": "hru(iihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_plant": [
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 60,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 142,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 201,
+    "loops": [
+     "iterall",
+     "ist",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 262,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 321,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 386,
+    "loops": [
+     "iterall",
+     "ist",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 448,
+    "loops": [
+     "iterall",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 512,
+    "loops": [
+     "iterall",
+     "ist",
+     "ireg",
+     "ilum",
+     "ihru_s",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "calsoft_plant",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   }
+  ],
+  "calsoft_sed": [
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 51,
+    "loops": [
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_sed",
+    "right": "hru(ihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 97,
+    "loops": [
+     "iter",
+     "isl",
+     "ireg",
+     "ilum",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_sed",
+    "right": "hru(ihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 133,
+    "loops": [
+     "iter",
+     "ireg",
+     "ilum",
+     "iihru"
+    ],
+    "op": "==",
+    "procedure": "calsoft_sed",
+    "right": "hru(ihru)%lum_group_c",
+    "via": null
+   },
+   {
+    "left": "lscal(ireg)%lum(ilum)%meas%name",
+    "line": 177,
+    "loops": [
+     "iter",
+     "isl",
+     "ireg",
+     "ilum",
+     "iihru"
+    ],
+    "op": "==",
+    "procedure": "calsoft_sed",
+    "right": "hru(ihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "calsoft_sum_output": [
+   {
+    "left": "lscal(ireg)%lum(ilu)%meas%name",
+    "line": 32,
+    "loops": [
+     "ireg",
+     "ilu",
+     "ihru_s"
+    ],
+    "op": "==",
+    "procedure": "calsoft_sum_output",
+    "right": "hru(ihru)%lum_group_c",
+    "via": null
+   }
+  ],
+  "ch_read": [
+   {
+    "left": "ch_init(iinit)%name",
+    "line": 69,
+    "loops": [
+     "do",
+     "ichi",
+     "iinit"
+    ],
+    "op": "==",
+    "procedure": "ch_read",
+    "right": "ch_dat_c(ichi)%init",
+    "via": null
+   },
+   {
+    "left": "ch_hyd(ihyd)%name",
+    "line": 77,
+    "loops": [
+     "do",
+     "ichi",
+     "ihyd"
+    ],
+    "op": "==",
+    "procedure": "ch_read",
+    "right": "ch_dat_c(ichi)%hyd",
+    "via": null
+   },
+   {
+    "left": "ch_sed(ised)%name",
+    "line": 84,
+    "loops": [
+     "do",
+     "ichi",
+     "ised"
+    ],
+    "op": "==",
+    "procedure": "ch_read",
+    "right": "ch_dat_c(ichi)%sed",
+    "via": null
+   },
+   {
+    "left": "ch_nut(inut)%name",
+    "line": 91,
+    "loops": [
+     "do",
+     "ichi",
+     "inut"
+    ],
+    "op": "==",
+    "procedure": "ch_read",
+    "right": "ch_dat_c(ichi)%nut",
+    "via": null
+   }
+  ],
+  "ch_read_orders_cal": [
+   {
+    "left": "ii",
+    "line": 62,
+    "loops": [
+     "do",
+     "i",
+     "ii"
+    ],
+    "op": "==",
+    "procedure": "ch_read_orders_cal",
+    "right": "nspu",
+    "via": null
+   },
+   {
+    "left": "ii",
+    "line": 75,
+    "loops": [
+     "do",
+     "i",
+     "ii"
+    ],
+    "op": "==",
+    "procedure": "ch_read_orders_cal",
+    "right": "nspu",
+    "via": null
+   },
+   {
+    "left": "ii",
+    "line": 84,
+    "loops": [
+     "do",
+     "i",
+     "do while (ii <= nspu)"
+    ],
+    "op": "==",
+    "procedure": "ch_read_orders_cal",
+    "right": "nspu",
+    "via": null
+   }
+  ],
+  "ch_rtday": [
+   {
+    "left": "ichan",
+    "line": 124,
+    "loops": [
+     "ihr"
+    ],
+    "op": "==",
+    "procedure": "ch_rtday",
+    "right": "jrch",
+    "via": null
+   }
+  ],
+  "ch_temp": [
+   {
+    "left": "shf_db(i)%jday",
+    "line": 364,
+    "loops": [
+     "i"
+    ],
+    "op": "==",
+    "procedure": "ch_temp",
+    "right": "jday",
+    "via": null
+   },
+   {
+    "left": "shf_db(i)%lsu",
+    "line": 364,
+    "loops": [
+     "i"
+    ],
+    "op": "==",
+    "procedure": "ch_temp",
+    "right": "ilsu",
+    "via": null
+   }
+  ],
+  "cha_pesticide_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 34,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "cha_pesticide_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "channel_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 27,
+    "loops": [],
+    "op": "==",
+    "procedure": "channel_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "cli_atmodep_time_control": [
+   {
+    "left": "atmodep_cont%yr_init",
+    "line": 11,
+    "loops": [],
+    "op": "==",
+    "procedure": "cli_atmodep_time_control",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "atmodep_cont%yr_init",
+    "line": 17,
+    "loops": [],
+    "op": "==",
+    "procedure": "cli_atmodep_time_control",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "atmodep_cont%mo_init",
+    "line": 17,
+    "loops": [],
+    "op": "==",
+    "procedure": "cli_atmodep_time_control",
+    "right": "time%mo",
+    "via": null
+   }
+  ],
+  "cli_bounds_check": [
+   {
+    "left": "st_yr",
+    "line": 21,
+    "loops": [],
+    "op": "==",
+    "procedure": "cli_bounds_check",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "end_yr",
+    "line": 32,
+    "loops": [],
+    "op": "==",
+    "procedure": "cli_bounds_check",
+    "right": "time%yrc",
+    "via": null
+   }
+  ],
+  "cli_hmeas": [
+   {
+    "left": "iyr",
+    "line": 118,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_hmeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "cli_petmeas": [
+   {
+    "left": "iyr",
+    "line": 119,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_petmeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "cli_pmeas": [
+   {
+    "left": "iyr",
+    "line": 135,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_pmeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "cli_precip_control": [
+   {
+    "left": "pcp(ipg)%start_yr",
+    "line": 81,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "cli_precip_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "pcp(ipg)%end_yr",
+    "line": 81,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "cli_precip_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   }
+  ],
+  "cli_read_atmodep": [
+   {
+    "left": "iyrc_atmo",
+    "line": 45,
+    "loops": [
+     "do",
+     "iyr"
+    ],
+    "op": "==",
+    "procedure": "cli_read_atmodep",
+    "right": "time%yrc_start",
+    "via": null
+   },
+   {
+    "left": "iyrc_atmo",
+    "line": 56,
+    "loops": [
+     "do",
+     "imo"
+    ],
+    "op": "==",
+    "procedure": "cli_read_atmodep",
+    "right": "time%yrc_start",
+    "via": null
+   },
+   {
+    "left": "imo_atmo",
+    "line": 56,
+    "loops": [
+     "do",
+     "imo"
+    ],
+    "op": "==",
+    "procedure": "cli_read_atmodep",
+    "right": "time%mo_start",
+    "via": null
+   }
+  ],
+  "cli_smeas": [
+   {
+    "left": "iyr",
+    "line": 118,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_smeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "cli_staread": [
+   {
+    "left": "wgn_n(:)",
+    "line": 71,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%wgn",
+    "via": "search:22"
+   },
+   {
+    "left": "pcp_n(:)",
+    "line": 73,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%pgage",
+    "via": "search:22"
+   },
+   {
+    "left": "tmp_n(:)",
+    "line": 77,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%tgage",
+    "via": "search:22"
+   },
+   {
+    "left": "slr_n(:)",
+    "line": 80,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%sgage",
+    "via": "search:22"
+   },
+   {
+    "left": "hmd_n(:)",
+    "line": 83,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%hgage",
+    "via": "search:22"
+   },
+   {
+    "left": "wnd_n(:)",
+    "line": 86,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%wgage",
+    "via": "search:22"
+   },
+   {
+    "left": "petm_n(:)",
+    "line": 89,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%petgage",
+    "via": "search:22"
+   },
+   {
+    "left": "atmo_n(:)",
+    "line": 93,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "cli_staread",
+    "right": "wst(i)%wco_c%atmodep",
+    "via": "search:22"
+   }
+  ],
+  "cli_tmeas": [
+   {
+    "left": "iyr",
+    "line": 144,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_tmeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "cli_wmeas": [
+   {
+    "left": "iyr",
+    "line": 118,
+    "loops": [
+     "do",
+     "i",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "cli_wmeas",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "climate_control": [
+   {
+    "left": "tmp(ig)%start_yr",
+    "line": 71,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "tmp(ig)%end_yr",
+    "line": 71,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   },
+   {
+    "left": "slr(ig)%start_yr",
+    "line": 100,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "slr(ig)%end_yr",
+    "line": 100,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   },
+   {
+    "left": "hmd(ig)%start_yr",
+    "line": 124,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "hmd(ig)%end_yr",
+    "line": 124,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   },
+   {
+    "left": "wnd(ig)%start_yr",
+    "line": 150,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "wnd(ig)%end_yr",
+    "line": 150,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   },
+   {
+    "left": "petm(ig)%start_yr",
+    "line": 173,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:21"
+   },
+   {
+    "left": "petm(ig)%end_yr",
+    "line": 173,
+    "loops": [
+     "iwst"
+    ],
+    "op": "==",
+    "procedure": "climate_control",
+    "right": "time%yrc",
+    "via": "cli_bounds_check:32"
+   }
+  ],
+  "cond_integer": [
+   {
+    "left": "var_cur",
+    "line": 38,
+    "loops": [
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "cond_integer",
+    "right": "var_tbl",
+    "via": null
+   },
+   {
+    "left": "var_cur",
+    "line": 43,
+    "loops": [
+     "ialt"
+    ],
+    "op": "==",
+    "procedure": "cond_integer",
+    "right": "var_tbl",
+    "via": null
+   }
+  ],
+  "cond_integer_c": [
+   {
+    "left": "var_cur",
+    "line": 32,
+    "loops": [],
+    "op": "/=",
+    "procedure": "cond_integer_c",
+    "right": "var_tbl",
+    "via": null
+   },
+   {
+    "left": "var_cur",
+    "line": 37,
+    "loops": [],
+    "op": "==",
+    "procedure": "cond_integer_c",
+    "right": "var_tbl",
+    "via": null
+   }
+  ],
+  "cond_real": [
+   {
+    "left": "var_cur",
+    "line": 42,
+    "loops": [
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "cond_real",
+    "right": "var_tbl",
+    "via": null
+   },
+   {
+    "left": "var_cur",
+    "line": 47,
+    "loops": [
+     "ialt"
+    ],
+    "op": "==",
+    "procedure": "cond_real",
+    "right": "var_tbl",
+    "via": null
+   }
+  ],
+  "cond_real_c": [
+   {
+    "left": "var_cur",
+    "line": 32,
+    "loops": [],
+    "op": "/=",
+    "procedure": "cond_real_c",
+    "right": "var_tbl",
+    "via": null
+   },
+   {
+    "left": "var_cur",
+    "line": 37,
+    "loops": [],
+    "op": "==",
+    "procedure": "cond_real_c",
+    "right": "var_tbl",
+    "via": null
+   }
+  ],
+  "conditions": [
+   {
+    "left": "strs_sum",
+    "line": 84,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "strs_sum",
+    "line": 84,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "strs_sum",
+    "line": 101,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "strs_sum",
+    "line": 101,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "strs_sum",
+    "line": 118,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "strs_sum",
+    "line": 118,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "pcom(ob_num)%plcur(ipl)%phuacc",
+    "line": 141,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "pcom(ob_num)%plcur(ipl)%phuacc",
+    "line": 141,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wst(iwst)%weat%phubase0",
+    "line": 156,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wst(iwst)%weat%phubase0",
+    "line": 156,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wst(iwst)%weat%precip",
+    "line": 171,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wst(iwst)%weat%precip",
+    "line": 171,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wst(iwst)%weat%precip_next",
+    "line": 186,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wst(iwst)%weat%precip_next",
+    "line": 186,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "d_tbl%cond(ic)%lim_var",
+    "line": 207,
+    "loops": [
+     "ic",
+     "iipl"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "pcom(ob_num)%pl(iipl)",
+    "via": null
+   },
+   {
+    "left": "ivar_cur",
+    "line": 232,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 232,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 241,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 241,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 250,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 250,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 260,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 260,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 266,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 266,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "hru(ob_num)%irr_yr",
+    "line": 273,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "hru(ob_num)%irr_yr",
+    "line": 273,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "hru(ob_num)%topo%slope",
+    "line": 280,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "hru(ob_num)%topo%slope",
+    "line": 280,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "soil(ob_num)%sw",
+    "line": 310,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "soil(ob_num)%sw",
+    "line": 310,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 316,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 316,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 322,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 322,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 331,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 331,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 340,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 340,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 346,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 346,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 352,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 352,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 358,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 358,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 367,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:38"
+   },
+   {
+    "left": "ivar_cur",
+    "line": 367,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "ivar_tbl",
+    "via": "cond_integer:43"
+   },
+   {
+    "left": "pl_mass(ob_num)%ab_gr_com%m",
+    "line": 374,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "pl_mass(ob_num)%ab_gr_com%m",
+    "line": 374,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "pcom(ob_num)%lai_sum",
+    "line": 381,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "pcom(ob_num)%lai_sum",
+    "line": 381,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "pl_mass(ob_num)%ab_gr_com%m",
+    "line": 388,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "pl_mass(ob_num)%ab_gr_com%m",
+    "line": 388,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "hru(ob_num)%lumv%usle_p",
+    "line": 395,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "hru(ob_num)%lumv%usle_p",
+    "line": 395,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "soil(ob_num)%ly(1)%usle_k",
+    "line": 402,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "soil(ob_num)%ly(1)%usle_k",
+    "line": 402,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "soil(ob_num)%hydgrp",
+    "line": 410,
+    "loops": [
+     "ic",
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "wgn_pms(iwgn)%p_pet_rto",
+    "line": 422,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wgn_pms(iwgn)%p_pet_rto",
+    "line": 422,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "p_lab_ppm",
+    "line": 444,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "p_lab_ppm",
+    "line": 444,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "soil(ob_num)%phys(2)%tmp",
+    "line": 451,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "soil(ob_num)%phys(2)%tmp",
+    "line": 451,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "soil1(ob_num)%cbn(1)",
+    "line": 458,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "soil1(ob_num)%cbn(1)",
+    "line": 458,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "ran_num",
+    "line": 483,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "ran_num",
+    "line": 483,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "time%day",
+    "line": 488,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%ob_num",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 519,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "pcom(ob_cur)%dtbl(idtbl)%apply_day",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 530,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%day_prev",
+    "via": null
+   },
+   {
+    "left": "time%yrc",
+    "line": 532,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%ob_num",
+    "via": null
+   },
+   {
+    "left": "flo_m3",
+    "line": 617,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "flo_m3",
+    "line": 617,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "hwb_d(ob_num)%qtile",
+    "line": 624,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "hwb_d(ob_num)%qtile",
+    "line": 624,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "irrig(ob_num)%demand",
+    "line": 631,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "irrig(ob_num)%demand",
+    "line": 631,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wallo(ob_num)%tot%demand",
+    "line": 638,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wallo(ob_num)%tot%demand",
+    "line": 638,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "aqu_d(ob_num)%dep_wt",
+    "line": 645,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "aqu_d(ob_num)%dep_wt",
+    "line": 645,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "hru(ob_num)%land_use_mgt_c",
+    "line": 654,
+    "loops": [
+     "ic",
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "hru(ob_num)%cal_group",
+    "line": 666,
+    "loops": [
+     "ic",
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(id)%name",
+    "line": 682,
+    "loops": [
+     "ic",
+     "ialt",
+     "iauto"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "pcom(ob_num)%pl(ipl)",
+    "line": 702,
+    "loops": [
+     "ic",
+     "ialt",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "pcom(ob_num)%pl(ipl)",
+    "line": 711,
+    "loops": [
+     "ic",
+     "ialt",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_var",
+    "via": null
+   },
+   {
+    "left": "sd_ch(ob_num)%order",
+    "line": 726,
+    "loops": [
+     "ic",
+     "ialt"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": null
+   },
+   {
+    "left": "res(ires)%flo",
+    "line": 771,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "res(ires)%flo",
+    "line": 771,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "flo_m3",
+    "line": 780,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "flo_m3",
+    "line": 780,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "d_tbl%cond(ic)%lim_const",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wet_ob(ires)%depth",
+    "line": 792,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wet_ob(ires)%depth",
+    "line": 792,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wet_ob(ires)%weir_hgt",
+    "line": 804,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wet_ob(ires)%weir_hgt",
+    "line": 804,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:47"
+   },
+   {
+    "left": "wet(ires)%flo",
+    "line": 834,
+    "loops": [
+     "ic"
+    ],
+    "op": "/=",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:42"
+   },
+   {
+    "left": "wet(ires)%flo",
+    "line": 834,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "conditions",
+    "right": "targ",
+    "via": "cond_real:47"
+   }
+  ],
+  "constit_db_read": [
+   {
+    "left": "pestdb(ipestdb)%name",
+    "line": 72,
+    "loops": [
+     "ipest",
+     "ipestdb"
+    ],
+    "op": "==",
+    "procedure": "constit_db_read",
+    "right": "cs_db%pests(ipest)",
+    "via": null
+   },
+   {
+    "left": "path_db(ipathdb)%pathnm",
+    "line": 81,
+    "loops": [
+     "ipath",
+     "ipathdb"
+    ],
+    "op": "==",
+    "procedure": "constit_db_read",
+    "right": "cs_db%paths(ipath)",
+    "via": null
+   }
+  ],
+  "cs_lch": [
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 97,
+    "loops": [
+     "ics",
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "cs_lch",
+    "right": "jj",
+    "via": null
+   },
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 114,
+    "loops": [
+     "ics",
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "cs_lch",
+    "right": "jj",
+    "via": null
+   }
+  ],
+  "cs_urban_read": [
+   {
+    "left": "urb_type",
+    "line": 54,
+    "loops": [
+     "itype",
+     "iu"
+    ],
+    "op": "==",
+    "procedure": "cs_urban_read",
+    "right": "urbdb(iu)%urbnm",
+    "via": null
+   }
+  ],
+  "define_unit_elements": [
+   {
+    "left": "ii",
+    "line": 18,
+    "loops": [
+     "do while (ii <= num_elem)"
+    ],
+    "op": "==",
+    "procedure": "define_unit_elements",
+    "right": "num_elem",
+    "via": null
+   },
+   {
+    "left": "ii",
+    "line": 54,
+    "loops": [
+     "do while (ii <= num_elem)"
+    ],
+    "op": "==",
+    "procedure": "define_unit_elements",
+    "right": "num_elem",
+    "via": null
+   }
+  ],
+  "dr_path_read": [
+   {
+    "left": "dr_db(idr)%path_file",
+    "line": 74,
+    "loops": [
+     "idr",
+     "idr_path"
+    ],
+    "op": "==",
+    "procedure": "dr_path_read",
+    "right": "dr_path_name(idr_path)",
+    "via": null
+   }
+  ],
+  "dr_read_hmet": [
+   {
+    "left": "dr_db(idr)%hmet_file",
+    "line": 75,
+    "loops": [
+     "idr",
+     "idr_hmet"
+    ],
+    "op": "==",
+    "procedure": "dr_read_hmet",
+    "right": "dr_hmet_name(idr_hmet)",
+    "via": null
+   }
+  ],
+  "dr_read_om": [
+   {
+    "left": "dr_db(idr)%om_file",
+    "line": 71,
+    "loops": [
+     "idr",
+     "idr_om"
+    ],
+    "op": "==",
+    "procedure": "dr_read_om",
+    "right": "dr_om_name(idr_om)",
+    "via": null
+   }
+  ],
+  "dr_read_pest": [
+   {
+    "left": "dr_db(idr)%pest_file",
+    "line": 74,
+    "loops": [
+     "idr",
+     "idr_pest"
+    ],
+    "op": "==",
+    "procedure": "dr_read_pest",
+    "right": "dr_pest_name(idr_pest)",
+    "via": null
+   }
+  ],
+  "dr_read_salt": [
+   {
+    "left": "dr_db(idr)%salts_file",
+    "line": 74,
+    "loops": [
+     "idr",
+     "idr_salt"
+    ],
+    "op": "==",
+    "procedure": "dr_read_salt",
+    "right": "dr_salt_name(idr_salt)",
+    "via": null
+   }
+  ],
+  "dtbl_flocon_read": [
+   {
+    "left": "dtbl_flo(idb)%name",
+    "line": 81,
+    "loops": [
+     "iob",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_flocon_read",
+    "right": "ob(iob)%ruleset",
+    "via": null
+   }
+  ],
+  "dtbl_lum_read": [
+   {
+    "left": "dtbl_lum(i)%cond(ic)%lim_var",
+    "line": 84,
+    "loops": [
+     "do",
+     "i",
+     "ic",
+     "ihru"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "hru(ihru)%land_use_mgt_c",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 108,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "transpl(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 116,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "harvop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 124,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "harvop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 132,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "tilldb(idb)%tillnm",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 140,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "irrop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 148,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "irrop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 156,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "irrop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 165,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "fertdb(idb)%fertnm",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 172,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 181,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "fertdb(idb)%fertnm",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 188,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 198,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 207,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "cs_db%pests(idb)",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 214,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 223,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "grazeop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 230,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "pudl_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%option",
+    "line": 238,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "iburn"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "fire_db(iburn)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 246,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "lum(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%act(iac)%file_pointer",
+    "line": 254,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "snodb(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(i)%cond(ic)%lim_var",
+    "line": 263,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "dtbl_lum_read",
+    "right": "dtbl_lum(i)%act(iac)%name",
+    "via": null
+   }
+  ],
+  "dtbl_res_read": [
+   {
+    "left": "dtbl_res(i)%act(iac)%file_pointer",
+    "line": 84,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_res_read",
+    "right": "res_weir(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_res(i)%act(iac)%file_pointer",
+    "line": 92,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "dtbl_res_read",
+    "right": "recall_db(idb)%name",
+    "via": null
+   }
+  ],
+  "dtbl_scen_read": [
+   {
+    "left": "dtbl_scen(i)%act(iac)%file_pointer",
+    "line": 83,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "dtbl_scen_read",
+    "right": "lum(ilum)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_scen(i)%act(iac)%file_pointer",
+    "line": 90,
+    "loops": [
+     "do",
+     "i",
+     "iac",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "dtbl_scen_read",
+    "right": "snodb(ilum)%name",
+    "via": null
+   }
+  ],
+  "exco_read_hmet": [
+   {
+    "left": "exco_db(iexco)%hmet_file",
+    "line": 74,
+    "loops": [
+     "iexco",
+     "iexco_hmet"
+    ],
+    "op": "==",
+    "procedure": "exco_read_hmet",
+    "right": "exco_hmet_name(iexco_hmet)",
+    "via": null
+   }
+  ],
+  "exco_read_path": [
+   {
+    "left": "exco_db(iexco)%path_file",
+    "line": 74,
+    "loops": [
+     "iexco",
+     "iexco_path"
+    ],
+    "op": "==",
+    "procedure": "exco_read_path",
+    "right": "exco_path_name(iexco_path)",
+    "via": null
+   }
+  ],
+  "exco_read_pest": [
+   {
+    "left": "exco_db(iexco)%pest_file",
+    "line": 73,
+    "loops": [
+     "iexco",
+     "iexco_pest"
+    ],
+    "op": "==",
+    "procedure": "exco_read_pest",
+    "right": "exco_pest_name(iexco_pest)",
+    "via": null
+   }
+  ],
+  "exco_read_salt": [
+   {
+    "left": "exco_db(iexco)%salts_file",
+    "line": 74,
+    "loops": [
+     "iexco",
+     "iexco_salt"
+    ],
+    "op": "==",
+    "procedure": "exco_read_salt",
+    "right": "exco_salt_name(iexco_salt)",
+    "via": null
+   }
+  ],
+  "flow_dur_curve": [
+   {
+    "left": "iday",
+    "line": 50,
+    "loops": [
+     "iday"
+    ],
+    "op": "==",
+    "procedure": "flow_dur_curve",
+    "right": "fdc_days(nprob)",
+    "via": null
+   }
+  ],
+  "gwflow_gwet": [
+   {
+    "left": "et_surface",
+    "line": 96,
+    "loops": [
+     "k",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "gwflow_gwet",
+    "right": "et_bottom",
+    "via": null
+   }
+  ],
+  "gwflow_output_aa": [
+   {
+    "left": "time%yrc",
+    "line": 1981,
+    "loops": [],
+    "op": "/=",
+    "procedure": "gwflow_output_aa",
+    "right": "time%yrc_end",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 1981,
+    "loops": [],
+    "op": "/=",
+    "procedure": "gwflow_output_aa",
+    "right": "time%day_end",
+    "via": null
+   }
+  ],
+  "gwflow_read": [
+   {
+    "left": "cell_id_in",
+    "line": 391,
+    "loops": [
+     "i"
+    ],
+    "op": "/=",
+    "procedure": "gwflow_read",
+    "right": "i",
+    "via": null
+   },
+   {
+    "left": "cell_id_in",
+    "line": 465,
+    "loops": [
+     "i"
+    ],
+    "op": "/=",
+    "procedure": "gwflow_read",
+    "right": "i",
+    "via": null
+   },
+   {
+    "left": "pumpex_cell",
+    "line": 944,
+    "loops": [
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "gwflow_read",
+    "right": "prev_cell",
+    "via": null
+   },
+   {
+    "left": "pumpex_cell",
+    "line": 963,
+    "loops": [
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "gwflow_read",
+    "right": "prev_cell",
+    "via": null
+   },
+   {
+    "left": "gw_fp_cellid(i)",
+    "line": 1198,
+    "loops": [
+     "i",
+     "k"
+    ],
+    "op": "==",
+    "procedure": "gwflow_read",
+    "right": "gw_chan_id(k)",
+    "via": null
+   },
+   {
+    "left": "gw_pond_info(i)%id",
+    "line": 1964,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "gwflow_read",
+    "right": "dum_id",
+    "via": null
+   },
+   {
+    "left": "gw_pond_info(i)%id",
+    "line": 1980,
+    "loops": [
+     "do",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "gwflow_read",
+    "right": "dum_id",
+    "via": null
+   }
+  ],
+  "gwflow_simulate": [
+   {
+    "left": "gw_output_yr(gw_output_index)",
+    "line": 390,
+    "loops": [],
+    "op": "==",
+    "procedure": "gwflow_simulate",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "gw_output_day(gw_output_index)",
+    "line": 390,
+    "loops": [],
+    "op": "==",
+    "procedure": "gwflow_simulate",
+    "right": "time%day",
+    "via": null
+   },
+   {
+    "left": "time%yrc",
+    "line": 472,
+    "loops": [],
+    "op": "==",
+    "procedure": "gwflow_simulate",
+    "right": "time%yrc_end",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 472,
+    "loops": [],
+    "op": "==",
+    "procedure": "gwflow_simulate",
+    "right": "time%day_end",
+    "via": null
+   }
+  ],
+  "hcsin_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 19,
+    "loops": [
+     "iob",
+     "iin"
+    ],
+    "op": "==",
+    "procedure": "hcsin_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hcsout_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 19,
+    "loops": [
+     "iob",
+     "iiout"
+    ],
+    "op": "==",
+    "procedure": "hcsout_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hru_control": [
+   {
+    "left": "pcom(ihru)%fert_fut(ifrt)%day_fert",
+    "line": 190,
+    "loops": [
+     "iauto",
+     "ifrt"
+    ],
+    "op": "==",
+    "procedure": "hru_control",
+    "right": "time%day",
+    "via": null
+   },
+   {
+    "left": "hru(j)%sb%sb_db%hru_rcv",
+    "line": 283,
+    "loops": [],
+    "op": "==",
+    "procedure": "hru_control",
+    "right": "j",
+    "via": null
+   },
+   {
+    "left": "ndeat(j)",
+    "line": 371,
+    "loops": [],
+    "op": "==",
+    "procedure": "hru_control",
+    "right": "grz_days(j)",
+    "via": null
+   },
+   {
+    "left": "hru(j)%sb%sb_db%hru_src",
+    "line": 634,
+    "loops": [],
+    "op": "==",
+    "procedure": "hru_control",
+    "right": "j",
+    "via": null
+   }
+  ],
+  "hru_dtbl_actions_init": [
+   {
+    "left": "iauto",
+    "line": 39,
+    "loops": [
+     "iihru",
+     "iauto"
+    ],
+    "op": "/=",
+    "procedure": "hru_dtbl_actions_init",
+    "right": "hru(ihru)%irr_trn_iauto",
+    "via": null
+   },
+   {
+    "left": "iauto",
+    "line": 39,
+    "loops": [
+     "iihru",
+     "iauto"
+    ],
+    "op": "/=",
+    "procedure": "hru_dtbl_actions_init",
+    "right": "hru(ihru)%man_trn_iauto",
+    "via": null
+   },
+   {
+    "left": "iauto",
+    "line": 46,
+    "loops": [
+     "iihru",
+     "iauto"
+    ],
+    "op": "==",
+    "procedure": "hru_dtbl_actions_init",
+    "right": "hru(ihru)%man_trn_iauto",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(id)%act(iac)%option",
+    "line": 78,
+    "loops": [
+     "iihru",
+     "iauto",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "hru_dtbl_actions_init",
+    "right": "fertdb(idb)%fertnm",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(id)%act(iac)%file_pointer",
+    "line": 85,
+    "loops": [
+     "iihru",
+     "iauto",
+     "iac",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "hru_dtbl_actions_init",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   }
+  ],
+  "hru_fr_change": [
+   {
+    "left": "ru_elem(i)%dr_name",
+    "line": 54,
+    "loops": [
+     "do",
+     "isp",
+     "idr"
+    ],
+    "op": "==",
+    "procedure": "hru_fr_change",
+    "right": "dr_db(idr)%name",
+    "via": null
+   }
+  ],
+  "hru_lte_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 22,
+    "loops": [],
+    "op": "==",
+    "procedure": "hru_lte_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hru_lte_read": [
+   {
+    "left": "hlt_db(idb)%plant",
+    "line": 159,
+    "loops": [
+     "do",
+     "i",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "hru_lte_read",
+    "right": "pldb(ipl)%plantnm",
+    "via": null
+   },
+   {
+    "left": "hlt_db(idb)%igrow1",
+    "line": 169,
+    "loops": [
+     "do",
+     "i",
+     "istart"
+    ],
+    "op": "==",
+    "procedure": "hru_lte_read",
+    "right": "dtbl_lum(istart)%name",
+    "via": null
+   },
+   {
+    "left": "hlt_db(idb)%igrow2",
+    "line": 179,
+    "loops": [
+     "do",
+     "i",
+     "iend"
+    ],
+    "op": "==",
+    "procedure": "hru_lte_read",
+    "right": "dtbl_lum(iend)%name",
+    "via": null
+   },
+   {
+    "left": "soil_lte(itext)%texture",
+    "line": 257,
+    "loops": [
+     "do",
+     "i",
+     "itext"
+    ],
+    "op": "==",
+    "procedure": "hru_lte_read",
+    "right": "hlt_db(idb)%text",
+    "via": null
+   }
+  ],
+  "hru_lum_init": [
+   {
+    "left": "hru(iihru)%lum_group_c",
+    "line": 25,
+    "loops": [
+     "ilug"
+    ],
+    "op": "==",
+    "procedure": "hru_lum_init",
+    "right": "lum_grp%name(ilu)",
+    "via": null
+   }
+  ],
+  "hru_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 61,
+    "loops": [],
+    "op": "==",
+    "procedure": "hru_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hru_pathogen_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 33,
+    "loops": [
+     "ipath"
+    ],
+    "op": "==",
+    "procedure": "hru_pathogen_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hru_pesticide_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 33,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "hru_pesticide_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hru_read": [
+   {
+    "left": "hru_db(i)%dbsc%land_use_mgt",
+    "line": 71,
+    "loops": [
+     "do",
+     "ihru",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "lum(ilum)%name",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%soil_plant_init",
+    "line": 81,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "sol_plt_ini(isp_ini)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%nutc",
+    "line": 88,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "solt_db(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%pestc",
+    "line": 95,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "pest_soil_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%pathc",
+    "line": 102,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "path_soil_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%hmetc",
+    "line": 109,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "hmet_soil_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%saltc",
+    "line": 116,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "salt_soil_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sol_plt_ini(isp_ini)%csc",
+    "line": 123,
+    "loops": [
+     "do",
+     "ihru",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "cs_soil_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%topo",
+    "line": 133,
+    "loops": [
+     "do",
+     "ihru",
+     "ith"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "topo_db(ith)%name",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%hyd",
+    "line": 142,
+    "loops": [
+     "do",
+     "ihru",
+     "ithyd"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "hyd_db(ithyd)%name",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%soil",
+    "line": 151,
+    "loops": [
+     "do",
+     "ihru",
+     "isol"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "soildb(isol)%s%snam",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%snow",
+    "line": 160,
+    "loops": [
+     "do",
+     "ihru",
+     "isno"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "snodb(isno)%name",
+    "via": null
+   },
+   {
+    "left": "hru_db(i)%dbsc%field",
+    "line": 169,
+    "loops": [
+     "do",
+     "ihru",
+     "ifld"
+    ],
+    "op": "==",
+    "procedure": "hru_read",
+    "right": "field_db(ifld)%name",
+    "via": null
+   }
+  ],
+  "hyd_connect": [
+   {
+    "left": "rcv_sum(i)",
+    "line": 433,
+    "loops": [
+     "do while (idone == 0)",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "hyd_connect",
+    "right": "ob(i)%rcv_tot",
+    "via": null
+   },
+   {
+    "left": "dfn_sum(i)",
+    "line": 433,
+    "loops": [
+     "do while (idone == 0)",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "hyd_connect",
+    "right": "ob(i)%dfn_tot",
+    "via": null
+   },
+   {
+    "left": "iobj_tot",
+    "line": 458,
+    "loops": [
+     "do while (idone == 0)",
+     "i"
+    ],
+    "op": "==",
+    "procedure": "hyd_connect",
+    "right": "sp_ob%objs",
+    "via": null
+   }
+  ],
+  "hyd_read_connect": [
+   {
+    "left": "wst_n(:)",
+    "line": 338,
+    "loops": [
+     "i"
+    ],
+    "op": "==",
+    "procedure": "hyd_read_connect",
+    "right": "ob(i)%wst_c",
+    "via": "search:22"
+   }
+  ],
+  "hyddep_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 19,
+    "loops": [],
+    "op": "==",
+    "procedure": "hyddep_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hydin_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 18,
+    "loops": [
+     "icmd",
+     "iin"
+    ],
+    "op": "==",
+    "procedure": "hydin_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "hydout_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 20,
+    "loops": [],
+    "op": "==",
+    "procedure": "hydout_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "landuse_read": [
+   {
+    "left": "lum(ilu)%plant_cov",
+    "line": 63,
+    "loops": [
+     "do",
+     "ilu",
+     "ipcom"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "pcomdb(ipcom)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%mgt_ops",
+    "line": 72,
+    "loops": [
+     "do",
+     "ilu",
+     "isched"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "sched(isched)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%cn_lu",
+    "line": 81,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "cn(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%cons_prac",
+    "line": 90,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "cons_prac(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%tiledrain",
+    "line": 99,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "sdr(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%septic",
+    "line": 108,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "sep(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%fstrip",
+    "line": 117,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "filtstrip_db(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%grassww",
+    "line": 126,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "grwaterway_db(ipr)%name",
+    "via": null
+   },
+   {
+    "left": "lum(ilu)%bmpuser",
+    "line": 135,
+    "loops": [
+     "do",
+     "ilu",
+     "ipr"
+    ],
+    "op": "==",
+    "procedure": "landuse_read",
+    "right": "bmpuser_db(ipr)%name",
+    "via": null
+   }
+  ],
+  "layersplit": [
+   {
+    "left": "lyn",
+    "line": 37,
+    "loops": [
+     "ly",
+     "lyn"
+    ],
+    "op": "==",
+    "procedure": "layersplit",
+    "right": "ly",
+    "via": null
+   },
+   {
+    "left": "lyn",
+    "line": 45,
+    "loops": [
+     "ly",
+     "lyn"
+    ],
+    "op": "==",
+    "procedure": "layersplit",
+    "right": "ly",
+    "via": null
+   }
+  ],
+  "lsreg_output": [
+   {
+    "left": "hru(ihru)%land_use_mgt",
+    "line": 82,
+    "loops": [
+     "ireg",
+     "ielem",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "lsreg_output",
+    "right": "region(ireg)%lum_num(ilum)",
+    "via": null
+   },
+   {
+    "left": "pco%int_day_cur",
+    "line": 112,
+    "loops": [
+     "ireg",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "lsreg_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "lsu_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 68,
+    "loops": [
+     "ilsu"
+    ],
+    "op": "==",
+    "procedure": "lsu_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "manure_allocation_read": [
+   {
+    "left": "mallo(imro)%src(i)%manure_typ",
+    "line": 73,
+    "loops": [
+     "do",
+     "imro",
+     "isrc",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "manure_allocation_read",
+    "right": "fertdb(idb)%fertnm",
+    "via": null
+   },
+   {
+    "left": "mallo(imro)%trn(i)%dtbl",
+    "line": 102,
+    "loops": [
+     "do",
+     "imro",
+     "itrn",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "manure_allocation_read",
+    "right": "dtbl_lum(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(idb)%act(1)%option",
+    "line": 106,
+    "loops": [
+     "do",
+     "imro",
+     "itrn",
+     "idb",
+     "idb_man"
+    ],
+    "op": "==",
+    "procedure": "manure_allocation_read",
+    "right": "chemapp_db(idb_man)%name",
+    "via": null
+   }
+  ],
+  "manure_db_read": [
+   {
+    "left": "manure_db(it)%org_min",
+    "line": 53,
+    "loops": [
+     "do",
+     "it",
+     "mfrt"
+    ],
+    "op": "==",
+    "procedure": "manure_db_read",
+    "right": "manure_om(mfrt)%name",
+    "via": null
+   }
+  ],
+  "mgt_biomix": [
+   {
+    "left": "l",
+    "line": 200,
+    "loops": [
+     "l"
+    ],
+    "op": "==",
+    "procedure": "mgt_biomix",
+    "right": "lyr_exit",
+    "via": null
+   },
+   {
+    "left": "l",
+    "line": 210,
+    "loops": [
+     "l"
+    ],
+    "op": "==",
+    "procedure": "mgt_biomix",
+    "right": "lyr_exit",
+    "via": null
+   },
+   {
+    "left": "l",
+    "line": 259,
+    "loops": [
+     "l"
+    ],
+    "op": "==",
+    "procedure": "mgt_biomix",
+    "right": "lyr_exit",
+    "via": null
+   }
+  ],
+  "mgt_newtillmix_cswat1": [
+   {
+    "left": "lyr_exit",
+    "line": 195,
+    "loops": [
+     "l"
+    ],
+    "op": "==",
+    "procedure": "mgt_newtillmix_cswat1",
+    "right": "l",
+    "via": null
+   }
+  ],
+  "mgt_read_grazeops": [
+   {
+    "left": "grazeop_db(igrazop)%fertnm",
+    "line": 55,
+    "loops": [
+     "do",
+     "igrazop",
+     "ifert"
+    ],
+    "op": "==",
+    "procedure": "mgt_read_grazeops",
+    "right": "fertdb(ifert)%fertnm",
+    "via": null
+   }
+  ],
+  "mgt_sched": [
+   {
+    "left": "mgt%op_char",
+    "line": 75,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "mgt%op_char",
+    "line": 93,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "mgt%op_plant",
+    "line": 103,
+    "loops": [
+     "ipl",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "transpl(idb)%name",
+    "via": null
+   },
+   {
+    "left": "mgt%op_char",
+    "line": 160,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 203,
+    "loops": [
+     "ipl",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_char",
+    "via": null
+   },
+   {
+    "left": "mgt%op_char",
+    "line": 225,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "mgt%op_char",
+    "line": 248,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "mgt%op_char",
+    "line": 271,
+    "loops": [
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "pcomdb(icom)%pl(ipl)%cpnm",
+    "via": null
+   },
+   {
+    "left": "plcal(ireg)%lum(ilum)%meas%name",
+    "line": 315,
+    "loops": [
+     "ipl",
+     "ilum"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_char",
+    "via": null
+   },
+   {
+    "left": "cs_db%pests(ipestcom)",
+    "line": 421,
+    "loops": [
+     "ipestcom"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_char",
+    "via": null
+   },
+   {
+    "left": "res_weir(iwr)%name",
+    "line": 518,
+    "loops": [
+     "iwr"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_char",
+    "via": null
+   },
+   {
+    "left": "pudl_db(ipdl)%name",
+    "line": 591,
+    "loops": [
+     "ipdl"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_plant",
+    "via": null
+   },
+   {
+    "left": "tilldb(idb)%tillnm",
+    "line": 602,
+    "loops": [
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "mgt_sched",
+    "right": "mgt%op_char",
+    "via": null
+   }
+  ],
+  "nut_nitvol": [
+   {
+    "left": "k",
+    "line": 72,
+    "loops": [
+     "k"
+    ],
+    "op": "/=",
+    "procedure": "nut_nitvol",
+    "right": "i_sep(j)",
+    "via": null
+   }
+  ],
+  "nut_nlch": [
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 83,
+    "loops": [
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "nut_nlch",
+    "right": "jj",
+    "via": null
+   },
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 99,
+    "loops": [
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "nut_nlch",
+    "right": "jj",
+    "via": null
+   },
+   {
+    "left": "jj",
+    "line": 146,
+    "loops": [
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "nut_nlch",
+    "right": "soil(j)%nly",
+    "via": null
+   }
+  ],
+  "nut_nminrl": [
+   {
+    "left": "i_sep(j)",
+    "line": 180,
+    "loops": [
+     "k"
+    ],
+    "op": "/=",
+    "procedure": "nut_nminrl",
+    "right": "k",
+    "via": null
+   }
+  ],
+  "nut_orgnc2": [
+   {
+    "left": "ly",
+    "line": 159,
+    "loops": [
+     "ly"
+    ],
+    "op": "==",
+    "procedure": "nut_orgnc2",
+    "right": "soil(j)%nly",
+    "via": null
+   }
+  ],
+  "nut_solp": [
+   {
+    "left": "ly",
+    "line": 68,
+    "loops": [
+     "ly"
+    ],
+    "op": "/=",
+    "procedure": "nut_solp",
+    "right": "i_sep(j)",
+    "via": null
+   },
+   {
+    "left": "ly",
+    "line": 73,
+    "loops": [
+     "ly"
+    ],
+    "op": "==",
+    "procedure": "nut_solp",
+    "right": "soil(j)%nly",
+    "via": null
+   },
+   {
+    "left": "ly",
+    "line": 81,
+    "loops": [
+     "ly"
+    ],
+    "op": "==",
+    "procedure": "nut_solp",
+    "right": "hru(j)%lumv%ldrain",
+    "via": null
+   }
+  ],
+  "pest_lch": [
+   {
+    "left": "ly",
+    "line": 51,
+    "loops": [
+     "ly",
+     "k"
+    ],
+    "op": "==",
+    "procedure": "pest_lch",
+    "right": "hru(j)%lumv%ldrain",
+    "via": null
+   },
+   {
+    "left": "ly",
+    "line": 69,
+    "loops": [
+     "ly",
+     "k"
+    ],
+    "op": "==",
+    "procedure": "pest_lch",
+    "right": "hru(j)%lumv%ldrain",
+    "via": null
+   }
+  ],
+  "pest_metabolite_read": [
+   {
+    "left": "parent_name",
+    "line": 55,
+    "loops": [
+     "do",
+     "iparent",
+     "ip"
+    ],
+    "op": "==",
+    "procedure": "pest_metabolite_read",
+    "right": "pestdb(ip)%name",
+    "via": null
+   },
+   {
+    "left": "pestcp(ip)%daughter(imeta)%name",
+    "line": 68,
+    "loops": [
+     "do",
+     "iparent",
+     "ip",
+     "imeta",
+     "ipb"
+    ],
+    "op": "==",
+    "procedure": "pest_metabolite_read",
+    "right": "cs_db%pests(ipb)",
+    "via": null
+   }
+  ],
+  "pl_read_parms_cal": [
+   {
+    "left": "pl_prms(i)%prm(ilum)%name",
+    "line": 94,
+    "loops": [
+     "do",
+     "i",
+     "ilum",
+     "ihru",
+     "ipl"
+    ],
+    "op": "==",
+    "procedure": "pl_read_parms_cal",
+    "right": "pcom(iihru)%pl(ipl)",
+    "via": null
+   }
+  ],
+  "pl_rootfr": [
+   {
+    "left": "ly",
+    "line": 81,
+    "loops": [
+     "ly"
+    ],
+    "op": "==",
+    "procedure": "pl_rootfr",
+    "right": "k",
+    "via": null
+   }
+  ],
+  "plant_all_init": [
+   {
+    "left": "pcom(iihru)%pl(ipl)",
+    "line": 42,
+    "loops": [
+     "iihru",
+     "ipl",
+     "iplt"
+    ],
+    "op": "==",
+    "procedure": "plant_all_init",
+    "right": "plts_bsn(iplt)",
+    "via": null
+   },
+   {
+    "left": "iplt",
+    "line": 43,
+    "loops": [
+     "iihru",
+     "ipl",
+     "iplt"
+    ],
+    "op": "==",
+    "procedure": "plant_all_init",
+    "right": "num_plts_cur",
+    "via": null
+   },
+   {
+    "left": "pcom(iihru)%pl(ipl)",
+    "line": 61,
+    "loops": [
+     "iihru",
+     "ipl",
+     "ipl_bsn"
+    ],
+    "op": "==",
+    "procedure": "plant_all_init",
+    "right": "plts_bsn(ipl_bsn)",
+    "via": null
+   }
+  ],
+  "plant_init": [
+   {
+    "left": "irot",
+    "line": 269,
+    "loops": [
+     "ipl",
+     "iop"
+    ],
+    "op": "==",
+    "procedure": "plant_init",
+    "right": "pcomdb(icom)%rot_yr_ini",
+    "via": null
+   },
+   {
+    "left": "lum(ilum)%urb_lu",
+    "line": 380,
+    "loops": [
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "plant_init",
+    "right": "urbdb(idb)%urbnm",
+    "via": null
+   },
+   {
+    "left": "lum(ilum)%ovn",
+    "line": 388,
+    "loops": [
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "plant_init",
+    "right": "overland_n(idb)%name",
+    "via": null
+   }
+  ],
+  "proc_cond": [
+   {
+    "left": "sched(isched)%auto_name(iauto)",
+    "line": 23,
+    "loops": [
+     "ihru",
+     "iauto",
+     "ictl"
+    ],
+    "op": "==",
+    "procedure": "proc_cond",
+    "right": "dtbl_lum(ictl)%name",
+    "via": null
+   }
+  ],
+  "read_mgtops": [
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 45,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "pcomdb(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 53,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "pldb(idb)%plantnm",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 64,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "transpl(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 72,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "harvop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 80,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "harvop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 88,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "tilldb(idb)%tillnm",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 97,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "irrop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 106,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "fertdb(idb)%fertnm",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 113,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 122,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "manure_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 129,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 138,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "pestdb(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_plant",
+    "line": 145,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "chemapp_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 153,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "grazeop_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 161,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "fire_db(idb)%name",
+    "via": null
+   },
+   {
+    "left": "sched(isched)%mgt_ops(iop)%op_char",
+    "line": 169,
+    "loops": [
+     "iop",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "read_mgtops",
+    "right": "sweepop_db(idb)%name",
+    "via": null
+   }
+  ],
+  "readpcom": [
+   {
+    "left": "pcomdb(icom)%pl(iplt)%cpnm",
+    "line": 74,
+    "loops": [
+     "do",
+     "icom",
+     "iplt",
+     "ipldb"
+    ],
+    "op": "==",
+    "procedure": "readpcom",
+    "right": "pldb(ipldb)%plantnm",
+    "via": null
+   }
+  ],
+  "recall_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 21,
+    "loops": [],
+    "op": "==",
+    "procedure": "recall_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "recall_read": [
+   {
+    "left": "recall_db(irec)%org_min%name",
+    "line": 132,
+    "loops": [
+     "iprev"
+    ],
+    "op": "==",
+    "procedure": "recall_read",
+    "right": "recall_db(irec)%org_min%name",
+    "via": null
+   },
+   {
+    "left": "recall_db(irec)%iorg_min",
+    "line": 139,
+    "loops": [],
+    "op": "==",
+    "procedure": "recall_read",
+    "right": "irec",
+    "via": null
+   },
+   {
+    "left": "iyr",
+    "line": 168,
+    "loops": [
+     "do"
+    ],
+    "op": "==",
+    "procedure": "recall_read",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "iyr1",
+    "line": 187,
+    "loops": [
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "recall_read",
+    "right": "iyr",
+    "via": null
+   },
+   {
+    "left": "iyr",
+    "line": 285,
+    "loops": [
+     "do",
+     "ipc",
+     "ii",
+     "do"
+    ],
+    "op": "==",
+    "procedure": "recall_read",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "iyr",
+    "line": 296,
+    "loops": [
+     "do",
+     "ipc",
+     "ii",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "recall_read",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "recall_read_cs": [
+   {
+    "left": "iyr",
+    "line": 175,
+    "loops": [
+     "do",
+     "ii",
+     "do"
+    ],
+    "op": "==",
+    "procedure": "recall_read_cs",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "iyr",
+    "line": 210,
+    "loops": [
+     "do",
+     "ii",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "recall_read_cs",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "recall_read_salt": [
+   {
+    "left": "iyr",
+    "line": 176,
+    "loops": [
+     "do",
+     "ii",
+     "do"
+    ],
+    "op": "==",
+    "procedure": "recall_read_salt",
+    "right": "time%yrc",
+    "via": null
+   },
+   {
+    "left": "iyr",
+    "line": 211,
+    "loops": [
+     "do",
+     "ii",
+     "do"
+    ],
+    "op": "/=",
+    "procedure": "recall_read_salt",
+    "right": "iyr_prev",
+    "via": null
+   }
+  ],
+  "recalldb_read": [
+   {
+    "left": "recall_db(irec)%iorg_min",
+    "line": 61,
+    "loops": [
+     "do",
+     "ii"
+    ],
+    "op": "==",
+    "procedure": "recalldb_read",
+    "right": "i",
+    "via": "recall_read:139"
+   }
+  ],
+  "res_control": [
+   {
+    "left": "time%yrc",
+    "line": 43,
+    "loops": [],
+    "op": "==",
+    "procedure": "res_control",
+    "right": "res_hyd(jres)%iyres",
+    "via": null
+   },
+   {
+    "left": "irrig_track_b",
+    "line": 66,
+    "loops": [],
+    "op": "==",
+    "procedure": "res_control",
+    "right": "res_ob(jres)%irrig_track",
+    "via": null
+   }
+  ],
+  "res_initial": [
+   {
+    "left": "time%yrc",
+    "line": 92,
+    "loops": [
+     "ires"
+    ],
+    "op": "==",
+    "procedure": "res_initial",
+    "right": "res_hyd(ires)%iyres",
+    "via": null
+   }
+  ],
+  "res_pesticide_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 31,
+    "loops": [
+     "ipest"
+    ],
+    "op": "==",
+    "procedure": "res_pesticide_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "res_read": [
+   {
+    "left": "res_dat_c(ires)%init",
+    "line": 81,
+    "loops": [
+     "do",
+     "ires",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_init_dat_c(isp_ini)%init",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%org_min",
+    "line": 86,
+    "loops": [
+     "do",
+     "ires",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "om_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%pest",
+    "line": 94,
+    "loops": [
+     "do",
+     "ires",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "pest_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%path",
+    "line": 102,
+    "loops": [
+     "do",
+     "ires",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "path_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "res_hyddb(ihyd)%name",
+    "line": 114,
+    "loops": [
+     "do",
+     "ires",
+     "ihyd"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_dat_c(ires)%hyd",
+    "via": null
+   },
+   {
+    "left": "ctbl(irel)%name",
+    "line": 123,
+    "loops": [
+     "do",
+     "ires",
+     "irel"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_dat_c(ires)%release",
+    "via": null
+   },
+   {
+    "left": "dtbl_res(irel)%name",
+    "line": 131,
+    "loops": [
+     "do",
+     "ires",
+     "irel"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_dat_c(ires)%release",
+    "via": null
+   },
+   {
+    "left": "res_sed(ised)%name",
+    "line": 140,
+    "loops": [
+     "do",
+     "ires",
+     "ised"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_dat_c(ires)%sed",
+    "via": null
+   },
+   {
+    "left": "res_nut(inut)%name",
+    "line": 152,
+    "loops": [
+     "do",
+     "ires",
+     "inut"
+    ],
+    "op": "==",
+    "procedure": "res_read",
+    "right": "res_dat_c(ires)%nut",
+    "via": null
+   }
+  ],
+  "res_read_salt_cs": [
+   {
+    "left": "res_salt_data(isalt)%name",
+    "line": 48,
+    "loops": [
+     "i",
+     "isalt"
+    ],
+    "op": "==",
+    "procedure": "res_read_salt_cs",
+    "right": "res_dat_c_cs(ires)%salt",
+    "via": null
+   },
+   {
+    "left": "res_cs_data(ics)%name",
+    "line": 56,
+    "loops": [
+     "i",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "res_read_salt_cs",
+    "right": "res_dat_c_cs(ires)%cs",
+    "via": null
+   }
+  ],
+  "res_rel_conds": [
+   {
+    "left": "stor",
+    "line": 28,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "/=",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:32"
+   },
+   {
+    "left": "stor",
+    "line": 28,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "==",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:37"
+   },
+   {
+    "left": "inflo",
+    "line": 30,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "/=",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:32"
+   },
+   {
+    "left": "inflo",
+    "line": 30,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "==",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:37"
+   },
+   {
+    "left": "pdsi",
+    "line": 32,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "/=",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:32"
+   },
+   {
+    "left": "pdsi",
+    "line": 32,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "==",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%conds(icon)%scon(iscon)%val",
+    "via": "cond_real_c:37"
+   },
+   {
+    "left": "inflo",
+    "line": 54,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "/=",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%mods(modu)%con(icon)%scon(iscon)%val",
+    "via": "cond_real_c:32"
+   },
+   {
+    "left": "inflo",
+    "line": 54,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "==",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%mods(modu)%con(icon)%scon(iscon)%val",
+    "via": "cond_real_c:37"
+   },
+   {
+    "left": "stor",
+    "line": 57,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "/=",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%mods(modu)%con(icon)%scon(iscon)%val",
+    "via": "cond_real_c:32"
+   },
+   {
+    "left": "stor",
+    "line": 57,
+    "loops": [
+     "icon",
+     "iscon"
+    ],
+    "op": "==",
+    "procedure": "res_rel_conds",
+    "right": "ctbl(ictbl)%mods(modu)%con(icon)%scon(iscon)%val",
+    "via": "cond_real_c:37"
+   }
+  ],
+  "reservoir_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 18,
+    "loops": [],
+    "op": "==",
+    "procedure": "reservoir_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "ru_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 22,
+    "loops": [],
+    "op": "==",
+    "procedure": "ru_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "ru_read": [
+   {
+    "left": "ru(i)%dbsc%toposub_db",
+    "line": 234,
+    "loops": [
+     "do",
+     "iru",
+     "ith"
+    ],
+    "op": "==",
+    "procedure": "ru_read",
+    "right": "topo_db(ith)%name",
+    "via": null
+   },
+   {
+    "left": "ru(i)%dbsc%field_db",
+    "line": 242,
+    "loops": [
+     "do",
+     "iru",
+     "ith"
+    ],
+    "op": "==",
+    "procedure": "ru_read",
+    "right": "field_db(ith)%name",
+    "via": null
+   }
+  ],
+  "ru_read_elements": [
+   {
+    "left": "ru_elem(i)%dr_name",
+    "line": 77,
+    "loops": [
+     "do",
+     "isp",
+     "idr"
+    ],
+    "op": "==",
+    "procedure": "ru_read_elements",
+    "right": "dr_db(idr)%name",
+    "via": null
+   },
+   {
+    "left": "ii",
+    "line": 129,
+    "loops": [
+     "do",
+     "iru"
+    ],
+    "op": "==",
+    "procedure": "ru_read_elements",
+    "right": "nspu",
+    "via": "define_unit_elements:18"
+   }
+  ],
+  "salt_lch": [
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 119,
+    "loops": [
+     "isalt",
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "salt_lch",
+    "right": "jj",
+    "via": null
+   },
+   {
+    "left": "hru(j)%lumv%ldrain",
+    "line": 135,
+    "loops": [
+     "isalt",
+     "jj"
+    ],
+    "op": "==",
+    "procedure": "salt_lch",
+    "right": "jj",
+    "via": null
+   }
+  ],
+  "salt_urban_read": [
+   {
+    "left": "urb_type",
+    "line": 54,
+    "loops": [
+     "itype",
+     "iu"
+    ],
+    "op": "==",
+    "procedure": "salt_urban_read",
+    "right": "urbdb(iu)%urbnm",
+    "via": null
+   }
+  ],
+  "sat_buff_read": [
+   {
+    "left": "satbuff_db(ibuff)%flocon_dtbl",
+    "line": 69,
+    "loops": [
+     "do",
+     "ibuff",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "sat_buff_read",
+    "right": "dtbl_flo(idb)%name",
+    "via": null
+   }
+  ],
+  "sd_chanbud_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 17,
+    "loops": [],
+    "op": "==",
+    "procedure": "sd_chanbud_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "sd_chanmorph_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 18,
+    "loops": [],
+    "op": "==",
+    "procedure": "sd_chanmorph_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "sd_channel_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 23,
+    "loops": [],
+    "op": "==",
+    "procedure": "sd_channel_output",
+    "right": "pco%int_day",
+    "via": null
+   },
+   {
+    "left": "pco%int_day_cur",
+    "line": 31,
+    "loops": [],
+    "op": "==",
+    "procedure": "sd_channel_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ],
+  "sd_channel_read": [
+   {
+    "left": "sd_dat(ichi)%initc",
+    "line": 225,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "ch_init(isp_ini)%name",
+    "via": null
+   },
+   {
+    "left": "ch_init(isp_ini)%org_min",
+    "line": 229,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "om_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "ch_init(isp_ini)%pest",
+    "line": 236,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "pest_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "ch_init_cs(isp_ini)%path",
+    "line": 243,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "path_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "ch_init_cs(isp_ini)%salt",
+    "line": 257,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "salt_cha_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "ch_init_cs(isp_ini)%cs",
+    "line": 264,
+    "loops": [
+     "do",
+     "ichi",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "cs_cha_ini(ics)%name",
+    "via": null
+   },
+   {
+    "left": "sd_chd(ihydsed)%name",
+    "line": 274,
+    "loops": [
+     "do",
+     "ichi",
+     "ihydsed"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "sd_dat(ichi)%hydc",
+    "via": null
+   },
+   {
+    "left": "sd_chd1(ihydsed)%name",
+    "line": 282,
+    "loops": [
+     "do",
+     "ichi",
+     "ihydsed"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "sd_dat(ichi)%hydc",
+    "via": null
+   },
+   {
+    "left": "ch_nut(inut)%name",
+    "line": 289,
+    "loops": [
+     "do",
+     "ichi",
+     "inut"
+    ],
+    "op": "==",
+    "procedure": "sd_channel_read",
+    "right": "sd_dat(ichi)%nutc",
+    "via": null
+   }
+  ],
+  "search": [
+   {
+    "left": "sch(nl)",
+    "line": 22,
+    "loops": [
+     "int"
+    ],
+    "op": "==",
+    "procedure": "search",
+    "right": "cfind",
+    "via": null
+   },
+   {
+    "left": "sch(nf)",
+    "line": 26,
+    "loops": [
+     "int"
+    ],
+    "op": "==",
+    "procedure": "search",
+    "right": "cfind",
+    "via": null
+   },
+   {
+    "left": "sch(nn)",
+    "line": 32,
+    "loops": [
+     "int"
+    ],
+    "op": "==",
+    "procedure": "search",
+    "right": "cfind",
+    "via": null
+   }
+  ],
+  "soils_init": [
+   {
+    "left": "csld",
+    "line": 182,
+    "loops": [
+     "isol",
+     "do"
+    ],
+    "op": "==",
+    "procedure": "soils_init",
+    "right": "tot_soil_depth",
+    "via": null
+   }
+  ],
+  "soils_test_adjust": [
+   {
+    "left": "sol_test(test)%snam",
+    "line": 24,
+    "loops": [
+     "test"
+    ],
+    "op": "==",
+    "procedure": "soils_test_adjust",
+    "right": "sol(isol)%s%snam",
+    "via": null
+   },
+   {
+    "left": "sol_test(test)%snam",
+    "line": 84,
+    "loops": [
+     "test"
+    ],
+    "op": "==",
+    "procedure": "soils_test_adjust",
+    "right": "sol(isol)%s%snam",
+    "via": null
+   }
+  ],
+  "split_line": [
+   {
+    "left": "line2(pos1:pos1)",
+    "line": 435,
+    "loops": [
+     "do while (pos1 <= len_line)"
+    ],
+    "op": "==",
+    "procedure": "split_line",
+    "right": "current_delim",
+    "via": null
+   },
+   {
+    "left": "pos1",
+    "line": 437,
+    "loops": [
+     "do while (pos1 <= len_line)"
+    ],
+    "op": "==",
+    "procedure": "split_line",
+    "right": "len_line",
+    "via": null
+   }
+  ],
+  "swr_drains": [
+   {
+    "left": "time%day",
+    "line": 178,
+    "loops": [],
+    "op": "==",
+    "procedure": "swr_drains",
+    "right": "time%day_start",
+    "via": null
+   }
+  ],
+  "swr_percmacro": [
+   {
+    "left": "ly",
+    "line": 48,
+    "loops": [
+     "ly"
+    ],
+    "op": "==",
+    "procedure": "swr_percmacro",
+    "right": "soil(j)%nly",
+    "via": null
+   }
+  ],
+  "swr_percmain": [
+   {
+    "left": "j1",
+    "line": 98,
+    "loops": [
+     "do",
+     "j1"
+    ],
+    "op": "==",
+    "procedure": "swr_percmain",
+    "right": "i_sep(j)",
+    "via": null
+   },
+   {
+    "left": "j1",
+    "line": 114,
+    "loops": [
+     "do",
+     "j1"
+    ],
+    "op": "==",
+    "procedure": "swr_percmain",
+    "right": "soil(j)%nly",
+    "via": "swr_percmicro:105"
+   },
+   {
+    "left": "j1",
+    "line": 114,
+    "loops": [
+     "do",
+     "j1"
+    ],
+    "op": "==",
+    "procedure": "swr_percmain",
+    "right": "i_sep(j)",
+    "via": "swr_percmicro:78"
+   },
+   {
+    "left": "j1",
+    "line": 121,
+    "loops": [
+     "do",
+     "j1"
+    ],
+    "op": "==",
+    "procedure": "swr_percmain",
+    "right": "soil(j)%nly",
+    "via": null
+   }
+  ],
+  "swr_percmicro": [
+   {
+    "left": "ly1",
+    "line": 78,
+    "loops": [],
+    "op": "==",
+    "procedure": "swr_percmicro",
+    "right": "i_sep(j)",
+    "via": null
+   },
+   {
+    "left": "ly1",
+    "line": 99,
+    "loops": [],
+    "op": "==",
+    "procedure": "swr_percmicro",
+    "right": "i_sep(j)",
+    "via": null
+   },
+   {
+    "left": "ly1",
+    "line": 105,
+    "loops": [],
+    "op": "==",
+    "procedure": "swr_percmicro",
+    "right": "soil(j)%nly",
+    "via": null
+   }
+  ],
+  "time_control": [
+   {
+    "left": "time%yrs",
+    "line": 135,
+    "loops": [
+     "curyr"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "time%nbyr",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 182,
+    "loops": [
+     "curyr",
+     "julian_day"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "ndays(time%mo+1)",
+    "via": null
+   },
+   {
+    "left": "time%day",
+    "line": 185,
+    "loops": [
+     "curyr",
+     "julian_day"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "time%day_end_yr",
+    "via": null
+   },
+   {
+    "left": "time%yrs",
+    "line": 187,
+    "loops": [
+     "curyr",
+     "julian_day"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "time%nbyr",
+    "via": null
+   },
+   {
+    "left": "time%yrc",
+    "line": 192,
+    "loops": [
+     "curyr",
+     "julian_day"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "pco%aa_yrs(time%prt_int_cur)",
+    "via": null
+   },
+   {
+    "left": "time%yrc",
+    "line": 207,
+    "loops": [
+     "curyr",
+     "julian_day"
+    ],
+    "op": "==",
+    "procedure": "time_control",
+    "right": "pco%yrc_end",
+    "via": null
+   }
+  ],
+  "wallo_canal": [
+   {
+    "left": "gw_canl_div_cell(ic)%canal_id",
+    "line": 57,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "wallo_canal",
+    "right": "ican",
+    "via": null
+   },
+   {
+    "left": "gw_canl_div_cell(ic)%canal_id",
+    "line": 63,
+    "loops": [
+     "ic"
+    ],
+    "op": "==",
+    "procedure": "wallo_canal",
+    "right": "ican",
+    "via": null
+   }
+  ],
+  "wallo_control": [
+   {
+    "left": "gw_canl_div_cell(ic)%canal_id",
+    "line": 162,
+    "loops": [],
+    "op": "==",
+    "procedure": "wallo_control",
+    "right": "j",
+    "via": "wallo_canal:57"
+   }
+  ],
+  "water_allocation_read": [
+   {
+    "left": "wallo(iwro)%trn(i)%trn_typ_name",
+    "line": 111,
+    "loops": [
+     "do",
+     "iwro",
+     "itrn",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "water_allocation_read",
+    "right": "dtbl_lum(idb)%name",
+    "via": null
+   },
+   {
+    "left": "dtbl_lum(idb)%act(1)%option",
+    "line": 115,
+    "loops": [
+     "do",
+     "iwro",
+     "itrn",
+     "idb",
+     "idb_irr"
+    ],
+    "op": "==",
+    "procedure": "water_allocation_read",
+    "right": "irrop_db(idb_irr)%name",
+    "via": null
+   },
+   {
+    "left": "wallo(iwro)%trn(i)%trn_typ_name",
+    "line": 130,
+    "loops": [
+     "do",
+     "iwro",
+     "itrn",
+     "idb"
+    ],
+    "op": "==",
+    "procedure": "water_allocation_read",
+    "right": "dtbl_flo(idb)%name",
+    "via": null
+   },
+   {
+    "left": "exco_db(iexco)%om_file",
+    "line": 166,
+    "loops": [
+     "do",
+     "iwro",
+     "itrn",
+     "isrc",
+     "iexco_om"
+    ],
+    "op": "==",
+    "procedure": "water_allocation_read",
+    "right": "exco_om_name(iexco_om)",
+    "via": null
+   }
+  ],
+  "water_treatment_read": [
+   {
+    "left": "om_treat_name(iom)",
+    "line": 58,
+    "loops": [
+     "do",
+     "iwtp",
+     "iom"
+    ],
+    "op": "==",
+    "procedure": "water_treatment_read",
+    "right": "wtp(iwtp)%org_min",
+    "via": null
+   }
+  ],
+  "water_use_read": [
+   {
+    "left": "om_use_name(iom)",
+    "line": 59,
+    "loops": [
+     "do",
+     "iwuse",
+     "iom"
+    ],
+    "op": "==",
+    "procedure": "water_use_read",
+    "right": "wuse(iwuse)%org_min",
+    "via": null
+   }
+  ],
+  "wet_initial": [
+   {
+    "left": "hru(iihru)%dbsc%surf_stor",
+    "line": 43,
+    "loops": [
+     "isstor"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "wet_dat_c(isstor)%name",
+    "via": null
+   },
+   {
+    "left": "wet_dat_c(isstor)%init",
+    "line": 50,
+    "loops": [
+     "isstor",
+     "isp_ini"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "res_init_dat_c(isp_ini)%init",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%org_min",
+    "line": 54,
+    "loops": [
+     "isstor",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "om_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%pest",
+    "line": 61,
+    "loops": [
+     "isstor",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "pest_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "res_init_dat_c(isp_ini)%path",
+    "line": 68,
+    "loops": [
+     "isstor",
+     "isp_ini",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "path_init_name(ics)",
+    "via": null
+   },
+   {
+    "left": "wet_hyddb(ihyd)%name",
+    "line": 80,
+    "loops": [
+     "isstor",
+     "ihyd"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "wet_dat_c(isstor)%hyd",
+    "via": null
+   },
+   {
+    "left": "dtbl_res(irel)%name",
+    "line": 89,
+    "loops": [
+     "isstor",
+     "irel"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "wet_dat_c(isstor)%release",
+    "via": null
+   },
+   {
+    "left": "res_sed(ised)%name",
+    "line": 97,
+    "loops": [
+     "isstor",
+     "ised"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "wet_dat_c(isstor)%sed",
+    "via": null
+   },
+   {
+    "left": "res_nut(inut)%name",
+    "line": 110,
+    "loops": [
+     "isstor",
+     "inut"
+    ],
+    "op": "==",
+    "procedure": "wet_initial",
+    "right": "wet_dat_c(isstor)%nut",
+    "via": null
+   }
+  ],
+  "wet_irrp": [
+   {
+    "left": "hru(j)%irr_src",
+    "line": 49,
+    "loops": [
+     "i"
+    ],
+    "op": "==",
+    "procedure": "wet_irrp",
+    "right": "ob(iob)%obtyp_out(i)",
+    "via": null
+   }
+  ],
+  "wet_read_salt_cs": [
+   {
+    "left": "res_salt_data(isalt)%name",
+    "line": 48,
+    "loops": [
+     "iwet",
+     "isalt"
+    ],
+    "op": "==",
+    "procedure": "wet_read_salt_cs",
+    "right": "wet_dat_c_cs(iwet)%salt",
+    "via": null
+   },
+   {
+    "left": "res_cs_data(ics)%name",
+    "line": 56,
+    "loops": [
+     "iwet",
+     "ics"
+    ],
+    "op": "==",
+    "procedure": "wet_read_salt_cs",
+    "right": "wet_dat_c_cs(iwet)%cs",
+    "via": null
+   }
+  ],
+  "wetland_output": [
+   {
+    "left": "pco%int_day_cur",
+    "line": 18,
+    "loops": [],
+    "op": "==",
+    "procedure": "wetland_output",
+    "right": "pco%int_day",
+    "via": null
+   }
+  ]
+ },
+ "copies": {
+  "aqu_d": [
+   {
+    "line": 97,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "aqu_om_init",
+    "target": "aqu_d"
+   }
+  ],
+  "aqu_d%dep_wt": [
+   {
+    "line": 171,
+    "op": "=",
+    "procedure": "aqu_initial",
+    "source": "aqu_dat(iaq)%dep_wt",
+    "target": "aqu_d(iaq)%dep_wt"
+   }
+  ],
+  "aqu_dat": [
+   {
+    "line": 164,
+    "op": "=",
+    "procedure": "aqu_initial",
+    "source": "aqudb(iaqdb)",
+    "target": "aqu_dat(iaq)"
+   }
+  ],
+  "aqu_dat%dep_wt": [
+   {
+    "line": 936,
+    "op": "=",
+    "procedure": "cal_parm_select",
+    "source": "chg_par(aqu_dat(ielem)%dep_wt,chg_typ,chg_val,absmin,absmax)",
+    "target": "aqu_dat(ielem)%dep_wt"
+   }
+  ],
+  "aqu_om_init": [
+   {
+    "line": 48,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "aqu_om_init",
+    "target": "aqu_om_init"
+   }
+  ],
+  "atmo_n": [
+   {
+    "line": 76,
+    "op": "=",
+    "procedure": "cli_read_atmodep",
+    "source": "atmodep(iadep)%name",
+    "target": "atmo_n(iadep)"
+   },
+   {
+    "line": 94,
+    "op": "=",
+    "procedure": "cli_read_atmodep",
+    "source": "atmodep(iadep)%name",
+    "target": "atmo_n(iadep)"
+   },
+   {
+    "line": 112,
+    "op": "=",
+    "procedure": "cli_read_atmodep",
+    "source": "atmodep(iadep)%name",
+    "target": "atmo_n(iadep)"
+   }
+  ],
+  "cell_id_list": [
+   {
+    "line": 266,
+    "op": "=",
+    "procedure": "gwflow_read",
+    "source": "i",
+    "target": "cell_id_list(i)"
+   }
+  ],
+  "csld": [
+   {
+    "line": 183,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "tot_soil_depth",
+    "target": "csld"
+   },
+   {
+    "line": 190,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "tot_soil_depth",
+    "target": "csld"
+   }
+  ],
+  "current_delim": [
+   {
+    "line": 385,
+    "op": "=",
+    "procedure": "split_line",
+    "source": "delim",
+    "target": "current_delim"
+   }
+  ],
+  "d_tbl": [
+   {
+    "line": 183,
+    "op": "=>",
+    "procedure": "hru_control",
+    "source": "dtbl_lum(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 637,
+    "op": "=>",
+    "procedure": "hru_control",
+    "source": "dtbl_flo(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 189,
+    "op": "=>",
+    "procedure": "hru_lte_control",
+    "source": "dtbl_lum(istart)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 201,
+    "op": "=>",
+    "procedure": "hru_lte_control",
+    "source": "dtbl_lum(iend)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 44,
+    "op": "=>",
+    "procedure": "mallo_control",
+    "source": "dtbl_lum(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 128,
+    "op": "=>",
+    "procedure": "res_control",
+    "source": "dtbl_res(irel)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 236,
+    "op": "=>",
+    "procedure": "time_control",
+    "source": "dtbl_scen(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 93,
+    "op": "=>",
+    "procedure": "wallo_demand",
+    "source": "dtbl_flo(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 103,
+    "op": "=>",
+    "procedure": "wallo_demand",
+    "source": "dtbl_lum(id)",
+    "target": "d_tbl"
+   },
+   {
+    "line": 184,
+    "op": "=>",
+    "procedure": "wetland_control",
+    "source": "dtbl_res(irel)",
+    "target": "d_tbl"
+   }
+  ],
+  "d_tbl%act%option": [
+   {
+    "line": 396,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(1)",
+    "target": "d_tbl%act(iac)%option"
+   },
+   {
+    "line": 399,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(pcom(j)%rot_yr)",
+    "target": "d_tbl%act(iac)%option"
+   },
+   {
+    "line": 455,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(1)",
+    "target": "d_tbl%act(iac)%option"
+   },
+   {
+    "line": 458,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(pcom(j)%rot_yr)",
+    "target": "d_tbl%act(iac)%option"
+   },
+   {
+    "line": 571,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(1)",
+    "target": "d_tbl%act(iac)%option"
+   },
+   {
+    "line": 574,
+    "op": "=",
+    "procedure": "actions",
+    "source": "sched(isched)%auto_crop(pcom(j)%rot_yr)",
+    "target": "d_tbl%act(iac)%option"
+   }
+  ],
+  "d_tbl%day_prev": [
+   {
+    "line": 536,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%day",
+    "target": "d_tbl%day_prev"
+   }
+  ],
+  "defunit_num": [
+   {
+    "line": 56,
+    "op": "=",
+    "procedure": "define_unit_elements",
+    "source": "elem_cnt(1)",
+    "target": "defunit_num(1)"
+   },
+   {
+    "line": 64,
+    "op": "=",
+    "procedure": "define_unit_elements",
+    "source": "ie2",
+    "target": "defunit_num(ielem)"
+   },
+   {
+    "line": 69,
+    "op": "=",
+    "procedure": "define_unit_elements",
+    "source": "ie",
+    "target": "defunit_num(ielem)"
+   },
+   {
+    "line": 78,
+    "op": "=",
+    "procedure": "define_unit_elements",
+    "source": "ie1",
+    "target": "defunit_num(ielem)"
+   },
+   {
+    "line": 86,
+    "op": "=",
+    "procedure": "define_unit_elements",
+    "source": "ie",
+    "target": "defunit_num(ielem)"
+   }
+  ],
+  "et_surface": [
+   {
+    "line": 49,
+    "op": "=",
+    "procedure": "gwflow_gwet",
+    "source": "gw_state(cell_id)%elev",
+    "target": "et_surface"
+   },
+   {
+    "line": 92,
+    "op": "=",
+    "procedure": "gwflow_gwet",
+    "source": "gw_state(cell_id)%elev",
+    "target": "et_surface"
+   }
+  ],
+  "gw_canl_div_cell%canal_id": [
+   {
+    "line": 1330,
+    "op": "=",
+    "procedure": "gwflow_read",
+    "source": "canal_id",
+    "target": "gw_canl_div_cell(gw_canal_ncells_div)%canal_id"
+   }
+  ],
+  "gw_chan_id": [
+   {
+    "line": 67,
+    "op": "=",
+    "procedure": "gwflow_chan_read",
+    "source": "cell_id",
+    "target": "gw_chan_id(k)"
+   }
+  ],
+  "gw_fp_cellid": [
+   {
+    "line": 1171,
+    "op": "=",
+    "procedure": "gwflow_read",
+    "source": "cell_id_list(gw_fp_cellid(i))",
+    "target": "gw_fp_cellid(i)"
+   }
+  ],
+  "hmd%end_yr": [
+   {
+    "line": 128,
+    "op": "=",
+    "procedure": "cli_hmeas",
+    "source": "iyr",
+    "target": "hmd(i)%end_yr"
+   }
+  ],
+  "hmd%start_yr": [
+   {
+    "line": 89,
+    "op": "=",
+    "procedure": "cli_hmeas",
+    "source": "iyr",
+    "target": "hmd(i)%start_yr"
+   }
+  ],
+  "hru": [
+   {
+    "line": 20,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "hru_init",
+    "target": "hru"
+   }
+  ],
+  "hru%cal_group": [
+   {
+    "line": 29,
+    "op": "=",
+    "procedure": "hrudb_init",
+    "source": "lum(ilu)%cal_group",
+    "target": "hru(ihru)%cal_group"
+   }
+  ],
+  "hru%dbs": [
+   {
+    "line": 22,
+    "op": "=",
+    "procedure": "hrudb_init",
+    "source": "hru_db(ihru_db)%dbs",
+    "target": "hru(ihru)%dbs"
+   }
+  ],
+  "hru%dbs%land_use_mgt": [
+   {
+    "line": 973,
+    "op": "=",
+    "procedure": "actions",
+    "source": "ilu",
+    "target": "hru(j)%dbs%land_use_mgt"
+   }
+  ],
+  "hru%dbsc": [
+   {
+    "line": 23,
+    "op": "=",
+    "procedure": "hrudb_init",
+    "source": "hru_db(ihru_db)%dbsc",
+    "target": "hru(ihru)%dbsc"
+   }
+  ],
+  "hru%irr_src": [
+   {
+    "line": 529,
+    "op": "=",
+    "procedure": "mgt_sched",
+    "source": "mgt%op_plant",
+    "target": "hru(j)%irr_src"
+   }
+  ],
+  "hru%land_use_mgt": [
+   {
+    "line": 972,
+    "op": "=",
+    "procedure": "actions",
+    "source": "ilu",
+    "target": "hru(j)%land_use_mgt"
+   },
+   {
+    "line": 13,
+    "op": "=",
+    "procedure": "hru_lum_init_all",
+    "source": "hru(iihru)%dbs%land_use_mgt",
+    "target": "hru(iihru)%land_use_mgt"
+   }
+  ],
+  "hru%land_use_mgt_c": [
+   {
+    "line": 976,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%file_pointer",
+    "target": "hru(j)%land_use_mgt_c"
+   },
+   {
+    "line": 27,
+    "op": "=",
+    "procedure": "hrudb_init",
+    "source": "hru_db(ihru_db)%dbsc%land_use_mgt",
+    "target": "hru(ihru)%land_use_mgt_c"
+   }
+  ],
+  "hru%lum_group_c": [
+   {
+    "line": 23,
+    "op": "=",
+    "procedure": "hru_lum_init",
+    "source": "lum(ilu)%cal_group",
+    "target": "hru(iihru)%lum_group_c"
+   }
+  ],
+  "hru%lumv%usle_p": [
+   {
+    "line": 1033,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const",
+    "target": "hru(j)%lumv%usle_p"
+   },
+   {
+    "line": 89,
+    "op": "=",
+    "procedure": "cal_parm_select",
+    "source": "chg_par(hru(ielem)%lumv%usle_p,chg_typ,chg_val,absmin,absmax)",
+    "target": "hru(ielem)%lumv%usle_p"
+   },
+   {
+    "line": 375,
+    "op": "=",
+    "procedure": "plant_init",
+    "source": "cons_prac(icp)%pfac",
+    "target": "hru(iihru)%lumv%usle_p"
+   }
+  ],
+  "hru%man_trn_iauto": [
+   {
+    "line": 32,
+    "op": "=",
+    "procedure": "hru_dtbl_actions_init",
+    "source": "m_autos",
+    "target": "hru(ihru)%man_trn_iauto"
+   }
+  ],
+  "hru%sb%sb_db": [
+   {
+    "line": 63,
+    "op": "=",
+    "procedure": "sat_buff_read",
+    "source": "satbuff_db(ibuff)",
+    "target": "hru(hru_src)%sb%sb_db"
+   },
+   {
+    "line": 65,
+    "op": "=",
+    "procedure": "sat_buff_read",
+    "source": "satbuff_db(ibuff)",
+    "target": "hru(hru_rcv)%sb%sb_db"
+   }
+  ],
+  "hru%topo%slope": [
+   {
+    "line": 105,
+    "op": "=",
+    "procedure": "cal_parm_select",
+    "source": "chg_par(hru(ielem)%topo%slope,chg_typ,chg_val,absmin,absmax)",
+    "target": "hru(ielem)%topo%slope"
+   },
+   {
+    "line": 32,
+    "op": "=",
+    "procedure": "topohyd_init",
+    "source": "topo_db(itopohd_db)%slope",
+    "target": "hru(ihru)%topo%slope"
+   }
+  ],
+  "hru_init": [
+   {
+    "line": 69,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "hru",
+    "target": "hru_init"
+   }
+  ],
+  "hwb_d%qtile": [
+   {
+    "line": 757,
+    "op": "=",
+    "procedure": "hru_control",
+    "source": "qtile",
+    "target": "hwb_d(j)%qtile"
+   }
+  ],
+  "ichan": [
+   {
+    "line": 123,
+    "op": "=",
+    "procedure": "ch_rtday",
+    "source": "ob(iobhr)%flood_ch_lnk",
+    "target": "ichan"
+   },
+   {
+    "line": 28,
+    "op": "=",
+    "procedure": "channel_surf_link",
+    "source": "ch_sur(ics)%chnum",
+    "target": "ichan"
+   }
+  ],
+  "ihru": [
+   {
+    "line": 31,
+    "op": "=",
+    "procedure": "calsoft_sum_output",
+    "source": "region(ireg)%num(ihru_s)",
+    "target": "ihru"
+   },
+   {
+    "line": 95,
+    "op": "=",
+    "procedure": "calsoft_sum_output",
+    "source": "region(ireg)%num(ihru_s)",
+    "target": "ihru"
+   },
+   {
+    "line": 294,
+    "op": "=",
+    "procedure": "command",
+    "source": "ob(icmd)%num",
+    "target": "ihru"
+   },
+   {
+    "line": 18,
+    "op": "=",
+    "procedure": "dr_ru",
+    "source": "ru_elem(ielem)%obtypno",
+    "target": "ihru"
+   },
+   {
+    "line": 72,
+    "op": "=",
+    "procedure": "hydro_init",
+    "source": "j",
+    "target": "ihru"
+   },
+   {
+    "line": 43,
+    "op": "=",
+    "procedure": "lsreg_output",
+    "source": "region(ireg)%num(ielem)",
+    "target": "ihru"
+   },
+   {
+    "line": 80,
+    "op": "=",
+    "procedure": "lsreg_output",
+    "source": "region(ireg)%num(ielem)",
+    "target": "ihru"
+   },
+   {
+    "line": 92,
+    "op": "=",
+    "procedure": "lsreg_output",
+    "source": "region(ireg)%num(ielem)",
+    "target": "ihru"
+   },
+   {
+    "line": 58,
+    "op": "=",
+    "procedure": "mallo_control",
+    "source": "mallo(imallo)%trn(itrn)%ob_num",
+    "target": "ihru"
+   },
+   {
+    "line": 83,
+    "op": "=",
+    "procedure": "ru_control",
+    "source": "ru_elem(ise)%obtypno",
+    "target": "ihru"
+   },
+   {
+    "line": 43,
+    "op": "=",
+    "procedure": "sd_channel_surf_link",
+    "source": "sd_ch(ics)%fp%obtypno(ii)",
+    "target": "ihru"
+   },
+   {
+    "line": 54,
+    "op": "=",
+    "procedure": "sd_channel_surf_link",
+    "source": "ru_def(iru)%num(iihru)",
+    "target": "ihru"
+   },
+   {
+    "line": 30,
+    "op": "=",
+    "procedure": "time_conc_init",
+    "source": "ru_elem(ielem)%obtypno",
+    "target": "ihru"
+   }
+  ],
+  "ii": [
+   {
+    "line": 141,
+    "op": "=",
+    "procedure": "ru_read_elements",
+    "source": "ru_def(iru)%num(ielem1)",
+    "target": "ii"
+   }
+  ],
+  "ilsu": [
+   {
+    "line": 199,
+    "op": "=",
+    "procedure": "ch_temp",
+    "source": "ruid_array(ru_index)",
+    "target": "ilsu"
+   }
+  ],
+  "ilu": [
+   {
+    "line": 971,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act_typ(iac)",
+    "target": "ilu"
+   },
+   {
+    "line": 1016,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act_typ(iac)",
+    "target": "ilu"
+   }
+  ],
+  "ilum": [
+   {
+    "line": 44,
+    "op": "=",
+    "procedure": "lsreg_output",
+    "source": "hru(ihru)%land_use_mgt",
+    "target": "ilum"
+   }
+  ],
+  "imo_atmo": [
+   {
+    "line": 42,
+    "op": "=",
+    "procedure": "cli_read_atmodep",
+    "source": "atmodep_cont%mo_init",
+    "target": "imo_atmo"
+   }
+  ],
+  "irrig_track_b": [
+   {
+    "line": 70,
+    "op": "=",
+    "procedure": "res_control",
+    "source": "res_ob(jres)%irrig_track",
+    "target": "irrig_track_b"
+   }
+  ],
+  "isdch": [
+   {
+    "line": 390,
+    "op": "=",
+    "procedure": "command",
+    "source": "ob(icmd)%num",
+    "target": "isdch"
+   }
+  ],
+  "ivar_cur": [
+   {
+    "line": 230,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%days_plant",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 239,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%days_harv",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 248,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%days_irr",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 258,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%dtbl(idtbl)%days_act(iac)",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 264,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%day_start",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 314,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%day",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 320,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%mo",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 329,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%rot_yr",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 338,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%plcur(1)%curyr_mat",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 344,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%yrc",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 350,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%yrs",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 356,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "time%yrc_start",
+    "target": "ivar_cur"
+   },
+   {
+    "line": 365,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "pcom(ob_num)%plcur(1)%curyr_mat",
+    "target": "ivar_cur"
+   }
+  ],
+  "iyr1": [
+   {
+    "line": 180,
+    "op": "=",
+    "procedure": "recall_read",
+    "source": "iyr",
+    "target": "iyr1"
+   },
+   {
+    "line": 190,
+    "op": "=",
+    "procedure": "recall_read",
+    "source": "iyr",
+    "target": "iyr1"
+   }
+  ],
+  "iyr_prev": [
+   {
+    "line": 108,
+    "op": "=",
+    "procedure": "cli_hmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 119,
+    "op": "=",
+    "procedure": "cli_hmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 109,
+    "op": "=",
+    "procedure": "cli_petmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 120,
+    "op": "=",
+    "procedure": "cli_petmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 116,
+    "op": "=",
+    "procedure": "cli_pmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 136,
+    "op": "=",
+    "procedure": "cli_pmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 108,
+    "op": "=",
+    "procedure": "cli_smeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 119,
+    "op": "=",
+    "procedure": "cli_smeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 120,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 145,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 108,
+    "op": "=",
+    "procedure": "cli_wmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 119,
+    "op": "=",
+    "procedure": "cli_wmeas",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 289,
+    "op": "=",
+    "procedure": "recall_read",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 297,
+    "op": "=",
+    "procedure": "recall_read",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 170,
+    "op": "=",
+    "procedure": "recall_read_cs",
+    "source": "jday",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 190,
+    "op": "=",
+    "procedure": "recall_read_cs",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 195,
+    "op": "=",
+    "procedure": "recall_read_cs",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 211,
+    "op": "=",
+    "procedure": "recall_read_cs",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 171,
+    "op": "=",
+    "procedure": "recall_read_salt",
+    "source": "jday",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 191,
+    "op": "=",
+    "procedure": "recall_read_salt",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 196,
+    "op": "=",
+    "procedure": "recall_read_salt",
+    "source": "iyr",
+    "target": "iyr_prev"
+   },
+   {
+    "line": 212,
+    "op": "=",
+    "procedure": "recall_read_salt",
+    "source": "iyr",
+    "target": "iyr_prev"
+   }
+  ],
+  "iyrc_atmo": [
+   {
+    "line": 41,
+    "op": "=",
+    "procedure": "cli_read_atmodep",
+    "source": "atmodep_cont%yr_init",
+    "target": "iyrc_atmo"
+   }
+  ],
+  "j": [
+   {
+    "line": 99,
+    "op": "=",
+    "procedure": "hru_control",
+    "source": "ihru",
+    "target": "j"
+   },
+   {
+    "line": 91,
+    "op": "=",
+    "procedure": "wallo_control",
+    "source": "wallo(iwallo)%trn(itrn)%rcv%num",
+    "target": "j"
+   }
+  ],
+  "jday": [
+   {
+    "line": 111,
+    "op": "=",
+    "procedure": "ch_temp",
+    "source": "time%day",
+    "target": "jday"
+   }
+  ],
+  "jrch": [
+   {
+    "line": 60,
+    "op": "=",
+    "procedure": "ch_rtmusk",
+    "source": "isdch",
+    "target": "jrch"
+   },
+   {
+    "line": 90,
+    "op": "=",
+    "procedure": "ch_watqual4",
+    "source": "isdch",
+    "target": "jrch"
+   },
+   {
+    "line": 162,
+    "op": "=",
+    "procedure": "obj_output",
+    "source": "ob(iob)%sp_ob_no",
+    "target": "jrch"
+   }
+  ],
+  "k": [
+   {
+    "line": 73,
+    "op": "=",
+    "procedure": "pl_rootfr",
+    "source": "ly",
+    "target": "k"
+   }
+  ],
+  "layer1": [
+   {
+    "line": 21,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "soil(ihru)%ly(ly)",
+    "target": "layer1(ly)"
+   }
+  ],
+  "lyr_exit": [
+   {
+    "line": 176,
+    "op": "=",
+    "procedure": "mgt_biomix",
+    "source": "l",
+    "target": "lyr_exit"
+   },
+   {
+    "line": 187,
+    "op": "=",
+    "procedure": "mgt_biomix",
+    "source": "l",
+    "target": "lyr_exit"
+   },
+   {
+    "line": 154,
+    "op": "=",
+    "procedure": "mgt_newtillmix_cswat1",
+    "source": "l",
+    "target": "lyr_exit"
+   }
+  ],
+  "m_autos": [
+   {
+    "line": 27,
+    "op": "=",
+    "procedure": "hru_dtbl_actions_init",
+    "source": "sched(isched)%num_autos",
+    "target": "m_autos"
+   }
+  ],
+  "mgt": [
+   {
+    "line": 45,
+    "op": "=",
+    "procedure": "mgt_operatn",
+    "source": "sched(isched)%mgt_ops(hru(j)%cur_op)",
+    "target": "mgt"
+   },
+   {
+    "line": 631,
+    "op": "=",
+    "procedure": "mgt_sched",
+    "source": "sched(isched)%mgt_ops(hru(j)%cur_op)",
+    "target": "mgt"
+   }
+  ],
+  "ndays": [
+   {
+    "line": 124,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "ndays_leap",
+    "target": "ndays"
+   },
+   {
+    "line": 126,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "ndays_noleap",
+    "target": "ndays"
+   },
+   {
+    "line": 149,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "ndays_leap",
+    "target": "ndays"
+   },
+   {
+    "line": 151,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "ndays_noleap",
+    "target": "ndays"
+   },
+   {
+    "line": 115,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_leap",
+    "target": "ndays"
+   },
+   {
+    "line": 118,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_noleap",
+    "target": "ndays"
+   },
+   {
+    "line": 121,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_leap",
+    "target": "ndays"
+   },
+   {
+    "line": 125,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_noleap",
+    "target": "ndays"
+   }
+  ],
+  "num_plts_cur": [
+   {
+    "line": 40,
+    "op": "=",
+    "procedure": "plant_all_init",
+    "source": "basin_plants",
+    "target": "num_plts_cur"
+   }
+  ],
+  "ob%dfn_tot": [
+   {
+    "line": 137,
+    "op": "=",
+    "procedure": "ru_read_elements",
+    "source": "ru_def(iru)%num_tot",
+    "target": "ob(iob)%dfn_tot"
+   }
+  ],
+  "ob%flood_ch_lnk": [
+   {
+    "line": 35,
+    "op": "=",
+    "procedure": "channel_surf_link",
+    "source": "ichan",
+    "target": "ob(iob)%flood_ch_lnk"
+   },
+   {
+    "line": 45,
+    "op": "=",
+    "procedure": "channel_surf_link",
+    "source": "ics",
+    "target": "ob(iob)%flood_ch_lnk"
+   },
+   {
+    "line": 57,
+    "op": "=",
+    "procedure": "channel_surf_link",
+    "source": "ichan",
+    "target": "ob(iob)%flood_ch_lnk"
+   }
+  ],
+  "ob%obtypno_in": [
+   {
+    "line": 378,
+    "op": "=",
+    "procedure": "hyd_connect",
+    "source": "ob(i)%num",
+    "target": "ob(kk)%obtypno_in(jj)"
+   },
+   {
+    "line": 393,
+    "op": "=",
+    "procedure": "hyd_connect",
+    "source": "ob(i)%props",
+    "target": "ob(kk)%obtypno_in(jj)"
+   }
+  ],
+  "ob%sp_ob_no": [
+   {
+    "line": 72,
+    "op": "=",
+    "procedure": "hyd_read_connect",
+    "source": "isp_ob",
+    "target": "ob(i)%sp_ob_no"
+   }
+  ],
+  "pco": [
+   {
+    "line": 28,
+    "op": "=",
+    "procedure": "calsoft_control",
+    "source": "pco_init",
+    "target": "pco"
+   }
+  ],
+  "pco%int_day_cur": [
+   {
+    "line": 790,
+    "op": "=",
+    "procedure": "basin_print_codes_read",
+    "source": "pco%int_day",
+    "target": "pco%int_day_cur"
+   }
+  ],
+  "pcom": [
+   {
+    "line": 23,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "pcom_init",
+    "target": "pcom"
+   }
+  ],
+  "pcom%days_harv": [
+   {
+    "line": 656,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const",
+    "target": "pcom(j)%days_harv"
+   }
+  ],
+  "pcom%days_irr": [
+   {
+    "line": 677,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const",
+    "target": "pcom(j)%days_irr"
+   }
+  ],
+  "pcom%days_plant": [
+   {
+    "line": 670,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const",
+    "target": "pcom(j)%days_plant"
+   }
+  ],
+  "pcom%pl": [
+   {
+    "line": 129,
+    "op": "=",
+    "procedure": "plant_init",
+    "source": "pcomdb(icom)%pl(ipl)%cpnm",
+    "target": "pcom(j)%pl(ipl)"
+   }
+  ],
+  "pcom%plcur%phuacc": [
+   {
+    "line": 24,
+    "op": "=",
+    "procedure": "mgt_transplant",
+    "source": "transpl(itrans)%phuacc",
+    "target": "pcom(j)%plcur(ipl)%phuacc"
+   },
+   {
+    "line": 290,
+    "op": "=",
+    "procedure": "plant_init",
+    "source": "pcomdb(icom)%pl(ipl)%phuacc",
+    "target": "pcom(j)%plcur(ipl)%phuacc"
+   }
+  ],
+  "pcom%rot_yr": [
+   {
+    "line": 649,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const",
+    "target": "pcom(j)%rot_yr"
+   },
+   {
+    "line": 288,
+    "op": "=",
+    "procedure": "plant_init",
+    "source": "pcomdb(icom)%rot_yr_ini",
+    "target": "pcom(j)%rot_yr"
+   }
+  ],
+  "pcom_init": [
+   {
+    "line": 72,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "pcom",
+    "target": "pcom_init"
+   }
+  ],
+  "pcp%end_yr": [
+   {
+    "line": 146,
+    "op": "=",
+    "procedure": "cli_pmeas",
+    "source": "iyr",
+    "target": "pcp(i)%end_yr"
+   }
+  ],
+  "pcp%start_yr": [
+   {
+    "line": 98,
+    "op": "=",
+    "procedure": "cli_pmeas",
+    "source": "iyr",
+    "target": "pcp(i)%start_yr"
+   }
+  ],
+  "pcp%ts": [
+   {
+    "line": 243,
+    "op": "=",
+    "procedure": "cal_conditions",
+    "source": "chg_par(val_cur,chg_typ,chg_val,absmin,absmax)",
+    "target": "pcp(ipg)%ts(iday,iyr)"
+   }
+  ],
+  "petm%end_yr": [
+   {
+    "line": 129,
+    "op": "=",
+    "procedure": "cli_petmeas",
+    "source": "iyr",
+    "target": "petm(i)%end_yr"
+   }
+  ],
+  "petm%start_yr": [
+   {
+    "line": 90,
+    "op": "=",
+    "procedure": "cli_petmeas",
+    "source": "iyr",
+    "target": "petm(i)%start_yr"
+   }
+  ],
+  "phys1": [
+   {
+    "line": 22,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "soil(ihru)%phys(ly)",
+    "target": "phys1(ly)"
+   }
+  ],
+  "pl_mass": [
+   {
+    "line": 24,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "pl_mass_init",
+    "target": "pl_mass"
+   }
+  ],
+  "pl_mass%ab_gr_com": [
+   {
+    "line": 41,
+    "op": "=",
+    "procedure": "pl_burnop",
+    "source": "plt_mass_z",
+    "target": "pl_mass(j)%ab_gr_com"
+   },
+   {
+    "line": 79,
+    "op": "=",
+    "procedure": "pl_community",
+    "source": "orgz",
+    "target": "pl_mass(j)%ab_gr_com"
+   }
+  ],
+  "pl_mass_init": [
+   {
+    "line": 73,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "pl_mass",
+    "target": "pl_mass_init"
+   }
+  ],
+  "plts_bsn": [
+   {
+    "line": 992,
+    "op": "=",
+    "procedure": "actions",
+    "source": "pcom(j)%pl(ipl)",
+    "target": "plts_bsn(1)"
+   },
+   {
+    "line": 999,
+    "op": "=",
+    "procedure": "actions",
+    "source": "pcom(j)%pl(ipl)",
+    "target": "plts_bsn(iplt+1)"
+   },
+   {
+    "line": 37,
+    "op": "=",
+    "procedure": "plant_all_init",
+    "source": "pcom(iihru)%pl(ipl)",
+    "target": "plts_bsn(1)"
+   },
+   {
+    "line": 44,
+    "op": "=",
+    "procedure": "plant_all_init",
+    "source": "pcom(iihru)%pl(ipl)",
+    "target": "plts_bsn(iplt+1)"
+   }
+  ],
+  "pos1": [
+   {
+    "line": 433,
+    "op": "=",
+    "procedure": "split_line",
+    "source": "pos2",
+    "target": "pos1"
+   },
+   {
+    "line": 480,
+    "op": "=",
+    "procedure": "split_line",
+    "source": "pos2",
+    "target": "pos1"
+   }
+  ],
+  "pos2": [
+   {
+    "line": 419,
+    "op": "=",
+    "procedure": "split_line",
+    "source": "pos1",
+    "target": "pos2"
+   },
+   {
+    "line": 466,
+    "op": "=",
+    "procedure": "split_line",
+    "source": "pos1",
+    "target": "pos2"
+   }
+  ],
+  "prev_cell": [
+   {
+    "line": 946,
+    "op": "=",
+    "procedure": "gwflow_read",
+    "source": "pumpex_cell",
+    "target": "prev_cell"
+   },
+   {
+    "line": 965,
+    "op": "=",
+    "procedure": "gwflow_read",
+    "source": "pumpex_cell",
+    "target": "prev_cell"
+   }
+  ],
+  "qtile": [
+   {
+    "line": 211,
+    "op": "=",
+    "procedure": "swr_drains",
+    "source": "dflux",
+    "target": "qtile"
+   },
+   {
+    "line": 24,
+    "op": "=",
+    "procedure": "swr_origtile",
+    "source": "sw_excess",
+    "target": "qtile"
+   }
+  ],
+  "ran_num": [
+   {
+    "line": 481,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 492,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 495,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 502,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 506,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 510,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 548,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   },
+   {
+    "line": 579,
+    "op": "=",
+    "procedure": "conditions",
+    "source": "Aunif(rndseed_cond)",
+    "target": "ran_num"
+   }
+  ],
+  "recall_db%iorg_min": [
+   {
+    "line": 133,
+    "op": "=",
+    "procedure": "recall_read",
+    "source": "iprev",
+    "target": "recall_db(irec)%iorg_min"
+   }
+  ],
+  "region%lum_num": [
+   {
+    "line": 70,
+    "op": "=",
+    "procedure": "lsreg_output",
+    "source": "ilum",
+    "target": "region(ireg)%lum_num(nlum)"
+   }
+  ],
+  "region%num": [
+   {
+    "line": 107,
+    "op": "=",
+    "procedure": "lcu_read_softcal",
+    "source": "ihru",
+    "target": "region(ireg)%num(ihru)"
+   },
+   {
+    "line": 189,
+    "op": "=",
+    "procedure": "reg_read_elements",
+    "source": "reg_elem(ielem1)%obtypno",
+    "target": "region(ireg)%num(ihru)"
+   },
+   {
+    "line": 195,
+    "op": "=",
+    "procedure": "reg_read_elements",
+    "source": "lsu_elem(iihru)%obtypno",
+    "target": "region(ireg)%num(ihru)"
+   }
+  ],
+  "res": [
+   {
+    "line": 92,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "res_om_init",
+    "target": "res"
+   },
+   {
+    "line": 43,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "res_om_init",
+    "target": "res"
+   },
+   {
+    "line": 99,
+    "op": "=",
+    "procedure": "res_initial",
+    "source": "om_init_water(init)",
+    "target": "res(ires)"
+   }
+  ],
+  "res%flo": [
+   {
+    "line": 860,
+    "op": "=",
+    "procedure": "cal_parm_select",
+    "source": "chg_par(res(ielem)%flo,chg_typ,chg_val,absmin,absmax)",
+    "target": "res(ielem)%flo"
+   }
+  ],
+  "res_hyd": [
+   {
+    "line": 115,
+    "op": "=",
+    "procedure": "res_read",
+    "source": "res_hyddb(ihyd)",
+    "target": "res_hyd(ires)"
+   }
+  ],
+  "res_om_init": [
+   {
+    "line": 103,
+    "op": "=",
+    "procedure": "res_initial",
+    "source": "res(ires)",
+    "target": "res_om_init(ires)"
+   }
+  ],
+  "ru_def%num": [
+   {
+    "line": 132,
+    "op": "=",
+    "procedure": "ru_read_elements",
+    "source": "defunit_num",
+    "target": "ru_def(iru)%num"
+   }
+  ],
+  "ru_def%num_tot": [
+   {
+    "line": 133,
+    "op": "=",
+    "procedure": "ru_read_elements",
+    "source": "ielem1",
+    "target": "ru_def(iru)%num_tot"
+   }
+  ],
+  "ruid_array": [
+   {
+    "line": 158,
+    "op": "=",
+    "procedure": "ch_temp",
+    "source": "ob(iob)%obtypno_in(in)",
+    "target": "ruid_array(ru_index)"
+   }
+  ],
+  "sd_ch": [
+   {
+    "line": 36,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "sdch_init",
+    "target": "sd_ch"
+   }
+  ],
+  "sd_ch%order": [
+   {
+    "line": 1201,
+    "op": "=",
+    "procedure": "actions",
+    "source": "d_tbl%act(iac)%const2",
+    "target": "sd_ch(ich)%order"
+   },
+   {
+    "line": 75,
+    "op": "=",
+    "procedure": "sd_hydsed_init",
+    "source": "sd_chd(idb)%order",
+    "target": "sd_ch(i)%order"
+   }
+  ],
+  "sdch_init": [
+   {
+    "line": 85,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "sd_ch",
+    "target": "sdch_init"
+   }
+  ],
+  "slr%end_yr": [
+   {
+    "line": 128,
+    "op": "=",
+    "procedure": "cli_smeas",
+    "source": "iyr",
+    "target": "slr(i)%end_yr"
+   }
+  ],
+  "slr%start_yr": [
+   {
+    "line": 90,
+    "op": "=",
+    "procedure": "cli_smeas",
+    "source": "iyr",
+    "target": "slr(i)%start_yr"
+   }
+  ],
+  "soil": [
+   {
+    "line": 21,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "soil_init",
+    "target": "soil"
+   },
+   {
+    "line": 305,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "sol(isol)%s",
+    "target": "soil(ihru)"
+   }
+  ],
+  "soil%ly": [
+   {
+    "line": 35,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "layer1(lyn)",
+    "target": "soil(ihru)%ly(lyn)"
+   },
+   {
+    "line": 43,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "layer1(lyn)",
+    "target": "soil(ihru)%ly(lyn+1)"
+   },
+   {
+    "line": 313,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "sol(isol)%ly(ly)",
+    "target": "soil(ihru)%ly(ly)"
+   }
+  ],
+  "soil%ly%usle_k": [
+   {
+    "line": 330,
+    "op": "=",
+    "procedure": "cal_parm_select",
+    "source": "chg_par(soil(ielem)%ly(ly)%usle_k,chg_typ,chg_val,absmin,absmax)",
+    "target": "soil(ielem)%ly(ly)%usle_k"
+   }
+  ],
+  "soil%phys": [
+   {
+    "line": 36,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "phys1(lyn)",
+    "target": "soil(ihru)%phys(lyn)"
+   },
+   {
+    "line": 44,
+    "op": "=",
+    "procedure": "layersplit",
+    "source": "phys1(lyn)",
+    "target": "soil(ihru)%phys(lyn+1)"
+   },
+   {
+    "line": 312,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "sol(isol)%phys(ly)",
+    "target": "soil(ihru)%phys(ly)"
+   }
+  ],
+  "soil%phys%tmp": [
+   {
+    "line": 100,
+    "op": "=",
+    "procedure": "hydro_init",
+    "source": "tsoil",
+    "target": "soil(j)%phys(k)%tmp"
+   }
+  ],
+  "soil1": [
+   {
+    "line": 22,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "soil1_init",
+    "target": "soil1"
+   }
+  ],
+  "soil1%cbn": [
+   {
+    "line": 45,
+    "op": "=",
+    "procedure": "soil_nutcarb_init",
+    "source": "soil(ihru)%phys(ly)%cbn",
+    "target": "soil1(ihru)%cbn(ly)"
+   }
+  ],
+  "soil1_init": [
+   {
+    "line": 71,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "soil1",
+    "target": "soil1_init"
+   }
+  ],
+  "soil_init": [
+   {
+    "line": 70,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "soil",
+    "target": "soil_init"
+   }
+  ],
+  "sol%s%snam": [
+   {
+    "line": 62,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "soildb(isol)%s%snam",
+    "target": "sol(isol)%s%snam"
+   }
+  ],
+  "time": [
+   {
+    "line": 451,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "time_init",
+    "target": "time"
+   }
+  ],
+  "time%day": [
+   {
+    "line": 97,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "time%day_start",
+    "target": "time%day"
+   },
+   {
+    "line": 159,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "julian_day",
+    "target": "time%day"
+   }
+  ],
+  "time%day_end_yr": [
+   {
+    "line": 91,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_leap(13)",
+    "target": "time%day_end_yr"
+   },
+   {
+    "line": 93,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays_noleap(13)",
+    "target": "time%day_end_yr"
+   },
+   {
+    "line": 134,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "ndays(13)",
+    "target": "time%day_end_yr"
+   },
+   {
+    "line": 136,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "time%day_end",
+    "target": "time%day_end_yr"
+   }
+  ],
+  "time%mo": [
+   {
+    "line": 99,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "mo",
+    "target": "time%mo"
+   },
+   {
+    "line": 162,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "mo",
+    "target": "time%mo"
+   },
+   {
+    "line": 34,
+    "op": "=",
+    "procedure": "time_read",
+    "source": "mo",
+    "target": "time%mo"
+   }
+  ],
+  "time%mo_start": [
+   {
+    "line": 36,
+    "op": "=",
+    "procedure": "time_read",
+    "source": "mo",
+    "target": "time%mo_start"
+   }
+  ],
+  "time%yrc": [
+   {
+    "line": 87,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "time%yrc_start",
+    "target": "time%yrc"
+   },
+   {
+    "line": 43,
+    "op": "=",
+    "procedure": "time_read",
+    "source": "time%yrc_start",
+    "target": "time%yrc"
+   }
+  ],
+  "time%yrs": [
+   {
+    "line": 109,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "curyr",
+    "target": "time%yrs"
+   }
+  ],
+  "tmp%end_yr": [
+   {
+    "line": 160,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "iyr",
+    "target": "tmp(i)%end_yr"
+   }
+  ],
+  "tmp%start_yr": [
+   {
+    "line": 101,
+    "op": "=",
+    "procedure": "cli_tmeas",
+    "source": "iyr",
+    "target": "tmp(i)%start_yr"
+   }
+  ],
+  "tot_soil_depth": [
+   {
+    "line": 135,
+    "op": "=",
+    "procedure": "soils_init",
+    "source": "soildb(isol)%ly(soildb(isol)%s%nly)%z",
+    "target": "tot_soil_depth"
+   }
+  ],
+  "vol": [
+   {
+    "line": 38,
+    "op": "=",
+    "procedure": "res_weir_release",
+    "source": "wbody%flo",
+    "target": "vol"
+   },
+   {
+    "line": 75,
+    "op": "=",
+    "procedure": "res_weir_release",
+    "source": "evol_m3",
+    "target": "vol"
+   }
+  ],
+  "w": [
+   {
+    "line": 117,
+    "op": "=",
+    "procedure": "ch_temp",
+    "source": "wst(iwst)%weat",
+    "target": "w"
+   },
+   {
+    "line": 124,
+    "op": "=",
+    "procedure": "hru_control",
+    "source": "wst(iwst)%weat",
+    "target": "w"
+   },
+   {
+    "line": 49,
+    "op": "=",
+    "procedure": "res_control",
+    "source": "wst(iwst)%weat",
+    "target": "w"
+   },
+   {
+    "line": 101,
+    "op": "=",
+    "procedure": "sd_channel_control3",
+    "source": "wst(iwst)%weat",
+    "target": "w"
+   }
+  ],
+  "wallo%tot": [
+   {
+    "line": 222,
+    "op": "=",
+    "procedure": "time_control",
+    "source": "walloz",
+    "target": "wallo(:)%tot"
+   }
+  ],
+  "wbody": [
+   {
+    "line": 54,
+    "op": "=>",
+    "procedure": "res_control",
+    "source": "res(jres)",
+    "target": "wbody"
+   },
+   {
+    "line": 34,
+    "op": "=",
+    "procedure": "res_nutrient",
+    "source": "resz",
+    "target": "wbody"
+   },
+   {
+    "line": 19,
+    "op": "=",
+    "procedure": "res_sediment",
+    "source": "hz",
+    "target": "wbody"
+   },
+   {
+    "line": 65,
+    "op": "=>",
+    "procedure": "wetland_control",
+    "source": "wet(j)",
+    "target": "wbody"
+   },
+   {
+    "line": 185,
+    "op": "=>",
+    "procedure": "wetland_control",
+    "source": "wet(j)",
+    "target": "wbody"
+   }
+  ],
+  "wbody%flo": [
+   {
+    "line": 128,
+    "op": "=",
+    "procedure": "res_weir_release",
+    "source": "vol",
+    "target": "wbody%flo"
+   }
+  ],
+  "wet": [
+   {
+    "line": 871,
+    "op": "=",
+    "procedure": "actions",
+    "source": "hz",
+    "target": "wet(j)"
+   },
+   {
+    "line": 74,
+    "op": "=",
+    "procedure": "cal_allo_init",
+    "source": "wet_om_init",
+    "target": "wet"
+   },
+   {
+    "line": 25,
+    "op": "=",
+    "procedure": "re_initialize",
+    "source": "wet_om_init",
+    "target": "wet"
+   },
+   {
+    "line": 154,
+    "op": "=",
+    "procedure": "wet_initial",
+    "source": "om_init_water(init_om)",
+    "target": "wet(iihru)"
+   }
+  ],
+  "wet%flo": [
+   {
+    "line": 181,
+    "op": "=",
+    "procedure": "wetland_control",
+    "source": "wbody%flo",
+    "target": "wet(j)%flo"
+   }
+  ],
+  "wet_ob%depth": [
+   {
+    "line": 175,
+    "op": "=",
+    "procedure": "wetland_control",
+    "source": "dep",
+    "target": "wet_ob(j)%depth"
+   }
+  ],
+  "wet_ob%weir_hgt": [
+   {
+    "line": 139,
+    "op": "=",
+    "procedure": "wet_initial",
+    "source": "res_weir(iweir)%h",
+    "target": "wet_ob(iihru)%weir_hgt"
+   }
+  ],
+  "wet_om_init": [
+   {
+    "line": 19,
+    "op": "=",
+    "procedure": "wet_all_initial",
+    "source": "wet(iihru)",
+    "target": "wet_om_init(iihru)"
+   },
+   {
+    "line": 200,
+    "op": "=",
+    "procedure": "wet_initial",
+    "source": "wet(iihru)",
+    "target": "wet_om_init(iihru)"
+   }
+  ],
+  "wnd%end_yr": [
+   {
+    "line": 128,
+    "op": "=",
+    "procedure": "cli_wmeas",
+    "source": "iyr",
+    "target": "wnd(i)%end_yr"
+   }
+  ],
+  "wnd%start_yr": [
+   {
+    "line": 89,
+    "op": "=",
+    "procedure": "cli_wmeas",
+    "source": "iyr",
+    "target": "wnd(i)%start_yr"
+   }
+  ],
+  "wst%weat": [
+   {
+    "line": 51,
+    "op": "=",
+    "procedure": "res_control",
+    "source": "w",
+    "target": "wst(iwst)%weat"
+   },
+   {
+    "line": 103,
+    "op": "=",
+    "procedure": "sd_channel_control3",
+    "source": "w",
+    "target": "wst(iwst)%weat"
+   }
+  ],
+  "wst%weat%precip": [
+   {
+    "line": 58,
+    "op": "=",
+    "procedure": "cli_precip_control",
+    "source": "wst(iwst)%weat%precip_next",
+    "target": "wst(iwst)%weat%precip"
+   }
+  ],
+  "wst%weat%precip_next": [
+   {
+    "line": 68,
+    "op": "=",
+    "procedure": "cli_pgen",
+    "source": "pcpgen",
+    "target": "wst(iwst)%weat%precip_next"
+   },
+   {
+    "line": 107,
+    "op": "=",
+    "procedure": "cli_precip_control",
+    "source": "pcp(ipg)%ts(cur_day,yrs_to_start)",
+    "target": "wst(iwst)%weat%precip_next"
+   }
+  ],
+  "wst_n": [
+   {
+    "line": 70,
+    "op": "=",
+    "procedure": "cli_staread",
+    "source": "wst(i)%name",
+    "target": "wst_n(i)"
+   }
+  ]
+ },
+ "index_format": "5",
  "io": [
   {
    "fields": [
@@ -78886,6 +87507,22 @@
    "unit": "107"
   },
   {
+   "fields": [
+    "sched(isched)%mgt_ops(iop)%op",
+    "sched(isched)%mgt_ops(iop)%mon",
+    "sched(isched)%mgt_ops(iop)%day",
+    "sched(isched)%mgt_ops(iop)%husc",
+    "sched(isched)%mgt_ops(iop)%op_char",
+    "sched(isched)%mgt_ops(iop)%op_plant",
+    "sched(isched)%mgt_ops(iop)%op3"
+   ],
+   "file": "management.sch",
+   "line": 27,
+   "op": "read",
+   "procedure": "read_mgtops",
+   "unit": "107"
+  },
+  {
    "fields": [],
    "file": "puddle.ops",
    "line": 23,
@@ -82532,22 +91169,6 @@
    "op": "write",
    "procedure": "proc_hru",
    "unit": "4000"
-  },
-  {
-   "fields": [
-    "sched(isched)%mgt_ops(iop)%op",
-    "sched(isched)%mgt_ops(iop)%mon",
-    "sched(isched)%mgt_ops(iop)%day",
-    "sched(isched)%mgt_ops(iop)%husc",
-    "sched(isched)%mgt_ops(iop)%op_char",
-    "sched(isched)%mgt_ops(iop)%op_plant",
-    "sched(isched)%mgt_ops(iop)%op3"
-   ],
-   "file": "unit_107",
-   "line": 27,
-   "op": "read",
-   "procedure": "read_mgtops",
-   "unit": "107"
   },
   {
    "fields": [],
@@ -233113,8 +241734,8 @@
  ],
  "provenance": {
   "compile_status": "not_checked",
-  "format_version": "4",
-  "generated_at": "2026-09-29T15:55:16Z",
+  "format_version": "5",
+  "generated_at": "2026-09-29T16:53:26Z",
   "parser_commit": "110c2a24fd584b181e15cec8e3eeb9233c0945ad",
   "source_commit": "de210d64db4f1d75e110bd6af33ea9c333d27b8a",
   "source_describe": "62.0.0",
@@ -233130,7 +241751,7 @@
    "procedure": "gwflow_pond"
   }
  ],
- "snapshot_format": "4",
+ "snapshot_format": "5",
  "types": [
   {
    "fields": [
