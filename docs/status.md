@@ -66,6 +66,12 @@ now kept on the right file. Method, numbers and caveats (header names differ
 from Fortran names; foreign keys and branch conditions are not in the facts):
 `layouts_experiment.md`.
 
+The dataselector pin moved to its published v0.2.0 (`0c73c64`) the same day:
+it compiles, and its standalone MCP server lists the same six tools and
+answers against Ames through `tamandua.mcp.client`. Its "Set Up This
+Workspace" installs Tamandua but not the parser, which building layouts from a
+live checkout needs.
+
 ## The parser pin moved again (2026-09-29)
 
 `7a6e21ec` → `110c2a2`, for the corpus's `01adce1`. A comment aligned under a

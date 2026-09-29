@@ -13,7 +13,7 @@ def test_verified_pins_are_resolved():
     assert corpus.resolved
     assert corpus.version() == "110c2a24fd584b181e15cec8e3eeb9233c0945ad"
     assert dataselector.resolved
-    assert dataselector.version() == "fd7af35"
+    assert dataselector.version() == "0c73c64"
 
 
 def test_all_dependency_pins_resolved():

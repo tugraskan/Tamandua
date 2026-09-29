@@ -66,7 +66,16 @@ commit = "110c2a24fd584b181e15cec8e3eeb9233c0945ad"
 # TxtInOut indexing + MCP server (six tools, docs-only mode). Complementary,
 # not overlapping: it covers input-file columns and real dataset rows.
 repo   = "https://github.com/tugraskan/swatplus-dataselector"
-commit = "fd7af35"                   # PR #136; verified standalone MCP server
+commit = "0c73c64"                   # tag v0.2.0, the published release
+# Bumped 2026-09-29 from fd7af35 (PR #136). v0.2.0 adds the one-click
+# "Set Up This Workspace" (pip-installs Tamandua and writes its MCP entry) and
+# native VS Code MCP registration (#139). Verified at this commit: `npm run
+# compile` passes (types, lint, webview check); dist/mcp-server.js, driven by
+# tamandua.mcp.client, lists the same six tools in docs-only mode and answers
+# describe_entity against Ames. Its setup does not install the parser, so a
+# workspace it configures serves the bundled snapshot or a live checkout only
+# where swatplus-reference-corpus is already present.
+#
 # Do NOT pin between 345b24f and fd7af35: an intermediate merge left the tree
 # broken (Plan 03/07 reverted), repaired in fd7af35.
 avoid_commits = ["345b24f"]
