@@ -9,8 +9,9 @@ extracted once from swatplus-editor?
 data row is read exactly as the layout says, and the layouts follow the source:
 between 62.0.0 and `97ca231` ten files' layouts changed, which a schema frozen
 at one editor commit cannot notice. The layout is what SWAT+ *reads*, not
-everything a file holds, and it does not carry header names or foreign keys --
-see Caveats.
+everything a file holds, and it does not carry header names -- see Caveats.
+Links to other files' rows, where the source shows them, are in
+`links_experiment.md`.
 
 Script: `scripts/measure_layouts.py`. Code: `tamandua/index/layouts.py`,
 `swatplus-layouts`.
@@ -68,16 +69,28 @@ Both change which file an I/O statement is filed under, so both are in
 
 | | 62.0.0 (`de210d6`) | current (`97ca231`) |
 |---|---|---|
-| Files with a layout | 252 | 255 |
-| Main record complete | 252 of 252 | 255 of 255 |
+| Files with a layout | 257 | 260 |
+| Main record complete | 257 of 257 | 260 of 260 |
 | Ames files | 109 | 110 |
-| ... with a layout | **44** | 45 |
+| ... with a layout | **46** | 47 |
 | ... in the dataselector's static schema | 37 | 37 |
-| Reads every value of the first row | 25 | 26 |
+| Reads every value of the first row | 27 | 28 |
 | Reads a leading run; trailing values unread | 9 | 9 |
-| Repeating group (count set at run time) | 7 | 7 |
+| Repeating group (count set at run time) | 5 | 5 |
 | Reads more values than the row holds | 2 | 2 |
-| No data row in the file | 1 | 1 |
+| No data row in the file | 3 | 3 |
+
+Revised the same day, with the links work (`links_experiment.md`), for two
+layout defects. A name read once per row (`read pest_soil_ini(ipesti)%name`
+inside `do ipesti`) had been taken for preamble: seven files' records gain it
+and their `data_starts_after` drops by one, and six files that read nothing
+else -- `pcp.cli`, `tmp.cli`, `slr.cli`, `hmd.cli`, `wnd.cli`, `pet.cli` --
+have a layout for the first time; on Ames that is `pcp.cli` and `tmp.cli`
+(44 → 46), and `cs_hru.ini` and `salt_hru.ini` move from a repeating group to
+a name line with no data row. And `management.sch`'s operation lines, read by
+`read_mgtops` on a unit its caller opened, are now under `management.sch` as
+a child record instead of a `unit_107` layout of their own (252 + 6 - 1 =
+257). Every other layout is unchanged.
 
 The 9 with unread trailing values are `cntable.lum` (5 of 8), `cons_practice.lum`
 (3/4), `fertilizer.frt` (6/8), `filterstrip.str` (5/6), `grassedww.str` (8/9),
@@ -112,16 +125,20 @@ every layout from a loaded snapshot takes about half a second.
   `fertnm` vs `name`). A consumer maps by position -- safe here because this is
   the read order, unlike the editor schema's column order -- or keeps its own
   names.
-- **Foreign keys are not in the source.** A column naming a row elsewhere is
-  matched by a runtime string comparison; nothing declares it.
+- **Foreign keys are not declared.** A column naming a row elsewhere is
+  matched by a runtime string comparison. The comparisons are now facts, and
+  where one shows the search the column carries a `reference`; see
+  `links_experiment.md` for what that finds and what it cannot.
 - **Alternatives do not say when.** The parser records each I/O statement's
   enclosing condition (`IOOperation.condition`), but `IOUse` does not carry it,
   so `alternative` says "read two ways" and not "`bsn_cc%nam1 == 0`". Storing
   it is a facts-format change and was left for when a consumer needs it.
-- **Records read by a called routine are missed.** `management.sch`'s operation
-  lines are read in `read_mgtops` on a unit `mgt_read_mgtops` opened; with no
-  `open` of its own the statement has no file, so the layout stops at the
-  schedule and auto lines.
+- **Records read by a called routine need every call to agree.**
+  `management.sch`'s operation lines are read in `read_mgtops` on a unit
+  `mgt_read_mgtops` opened; the build now takes the file the unit is open on
+  at every call site, and keeps the unit when any call site does not have it
+  open. That is the only such read in 62.0.0; the other `unit_...` layouts are
+  internal reads of a string (`read(split_fields(2),*)`), not files.
 - **A conditional backspace looks like a peek.** `mgt_read_mgtops` re-reads an
   auto line only for `pl_hv_*` names; the layout keeps the re-read form.
 - **Filenames named in another file stay expressions.** Weather data files are

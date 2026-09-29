@@ -76,13 +76,21 @@ declaration and every record the statement that reads it:
 ```bash
 swatplus-layouts --file hru-data.hru                 # one file, bundled facts
 swatplus-layouts --facts swatplus-facts.json --out swatplus-layouts.json
+swatplus-layouts --links                             # every link between files
 ```
 
 It needs neither the parser nor a checkout. To follow your own tree, build its
 facts with `swatplus-build` first and pass them with `--facts`. It reports
 what the model reads, not everything a file may hold, and carries no header
-names or foreign keys; see
-[`docs/layouts_experiment.md`](docs/layouts_experiment.md).
+names; see [`docs/layouts_experiment.md`](docs/layouts_experiment.md).
+
+**Links between input files.** A column whose value names a row of another
+file carries `references`: `hru-data.hru`'s `land_use_mgt` → `landuse.lum`
+`name`, evidence `hru_read.f90:71`. SWAT+ declares no foreign keys; it
+searches at run time, and each link is one of those searches in the source --
+directly, through a routine like `search`, or through a copy -- never a guess
+from names that look alike. Against the editor schema's foreign keys, and what
+neither covers: [`docs/links_experiment.md`](docs/links_experiment.md).
 
 ## Pairs with dataselector
 
@@ -102,7 +110,7 @@ tamandua/
 │   ├── render.py      #   SOURCE_INDEX.md
 │   ├── install.py     #   assistant instruction-file pointers
 │   ├── scope.py       #   loop nesting, for conditional breakpoints
-│   └── layouts.py     #   input-file column layouts, derived from the facts
+│   └── layouts.py     #   input-file column layouts and the links between files
 ├── mcp/server.py      # 15 read-only tools over the same objects
 ├── mcp/client.py      # generic MCP stdio client (talk to another server)
 ├── output/reader.py   # query a run's output files

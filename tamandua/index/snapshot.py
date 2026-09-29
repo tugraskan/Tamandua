@@ -30,6 +30,8 @@ from typing import Any
 
 from tamandua.index.build import (
     INDEX_FORMAT_VERSION,
+    Comparison,
+    Copy,
     DerivedType,
     Field,
     IOUse,
@@ -52,15 +54,17 @@ from tamandua.index.install import RHS_NAME
 #: Bumped when the *snapshot file's* own layout changes. Distinct from
 #: ``INDEX_FORMAT_VERSION``, which describes the facts inside it: a snapshot can
 #: gain a section without the extracted fields changing shape, and vice versa.
-SNAPSHOT_FORMAT = "4"
+SNAPSHOT_FORMAT = "5"
 #: Format 3 adds ``module_variables``. Format 4 adds ``declaration`` to
-#: derived-type fields. Older files stay readable, and each added section or
-#: key loads empty/``None`` from them -- so the guard against quietly serving
-#: a snapshot that predates one is the assertion that the *bundled* pair is
-#: current, not this allow-list. A format-1 bundle once loaded silently while
+#: derived-type fields. Format 5 adds ``comparisons`` and ``copies``, the
+#: equality tests the input-file links are derived from and the assignments
+#: that carry a column's value to them. Older files stay readable, and each
+#: added section or key loads empty/``None`` from them -- so the guard against
+#: quietly serving a snapshot that predates one is the assertion that the
+#: *bundled* pair is current, not this allow-list. A format-1 bundle once loaded silently while
 #: answering every `breakpoint` query with zero loops; see
 #: ``tests/test_snapshot.py``.
-READABLE_SNAPSHOT_FORMATS = {"1", "2", "3", SNAPSHOT_FORMAT}
+READABLE_SNAPSHOT_FORMATS = {"1", "2", "3", "4", SNAPSHOT_FORMAT}
 RHS_FORMAT = "1"
 
 
@@ -142,6 +146,20 @@ def save_snapshot(index: SourceIndex, path: Path) -> Path:
             for name, items in index.loops.items()
         },
         "unresolved_loop_files": sorted(index.unresolved_loop_files),
+        "comparisons": {
+            name: [{"procedure": c.procedure, "line": c.line, "left": c.left,
+                    "op": c.op, "right": c.right,
+                    "loops": None if c.loops is None else list(c.loops),
+                    "via": c.via}
+                   for c in items]
+            for name, items in index.comparisons.items()
+        },
+        "copies": {
+            path: [{"procedure": c.procedure, "line": c.line, "target": c.target,
+                    "op": c.op, "source": c.source}
+                   for c in items]
+            for path, items in index.copies.items()
+        },
         "types": [
             {
                 "name": t.name, "module": t.module, "location": t.location,
@@ -322,6 +340,17 @@ def load_snapshot(path: Path) -> SourceIndex:
         for name, items in payload["loops"].items()
     })
     index.unresolved_loop_files = set(payload.get("unresolved_loop_files", ()))
+    # Absent before format 5, so read with a default rather than by key.
+    index.comparisons = defaultdict(list, {
+        name: [Comparison(**{**item, "loops": None if item["loops"] is None
+                             else tuple(item["loops"])})
+               for item in items]
+        for name, items in payload.get("comparisons", {}).items()
+    })
+    index.copies = defaultdict(list, {
+        path: [Copy(**item) for item in items]
+        for path, items in payload.get("copies", {}).items()
+    })
     index.call_paths = defaultdict(list, {
         k: [list(p) for p in v] for k, v in payload.get("call_paths", {}).items()
     })

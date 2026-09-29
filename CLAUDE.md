@@ -21,7 +21,10 @@ Two deliveries over one implementation:
 a run's numbers actually did.
 
 `tamandua/index/layouts.py` (`swatplus-layouts`) derives each input file's
-column layout -- what SWAT+ reads, in order -- from the same facts.
+column layout -- what SWAT+ reads, in order -- from the same facts, and the
+links between files: which column names a row of another, from the `==`
+searches SWAT+ makes (`Comparison`, with `Copy` for values copied first). A
+link needs a search in the source; names that look alike are never enough.
 
 Building needs the parser in swatplus-reference-corpus; **serving does not**.
 `swatplus-build` writes `swatplus-facts.json`, which the server answers from
@@ -33,7 +36,7 @@ with neither the parser nor a SWAT+ checkout present.
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 255 pass with source, parser + Ames; 219/36 without
+python -m pytest -q          # 301 pass with source, parser + Ames; 263/38 without
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and

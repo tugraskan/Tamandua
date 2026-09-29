@@ -23,8 +23,12 @@ What the Fortran cannot say is left unsaid rather than guessed:
   ``description`` do not appear. The layout is what the model reads, which is
   the question it answers; what a file may additionally hold is not in the
   source.
-- **Foreign keys.** A column naming a row in another file is matched at run
-  time by comparing strings; no declaration says so.
+- **Links no comparison shows.** A column naming a row in another file is
+  matched at run time by comparing strings; no declaration says so. Where the
+  source shows the search -- ``if (hru_db(i)%dbsc%land_use_mgt ==
+  lum(ilum)%name)`` inside ``do ilum`` -- the column carries a
+  :class:`Reference` citing it (:func:`input_links`). Where it does not, as
+  when the value was copied or passed to a routine first, nothing is claimed.
 
 Works on any :class:`~tamandua.index.build.SourceIndex`, including one loaded
 from the bundled snapshot, so it needs neither the parser nor a checkout.
@@ -37,15 +41,43 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from tamandua.index.build import Field, IOUse, Procedure, SourceIndex
+from tamandua.index.build import Field, IOUse, Procedure, SourceIndex, path_prefixes
 
 #: Bumped whenever the JSON shape changes, independent of the facts format.
-LAYOUT_FORMAT = "1"
+#: Format 2 adds ``references`` to columns: the row of another file a column's
+#: value names, with the comparison that shows it.
+LAYOUT_FORMAT = "2"
 
 _TYPE_RE = re.compile(r"^\s*(?:type|class)\s*\(\s*(\w+)\s*\)", re.IGNORECASE)
 _DIMENSION_RE = re.compile(r"\bdimension\s*\(", re.IGNORECASE)
 _DEFERRED_RE = re.compile(r"\b(allocatable|pointer)\b", re.IGNORECASE)
 _KEYWORD_ARG_RE = re.compile(r"^\s*(\w+)\s*=(?!=)")
+
+
+@dataclass
+class Reference:
+    """The row of another file a column's value names, and how that is known.
+
+    SWAT+ declares no foreign keys. A reference is kept only where the source
+    searches the target's rows for the column's value: an ``==`` inside a
+    loop over the target array, ``if (hru_db(i)%dbsc%land_use_mgt ==
+    lum(ilum)%name)`` inside ``do ilum``. ``evidence`` is every such site.
+    """
+
+    #: The file whose rows are searched, and the column compared against.
+    file: str
+    column: str
+    path: str
+    #: The target column's record and 1-based position in it, so a consumer
+    #: can map it to a header by position, as it maps any other column.
+    role: str
+    position: int
+    #: ``file.f90:line`` of each comparison.
+    evidence: list[str] = field(default_factory=list)
+    #: What carries the value to a comparison made elsewhere: the called
+    #: routine's own test (``search.f90:22``) and each copy followed
+    #: (``cli_staread.f90:70``). Empty for a comparison on the column itself.
+    through: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -66,6 +98,8 @@ class Column:
     #: it (``nout``), an array's non-constant extent, or ``*`` for an array
     #: allocated at run time. Consecutive columns with a repeat form a group.
     repeat: str | None = None
+    #: Rows of other files this column's value names; see :class:`Reference`.
+    references: list[Reference] = field(default_factory=list)
 
 
 @dataclass
@@ -426,11 +460,28 @@ def _is_text(columns: list[Column], use: IOUse) -> bool:
             and (columns[0].vartype or "").lower().startswith("character"))
 
 
+def _subscript_names(text: str) -> set[str]:
+    """Every name used inside a subscript: ``{"ipesti"}`` for ``a(ipesti)%b``."""
+    names: set[str] = set()
+    for inside in re.findall(r"\(([^()]*)\)", text):
+        names.update(name.lower() for name in re.findall(r"[A-Za-z_]\w*", inside))
+    return names
+
+
 def _loops(index: SourceIndex, proc: Procedure, line: int) -> list[str] | None:
-    scopes = index.scope_at(proc.path, line)
-    if scopes is None:
+    """What ``scope_at`` answers, from the procedure's own loops.
+
+    Only a procedure's own loops can enclose its lines, and ``scope_at``
+    scans every loop in the tree on each call -- which, once every text read
+    was asked, was most of the time a full layout run took.
+    """
+    if proc.path.replace("\\", "/") in index.unresolved_loop_files:
         return None
-    return [scope.index or scope.header for scope in scopes]
+    return [
+        loop.index or loop.header
+        for loop in sorted(index.loops_in(proc.name), key=lambda loop: loop.line)
+        if loop.end_line is not None and loop.line <= line <= loop.end_line
+    ]
 
 
 def _procedure_records(
@@ -456,6 +507,16 @@ def _procedure_records(
         use, following = resolved[position][0], resolved[position + 1][0]
         return any(use.line < line < following.line for line in backspaces)
 
+    def per_row(use: IOUse) -> bool:
+        """A value stored under an enclosing loop's index, once per row.
+
+        ``read (107,*) pest_soil_ini(ipesti)%name`` inside ``do ipesti`` is
+        each block's name line, not a title: taken for preamble, it left
+        ``data_starts_after`` one line too deep and the name out of the layout.
+        """
+        loops = _loops(index, proc, use.line) or []
+        return bool({loop.lower() for loop in loops} & _subscript_names(use.fields[0]))
+
     preamble: list[PreambleLine] = []
     data: list[tuple[IOUse, list[Column], list[str]]] = []
     for position, item in enumerate(resolved):
@@ -463,7 +524,7 @@ def _procedure_records(
         if is_probe(position):
             continue
         at = f"{_location_name(proc)}:{use.line}"
-        if not data and _is_text(columns, use):
+        if not data and _is_text(columns, use) and not per_row(use):
             preamble.append(PreambleLine(at=at, kind="text", reads=list(use.fields)))
             continue
         data.append(item)
@@ -535,8 +596,8 @@ def _procedure_records(
     return preamble, records
 
 
-def file_layout(index: SourceIndex, file: str) -> FileLayout | None:
-    """The layout of one input file, or ``None`` if nothing reads it."""
+def _file_layout(index: SourceIndex, file: str) -> FileLayout | None:
+    """One file's layout, before references are attached."""
     uses = index.io_for_file(file)
     readers: dict[str, list[IOUse]] = {}
     for use in uses:
@@ -554,17 +615,33 @@ def file_layout(index: SourceIndex, file: str) -> FileLayout | None:
     if not per_reader:
         return None
 
-    # Four files have more than one reader in 62.0.0. The one whose main
-    # record reads the most is the layout; the others' mains are alternatives.
+    # A reader that never opens the file, called by one that does, reads
+    # inside its caller's record: `read_mgtops` reads each schedule's
+    # operation lines for `mgt_read_mgtops`. Its records are children.
+    openers = {use.procedure.lower() for use in uses if use.op == "open"}
+    called = {
+        name.lower() for name, _, _ in per_reader
+        if name.lower() not in openers and any(
+            name.lower() in {c.lower() for c in index.callees_of(opener)}
+            for opener in openers)
+    }
+    if len(called) == len(per_reader):
+        called = set()
+
+    # Four files have more than one reader of their own in 62.0.0. The one
+    # whose main record reads the most is the layout; the others' mains are
+    # alternatives.
     def width(item: tuple[str, list[PreambleLine], list[Record]]) -> int:
         main = next((r for r in item[2] if r.role == "main"), None)
         return len(main.columns) if main else 0
 
-    per_reader.sort(key=width, reverse=True)
+    per_reader.sort(key=lambda item: (item[0].lower() in called, -width(item)))
     records: list[Record] = []
-    for position, (_, _, reader_records) in enumerate(per_reader):
+    for position, (name, _, reader_records) in enumerate(per_reader):
         for record in reader_records:
-            if position and record.role == "main":
+            if name.lower() in called:
+                record.role = "child"
+            elif position and record.role == "main":
                 record.role = "alternative"
             records.append(record)
     name = uses[0].file
@@ -577,14 +654,424 @@ def file_layout(index: SourceIndex, file: str) -> FileLayout | None:
     )
 
 
+def file_layout(index: SourceIndex, file: str) -> FileLayout | None:
+    """The layout of one input file, or ``None`` if nothing reads it.
+
+    Its columns carry their references, which takes every other file's
+    layout to find: a reference names a column of the file searched.
+    """
+    return file_layouts(index).get(file.strip().lower())
+
+
+def _raw_layouts(index: SourceIndex) -> dict[str, FileLayout]:
+    return {key: layout for key in sorted(index.io_by_file)
+            if (layout := _file_layout(index, key)) is not None}
+
+
 def file_layouts(index: SourceIndex) -> dict[str, FileLayout]:
     """Every file the index shows being read, by lowercased file name."""
-    layouts: dict[str, FileLayout] = {}
-    for key in sorted(index.io_by_file):
-        layout = file_layout(index, key)
-        if layout is not None:
-            layouts[key] = layout
+    layouts = _raw_layouts(index)
+    _attach_references(index, layouts)
     return layouts
+
+
+# ------------------------------------------------------------ links
+
+@dataclass
+class Link:
+    """One comparison showing a column of one file names rows of another."""
+
+    source_file: str
+    source_path: str
+    target_file: str
+    target_path: str
+    procedure: str
+    #: ``file.f90:line`` of the comparison -- for one made in a called
+    #: routine, the call.
+    at: str
+    #: The comparison as stored: ``hru_db(i)%dbsc%land_use_mgt ==
+    #: lum(ilum)%name``.
+    compares: str
+    #: What carries a column's value to the comparison, when it is not
+    #: compared where it was read: the called routine's comparison
+    #: (``search.f90:22``) and each copy followed (``cli_staread.f90:70``).
+    through: list[str] = field(default_factory=list)
+
+
+@dataclass
+class Unlinked:
+    """A comparison between two variables that does not show a link, and why."""
+
+    procedure: str
+    at: str
+    compares: str
+    reason: str
+
+
+@dataclass
+class _Read:
+    """One column as one read statement reads it."""
+
+    file: str
+    record: Record
+    position: int
+    column: Column
+    #: The column's root is the reader's own local or argument, so the path
+    #: means this variable only inside that reader.
+    local: bool
+
+
+def _is_local(proc: Procedure | None, root: str) -> bool:
+    return proc is not None and any(
+        item.name.lower() == root for item in [*proc.arguments, *proc.locals])
+
+
+def _root_subscript_names(text: str) -> set[str]:
+    match = re.match(r"\s*\w+\s*\(([^()]*)\)", text)
+    if not match:
+        return set()
+    return {name.lower() for name in re.findall(r"[A-Za-z_]\w*", match.group(1))}
+
+
+def _whole_array(text: str) -> bool:
+    """``wst_n(:)``: an array a called routine searched, every element."""
+    return bool(re.match(r"\s*\w+\s*\(\s*:\s*\)", text))
+
+
+class _Reads:
+    """Every column any read statement reads, by path.
+
+    The layouts' records first, then every other read of the same files -- an
+    earlier pass the layout leaves out, as ``pcp.cli`` reads each station's
+    name into ``pcp_n(i)`` before reading the row into ``pcp(i)``. Those are
+    role ``other``. Placeholders for a unit with no file (``unit_...``) are
+    not files, so they are left out.
+    """
+
+    def __init__(self, index: SourceIndex, layouts: dict[str, FileLayout]):
+        self.by_path: dict[str, list[_Read]] = {}
+        for key, layout in layouts.items():
+            if key.startswith("unit_"):
+                continue
+            seen: set[str] = set()
+            for record in layout.records:
+                seen.add(record.at)
+                self._add(index, key, record)
+            for use in index.io_for_file(key):
+                proc = index.procedure(use.procedure)
+                if use.op != "read" or not use.fields or proc is None:
+                    continue
+                at = f"{_location_name(proc)}:{use.line}"
+                if at in seen:
+                    continue
+                seen.add(at)
+                columns, problems = _Resolver(index, proc).read(use)
+                self._add(index, key, Record(
+                    role="other", procedure=proc.name, at=at, loops=[],
+                    columns=columns, unresolved=problems))
+
+    def _add(self, index: SourceIndex, file: str, record: Record) -> None:
+        reader = index.procedure(record.procedure)
+        for position, column in enumerate(record.columns, start=1):
+            local = _is_local(reader, column.path.split("%")[0])
+            self.by_path.setdefault(column.path, []).append(
+                _Read(file, record, position, column, local))
+
+    def find(self, path: str, procedure: str, local: bool) -> list[_Read]:
+        """Columns read into the variable ``path`` names inside ``procedure``.
+
+        A module variable is the same variable everywhere. A local is not:
+        ``jday`` in one routine is unrelated to a ``jday`` another reads.
+        """
+        return [
+            read for read in self.by_path.get(path, [])
+            if read.local == local
+            and (not local or read.record.procedure.lower() == procedure.lower())
+        ]
+
+
+def _line_of(site: str) -> int:
+    line = site.rpartition(":")[2]
+    return int(line) if line.isdigit() else 0
+
+
+def _reaching(index: SourceIndex, found: list[_Read], path: str, procedure: str,
+              line: int) -> list[_Read] | str:
+    """The read of a local that reaches ``line``: the nearest one before it.
+
+    A routine may reuse one local for several files -- gwflow_read reads
+    ``dum_id`` from ponds.gw and then from pond_cell.gw -- so every read of
+    it is not every value it holds at a given line. The nearest read before
+    the line is taken, in source order; an assignment to the local in
+    between means the value tested is not the one read.
+    """
+    before = [read for read in found if _line_of(read.record.at) < line]
+    if not before:
+        return f"{path} is read only after line {line}"
+    last = max(_line_of(read.record.at) for read in before)
+    for site in index.writers_of(path):
+        name, _, at = site.rpartition(":")
+        if name.lower() == procedure.lower() and at.isdigit() and last < int(at) < line:
+            return f"{path} is assigned between its read and line {line}"
+    return [read for read in before if _line_of(read.record.at) == last]
+
+
+class _Sources:
+    """Where the value a comparison tests was read, following copies."""
+
+    def __init__(self, index: SourceIndex, reads: _Reads):
+        self.index = index
+        self.reads = reads
+
+    def _site(self, procedure: str, line: int) -> str:
+        proc = self.index.procedure(procedure)
+        return f"{_location_name(proc) if proc else procedure}:{line}"
+
+    def resolve(self, path: str, procedure: str, line: int,
+                ) -> tuple[list[_Read], list[str]] | str:
+        """The columns ``path`` holds inside ``procedure`` at ``line``, and
+        the copies that carried them there; or why they cannot be shown."""
+        found = self._resolve(path, procedure, line, [])
+        if isinstance(found, str):
+            return found
+        terminals, through = found
+        paths = sorted({read.column.path for read in terminals})
+        if not terminals:
+            return f"{path} is not a column any input file is read into"
+        if len(paths) > 1:
+            return f"{path} is assigned from {len(paths)} columns: {', '.join(paths)}"
+        return terminals, through
+
+    def _resolve(self, path: str, procedure: str, line: int, visiting: list,
+                 ) -> tuple[list[_Read], list[str]] | str:
+        proc = self.index.procedure(procedure)
+        local = _is_local(proc, path.split("%")[0])
+        scope = (procedure.lower() if local else "", path)
+        if scope in visiting:
+            # Copied back from itself (`hru_init = hru`, later `hru =
+            # hru_init`): no value arrives this way that was not already there.
+            return [], []
+        direct = self.reads.find(path, procedure, local)
+        if direct and local:
+            reaching = _reaching(self.index, direct, path, procedure, line)
+            return reaching if isinstance(reaching, str) else (reaching, [])
+        if direct:
+            return direct, []
+        if len(visiting) >= 4:
+            return f"{path} is copied more than four times over"
+        terminals: list[_Read] = []
+        through: list[str] = []
+        assigned = False
+        for prefix in path_prefixes(path):
+            sites = [site for site in self.index.writers_of(prefix)
+                     if not local or site.rpartition(":")[0].lower() == procedure.lower()]
+            if not sites:
+                continue
+            assigned = True
+            copies = {f"{copy.procedure}:{copy.line}": copy
+                      for copy in self.index.copies_to(prefix)}
+            for site in sites:
+                copy = copies.get(site)
+                if copy is None:
+                    name, _, line = site.rpartition(":")
+                    return (f"{prefix} is also assigned other than by a copy, "
+                            f"at {self._site(name, int(line))}")
+                source = copy.source_path
+                if source is None:
+                    return f"{prefix} is copied from {copy.source}, not a variable"
+                found = self._resolve(source + path[len(prefix):], copy.procedure,
+                                      copy.line, [*visiting, scope])
+                if isinstance(found, str):
+                    return found
+                terminals.extend(found[0])
+                site_at = self._site(copy.procedure, copy.line)
+                for item in [site_at, *found[1]]:
+                    if item not in through:
+                        through.append(item)
+        if not assigned:
+            return f"{path} is not a column any input file is read into"
+        return terminals, through
+
+
+def _reads_rows_in_loop(index: SourceIndex, proc: Procedure, line: int,
+                        loop: str, root: str) -> bool:
+    """Whether the loop over ``loop`` enclosing ``line`` reads ``root(loop)``."""
+    enclosing = [item for item in index.loops_in(proc.name)
+                 if (item.index or "").lower() == loop and item.end_line is not None
+                 and item.line <= line <= item.end_line]
+    if not enclosing:
+        return False
+    start, end = enclosing[-1].line, enclosing[-1].end_line
+    row = re.compile(rf"^\s*{re.escape(root)}\s*\(\s*{re.escape(loop)}\s*\)", re.IGNORECASE)
+    return any(
+        use.op == "read" and use.procedure.lower() == proc.name.lower()
+        and start <= use.line <= end and any(row.match(item) for item in use.fields)
+        for uses in index.io_by_file.values() for use in uses)
+
+
+def _derive(
+    index: SourceIndex, layouts: dict[str, FileLayout],
+) -> tuple[list[Link], list[Unlinked], list[tuple[_Read, _Read, str, list[str]]]]:
+    """Links, the comparisons that show none, and which columns each joins."""
+    reads = _Reads(index, layouts)
+    sources = _Sources(index, reads)
+    links: list[Link] = []
+    unlinked: list[Unlinked] = []
+    joined: list[tuple[_Read, _Read, str, list[str]]] = []
+    for name in sorted(index.comparisons):
+        proc = index.procedure(name)
+        for comparison in index.comparisons[name]:
+            where = (f"{_location_name(proc)}:{comparison.line}" if proc
+                     else f"{comparison.procedure}:{comparison.line}")
+            compares = f"{comparison.left} {comparison.op} {comparison.right}"
+            called: list[str] = []
+            if comparison.via:
+                callee, _, line = comparison.via.rpartition(":")
+                callee_proc = index.procedure(callee)
+                called = [f"{_location_name(callee_proc) if callee_proc else callee}:{line}"]
+
+            def skip(reason: str) -> None:
+                unlinked.append(Unlinked(comparison.procedure, where, compares, reason))
+
+            if comparison.op != "==":
+                skip("an inequality, not a search")
+                continue
+            sides = [(comparison.left, comparison.left_path, comparison.right_path),
+                     (comparison.right, comparison.right_path, comparison.left_path)]
+            searched = None
+            loop_var = None
+            whole = [side for side in sides if _whole_array(side[0])]
+            if len(whole) == 1:
+                # A called routine searched an array it was handed whole.
+                searched = whole[0]
+            elif comparison.loops is None:
+                skip("the loops in this file could not be resolved")
+                continue
+            else:
+                for loop in reversed(comparison.loops):
+                    loop = loop.lower()
+                    hits = [side for side in sides if loop in _subscript_names(side[0])]
+                    if len(hits) == 1:
+                        searched, loop_var = hits[0], loop
+                        target_root = (searched[1] or "").split("%")[0]
+                        if loop not in _root_subscript_names(searched[0]):
+                            skip(f"the loop over {loop} runs over part of "
+                                 f"{target_root}, not its rows")
+                            searched = False
+                        break
+            if searched is False:
+                continue
+            if searched is None:
+                skip("no enclosing loop runs over one side only")
+                continue
+            if loop_var and proc and _reads_rows_in_loop(
+                    index, proc, comparison.line, loop_var,
+                    (searched[1] or "").split("%")[0]):
+                # Checking each row as it is read is not looking one up; the
+                # link, if any, runs the other way.
+                skip(f"the loop over {loop_var} reads "
+                     f"{(searched[1] or '').split('%')[0]}'s rows; a test "
+                     "inside it is not a search")
+                continue
+            _, target_path, source_path = searched
+            if not target_path or not source_path:
+                skip("an operand is not a field path")
+                continue
+            # The searched array may be a copy of a column: `wst_n(i) =
+            # wst(i)%name`, element by element.
+            found = sources.resolve(target_path, comparison.procedure, comparison.line)
+            if isinstance(found, str):
+                skip(found)
+                continue
+            targets, target_through = found
+            found = sources.resolve(source_path, comparison.procedure, comparison.line)
+            if isinstance(found, str):
+                skip(found)
+                continue
+            source_reads, source_through = found
+            if {read.column.path for read in source_reads} & \
+                    {read.column.path for read in targets}:
+                # `pcom(j)%pl(ipl) == plts_bsn(iplt)`, where plts_bsn is built
+                # from the same plant names: a column tested against itself.
+                skip("both sides hold the same column")
+                continue
+            through = [*called, *target_through,
+                       *[site for site in source_through if site not in target_through]]
+            seen: set[tuple[str, str, str, str]] = set()
+            for source_read in source_reads:
+                for target_read in targets:
+                    joined.append((source_read, target_read, where, through))
+                    key = (source_read.file, source_read.column.path,
+                           target_read.file, target_read.column.path)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    links.append(Link(
+                        source_file=source_read.file,
+                        source_path=source_read.column.path,
+                        target_file=target_read.file,
+                        target_path=target_read.column.path,
+                        procedure=comparison.procedure, at=where,
+                        compares=compares, through=list(through)))
+    return links, unlinked, joined
+
+
+def input_links(
+    index: SourceIndex, layouts: dict[str, FileLayout] | None = None,
+) -> tuple[list[Link], list[Unlinked]]:
+    """Every comparison that shows an input-file link, and every one that does not.
+
+    A comparison shows a link when all of these hold:
+
+    - it tests ``==``;
+    - one side is searched: an enclosing loop's index subscripts exactly that
+      side, and the innermost such loop subscripts its root array --
+      ``lum(ilum)`` under ``do ilum`` -- or a called routine was handed it as
+      a whole array (``wst_n(:)``, see :class:`~tamandua.index.build.Comparison`);
+    - the searched side is a column some input file is read into, and so is
+      the other side -- directly, or through copies (``mgt =
+      sched(isched)%mgt_ops(...)``) when every assignment to it is a copy and
+      all of them lead back to one column. A local matches only a column its
+      own routine reads.
+
+    Each part is a fact in the index: operands, loops and calls are stored
+    with the comparison, copies with the assignments, columns with the
+    layouts'. Nothing is matched by name.
+    """
+    links, unlinked, _ = _derive(
+        index, _raw_layouts(index) if layouts is None else layouts)
+    return links, unlinked
+
+
+def _attach_references(index: SourceIndex, layouts: dict[str, FileLayout]) -> None:
+    """Give every layout column the references its comparisons show."""
+    _, _, joined = _derive(index, layouts)
+    by_column: dict[int, tuple[Column, dict[tuple[str, str], tuple[_Read, list[str], list[str]]]]] = {}
+    for source, target, where, through in joined:
+        if source.record.role == "other":
+            continue  # not a column of any layout
+        _, targets = by_column.setdefault(id(source.column), (source.column, {}))
+        key = (target.file, target.column.path)
+        # The first read the target column appears in stands for it.
+        _, evidence, carried = targets.setdefault(key, (target, [], []))
+        if where not in evidence:
+            evidence.append(where)
+        carried.extend(site for site in through if site not in carried)
+    for column, targets in by_column.values():
+        column.references = [
+            Reference(file=target.file, column=target.column.name,
+                      path=target.column.path, role=target.record.role,
+                      position=target.position,
+                      evidence=sorted(evidence, key=_site_order),
+                      through=sorted(carried, key=_site_order))
+            for (target, evidence, carried) in (
+                targets[key] for key in sorted(targets))
+        ]
+
+
+def _site_order(site: str) -> tuple[str, int]:
+    name, _, line = site.rpartition(":")
+    return (name, int(line) if line.isdigit() else 0)
 
 
 # ------------------------------------------------------------ JSON
@@ -601,6 +1088,14 @@ def _column_json(position: int, column: Column) -> dict[str, Any]:
     }
     if column.repeat is not None:
         item["repeat"] = column.repeat
+    # Always present, so an empty list says "no comparison shows one" rather
+    # than "this file predates references".
+    item["references"] = [
+        {"file": ref.file, "column": ref.column, "path": ref.path,
+         "role": ref.role, "position": ref.position, "evidence": ref.evidence,
+         "through": ref.through}
+        for ref in column.references
+    ]
     return item
 
 
@@ -648,4 +1143,39 @@ def layouts_json(index: SourceIndex) -> dict[str, Any]:
             key: layout_json(layout)
             for key, layout in file_layouts(index).items()
         },
+    }
+
+
+def links_json(index: SourceIndex) -> dict[str, Any]:
+    """Every link, grouped by the two columns it joins, and every comparison
+    between two variables that shows none, with why."""
+    links, unlinked = input_links(index)
+    grouped: dict[tuple[str, str, str, str], list[dict[str, str]]] = {}
+    for link in links:
+        key = (link.source_file, link.source_path, link.target_file, link.target_path)
+        grouped.setdefault(key, []).append(
+            {"at": link.at, "procedure": link.procedure, "compares": link.compares,
+             "through": link.through})
+    provenance = index.provenance
+    return {
+        "layout_format": LAYOUT_FORMAT,
+        "provenance": {
+            "source_commit": provenance.source_commit,
+            "source_describe": provenance.source_describe,
+            "source_fingerprint": provenance.source_fingerprint,
+            "parser_commit": provenance.parser_commit,
+            "format_version": provenance.format_version,
+        },
+        "links": [
+            {"file": source_file, "path": source_path,
+             "target_file": target_file, "target_path": target_path,
+             "evidence": evidence}
+            for (source_file, source_path, target_file, target_path), evidence
+            in sorted(grouped.items())
+        ],
+        "not_linked": [
+            {"at": item.at, "procedure": item.procedure,
+             "compares": item.compares, "reason": item.reason}
+            for item in unlinked
+        ],
     }

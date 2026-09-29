@@ -20,6 +20,8 @@ from tamandua.index import (
     INDEX_FORMAT_VERSION,
     RHS_NAME,
     SNAPSHOT_FORMAT,
+    Comparison,
+    Copy,
     DerivedType,
     Field,
     IndexError_,
@@ -172,6 +174,18 @@ def index() -> SourceIndex:
         ),
     ):
         idx.module_variables[(item.module.lower(), item.name.lower())] = item
+    idx.comparisons["aqu_read"] = [
+        Comparison(procedure="aqu_read", line=27, left="aqudb(i)%aqu_ini",
+                   op="==", right="aqu_init(ish_aqp)%name", loops=("ish_aqp",)),
+        # Made in a called routine, restated at the call; and in a file whose
+        # loops could not be resolved, which is not "in no loop".
+        Comparison(procedure="aqu_read", line=28, left="aqu_n(:)",
+                   op="==", right="ob(i)%wst_c", loops=None, via="search:22"),
+    ]
+    idx.copies["mgt"] = [
+        Copy(procedure="aqu_read", line=29, target="mgt", op="=",
+             source="sched(isched)%mgt_ops(iop)"),
+    ]
     idx.call_paths["aqu_read"] = [["main", "command", "aqu_read"]]
     idx.scanner_warnings.append(ScannerWarning(
         code="unclosed_block",
@@ -399,6 +413,36 @@ def test_a_format_three_snapshot_loads_fields_with_no_declaration(index, tmp_pat
     assert documented.units == "mm"
 
 
+def test_round_trip_preserves_comparisons_and_copies(index, tmp_path):
+    back = load_snapshot(save_snapshot(index, tmp_path / "snap.json"))
+    assert back.comparisons_in("aqu_read") == index.comparisons_in("aqu_read")
+    direct, called = back.comparisons_in("aqu_read")
+    assert direct.loops == ("ish_aqp",) and direct.via is None
+    assert called.loops is None and called.via == "search:22"
+    assert back.copies_to("mgt") == index.copies_to("mgt")
+
+
+def test_a_format_four_snapshot_loads_with_no_comparisons(index, tmp_path):
+    """Format 4 predates ``comparisons`` and ``copies``, and still has to load.
+
+    Both are read with a default rather than by key, so an older file comes
+    back with neither -- and so with no links, which is exactly why the
+    bundled file gets its own assertion below.
+    """
+    path = save_snapshot(index, tmp_path / "snap.json")
+    payload = json.loads(path.read_text())
+    payload["snapshot_format"] = "4"
+    del payload["comparisons"]
+    del payload["copies"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    back = load_snapshot(path)
+    assert back.comparisons == {} and back.copies == {}
+    assert back.comparisons_in("aqu_read") == []
+    # The rest of the snapshot is unaffected.
+    assert back.loops_in("aqu_read")[0].index == "ish_aqp"
+
+
 def test_loading_a_missing_file_reports_the_path(tmp_path):
     with pytest.raises(IndexError_) as exc:
         load_snapshot(tmp_path / "absent.json")
@@ -540,3 +584,22 @@ def test_the_bundled_snapshot_carries_field_declarations():
     assert any("allocatable" in f.declaration for f in declared), (
         "no bundled field declaration mentions 'allocatable', which is the "
         "whole reason this attribute is carried")
+
+
+def test_the_bundled_snapshot_carries_comparisons():
+    """The sections added in format 5, asserted on the shipped file.
+
+    Format 4 stays readable and loads with no comparisons and no copies, so a
+    stale bundle would answer every link question with "none" from a file
+    that loads without complaint -- the format-1 failure again.
+    """
+    index = load_snapshot(_bundled(FACTS_NAME))
+    assert index.comparisons, (
+        "the bundled snapshot carries no comparisons, so no input-file link "
+        "can be derived from it; rebuild it with `swatplus-build`")
+    first = next(item for item in index.comparisons_in("hru_read") if item.line == 71)
+    assert (first.left, first.op, first.right) == (
+        "hru_db(i)%dbsc%land_use_mgt", "==", "lum(ilum)%name")
+    assert first.loops[-1] == "ilum"
+    assert any(item.via == "search:22" for item in index.comparisons_in("hyd_read_connect"))
+    assert [copy.source for copy in index.copies_to("wst_n")] == ["wst(i)%name"]

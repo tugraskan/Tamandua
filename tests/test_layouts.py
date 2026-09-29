@@ -327,6 +327,78 @@ def test_a_file_nothing_reads_has_no_layout(index) -> None:
     assert file_layout(index, "nothing.txt") is None
 
 
+def _named_blocks(read_name_line: int) -> SourceIndex:
+    """pest_hru.ini's shape: title, header, then per block a name line."""
+    idx = SourceIndex(provenance=Provenance(
+        source_path="/x", source_commit=None, source_describe=None,
+        source_fingerprint="f", generated_at="t", format_version="5", parser_commit=None))
+    idx.types["ini"] = DerivedType(name="ini", module="m", location="m.f90:1", fields=[
+        _field("ini", "name", "character(len=40)", "character(len=40) :: name", 2),
+        _field("ini", "soil", "real", "real :: soil", 3)])
+    idx.module_variables[("m", "pest_ini")] = ModuleVariable(
+        name="pest_ini", module="m", vartype="type (ini)",
+        declaration="type (ini), dimension(:), allocatable :: pest_ini",
+        line=5, units=None, description=None)
+    idx.procedures["pest_read"] = Procedure(
+        name="pest_read", module=None, location="pest_read.f90:1-30",
+        path="pest_read.f90",
+        locals=[_local("titldum", "character (len=80) :: titldum", 3, "character (len=80)"),
+                _local("header", "character (len=80) :: header", 4, "character (len=80)"),
+                _local("ip", "integer :: ip", 5, "integer"),
+                _local("j", "integer :: j", 6, "integer")])
+    for use in [
+        _io("pest_hru.ini", "open", 10, procedure="pest_read"),
+        _io("pest_hru.ini", "read", 11, "titldum", procedure="pest_read"),
+        _io("pest_hru.ini", "read", 12, "header", procedure="pest_read"),
+        _io("pest_hru.ini", "read", read_name_line, "pest_ini(ip)%name",
+            procedure="pest_read"),
+        _io("pest_hru.ini", "read", 16, "titldum", "pest_ini(ip)%soil",
+            procedure="pest_read"),
+    ]:
+        idx.io_by_file["pest_hru.ini"].append(use)
+    idx.loops["pest_read"] = [
+        Loop(procedure="pest_read", line=13, header="do ip = 1, n", end_line=18, index="ip"),
+        Loop(procedure="pest_read", line=15, header="do j = 1, m", end_line=17, index="j"),
+    ]
+    return idx
+
+
+def test_a_name_read_once_per_row_is_a_record_not_preamble() -> None:
+    """``read pest_soil_ini(ipesti)%name`` inside ``do ipesti`` names each
+    block. Taken for a title, it pushed ``data_starts_after`` one line too
+    deep and left the name, which other files point at, out of the layout."""
+    layout = file_layout(_named_blocks(14), "pest_hru.ini")
+    assert len(layout.preamble) == 2
+    assert [(r.role, r.at) for r in layout.records] == [
+        ("main", "pest_read.f90:14"), ("child", "pest_read.f90:16")]
+    assert layout.main.columns[0].path == "pest_ini%name"
+
+
+def test_a_text_read_before_the_row_loop_is_still_preamble() -> None:
+    # The same read outside the loop names nothing per row: a title.
+    layout = file_layout(_named_blocks(12), "pest_hru.ini")
+    assert [line.reads for line in layout.preamble][-1] == ["pest_ini(ip)%name"]
+
+
+def test_a_reader_called_by_the_opener_reads_child_records(index) -> None:
+    """read_mgtops reads each schedule's operations on the unit its caller,
+    mgt_read_mgtops, has open. Its records are children of the caller's,
+    not a wider "main" that demotes the schedule line."""
+    index.procedures["cn_read"].callees.append("cn_ops")
+    index.procedures["cn_ops"] = Procedure(
+        name="cn_ops", module=None, location="cn_ops.f90:1-20", path="cn_ops.f90",
+        locals=[_local("k", "integer :: k", 3, "integer"),
+                _local("titldum", "character (len=80) :: titldum", 4, "character (len=80)")])
+    index.io_by_file["cntable.lum"].append(
+        _io("cntable.lum", "read", 12, "titldum", "k", "k", "k", "k", "k", "k", "k",
+            "k", "k", "k", "k", procedure="cn_ops", unit="107"))
+    layout = file_layout(index, "cntable.lum")
+    assert layout.readers == ["cn_read", "cn_ops"]
+    assert layout.main.at == "cn_read.f90:22"
+    ops = next(r for r in layout.records if r.procedure == "cn_ops")
+    assert ops.role == "child"
+
+
 # ------------------------------------------------------------ declarations
 
 @pytest.mark.parametrize("declaration, name, extents", [

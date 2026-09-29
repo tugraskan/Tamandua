@@ -7,6 +7,8 @@ MCP. Both call :func:`build_source_index`; neither parses anything itself.
 
 from tamandua.index.build import (
     INDEX_FORMAT_VERSION,
+    Comparison,
+    Copy,
     DerivedType,
     Field,
     IndexError_,
@@ -69,6 +71,8 @@ from tamandua.index.snapshot import (
 
 __all__ = [
     "INDEX_FORMAT_VERSION",
+    "Comparison",
+    "Copy",
     "DerivedType",
     "FACTS_NAME",
     "Field",

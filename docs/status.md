@@ -2,11 +2,12 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-29 (input-file layouts derived from the facts;
-filenames passed as arguments followed to their callers; parser pin bumped to
-`110c2a2` for a field-doc attribution fix; bundled snapshot rebuilt).
-Previously updated 2026-09-22 (derived-type field declarations restored,
-format 4, bundled snapshot rebuilt).
+Last updated 2026-09-29 (input-file links derived from the comparisons SWAT+
+makes, format 5; two layout fixes; bundled snapshot rebuilt). Earlier the same
+day: input-file layouts derived from the facts; filenames passed as arguments
+followed to their callers; parser pin bumped to `110c2a2` for a field-doc
+attribution fix. Previously updated 2026-09-22 (derived-type field
+declarations restored, format 4, bundled snapshot rebuilt).
 
 ---
 
@@ -30,7 +31,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **255 pass, 0 skipped**; **219/36** with neither source nor parser. Both measured 2026-09-29 after the layouts change, on the pinned tree. |
+| Tests | real-source gate **301 pass, 0 skipped**; **263/38** with neither source nor parser. Both measured 2026-09-29 after the links change (format 5), on the pinned tree. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -38,6 +39,70 @@ and more accurate on SWAT+, not to be an assistant.
 
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these.
+
+## Input-file links (format 5, 2026-09-29)
+
+SWAT+ never declares that a column of one input file names a row of another;
+it searches at run time, `if (hru_db(i)%dbsc%land_use_mgt == lum(ilum)%name)`
+inside `do ilum`. The index now keeps each such test as a fact, and
+`tamandua/index/layouts.py` derives the links from them: every layout column
+carries `references` (target file, column, its position, and the
+`file.f90:line` evidence), and `swatplus-layouts --links` lists every link and
+every comparison that shows none, with why. So `hru-data.hru`'s
+`land_use_mgt` → `landuse.lum` `name`, evidence `hru_read.f90:71`. Nothing is
+matched by name, and the dataselector's static links are a comparison only.
+
+| On 62.0.0 (`de210d6`, parser `110c2a2`) | |
+|---|---|
+| Comparisons stored | **389** in `if`/`else if` conditions, plus **122** restated at a call to the routine that makes them |
+| Copies stored | **277**, the assignments that carry a column's value to a comparison |
+| Links | **163**, from 159 comparison sites; 20 through `search()`, 18 through a copy |
+| Grep baseline, `if (x == a(i)%name)` | **105 of 113** sites become links; the 8 others are `d_tbl` (a pointer at four tables), a value never read from a file, and a loop over one table's conditions |
+| File pairs shared with the editor schema | **75** (Tamandua 161, editor 185); same column on 73 |
+| Snapshot cost | **+150,941 bytes, +2.04%** |
+
+The two column disagreements favour the source: the editor makes
+`landuse.lum`'s `urb_ro` a key to `urban.urb` although SWAT+ only switches on
+it, and says `channel-lte.cha`'s `nut` names `sed_nut.cha`'s rows where
+`sd_channel_read.f90:282` searches them with `hydc`. Of the pairs only the
+editor has, 98 of 110 involve a table SWAT+ never reads under that name; in
+the 12 others SWAT+ 62.0.0 does not search (the `initial.aqu` org-min lookup
+is commented out) or links by index or row position, which is not covered.
+Of the pairs only Tamandua has, 72 of 86 involve a file the editor has no
+table for (36 of them the four decision tables under their own names) and 14
+are the `management.sch` operation columns and `constituents.cs`, which the
+editor stores as free text.
+
+Three variants needed more than the plain pattern, and each is a static fact:
+a search made in a called routine on its dummy arguments (`search`, how every
+`.con` file reaches `weather-sta.cli`) is restated at each call with the
+actual arguments; a value copied before it is compared (`mgt =
+sched(isched)%mgt_ops(...)`) is followed when every assignment to it is a copy
+from one column; and a local matches only the nearest read before the test.
+
+**The format change** follows formats 3 and 4: `INDEX_FORMAT_VERSION` and
+`SNAPSHOT_FORMAT` are `5`, format 4 and older still load with no comparisons,
+no copies and so no links, and `test_the_bundled_snapshot_carries_comparisons`
+asserts the shipped file really has them. The rebuild changed only the two new
+sections, the format counters, `generated_at`, and one I/O row (below); the
+RHS sidecar is byte-identical, and a second rebuild was identical apart from
+`generated_at`. `LAYOUT_FORMAT` is `2`.
+
+**Two layout defects** turned up following links to columns that were not
+there, both found by use, not by a harness. A name read once per row --
+`read (107,*) pest_soil_ini(ipesti)%name` inside `do ipesti` -- was taken for
+preamble, which set `data_starts_after` one line too deep in seven files and
+left six (`pcp.cli`, `tmp.cli`, `slr.cli`, `hmd.cli`, `wnd.cli`, `pet.cli`)
+with no layout at all. And `read_mgtops` reads `management.sch`'s operation
+lines on a unit its caller opened, so the statement was filed under
+`unit_107`; the build now takes the file a unit is open on at every call site
+(all must agree), and the layout makes such a reader's records `child`.
+
+Method, the comparison pair by pair, and the caveats -- one-line `if`
+assignments are invisible to the parser (checked: none writes a path a
+copy-based link relies on), links by index or position are not covered, a
+pointer aimed at several tables is not resolved: `links_experiment.md`,
+`scripts/measure_links.py`.
 
 ## Input-file layouts (2026-09-29)
 
@@ -48,10 +113,11 @@ It runs on any facts file, the bundled one included, so it needs neither the
 parser nor a checkout. The first consumer is the dataselector, whose schema is
 otherwise a static extraction from one swatplus-editor commit.
 
-- **252 of 252** layouts on 62.0.0 have a complete main record; 255 of 255 on
-  `97ca231`.
-- On Ames, **44** of 109 files have a layout, against 37 in the dataselector's
-  static schema. Of those, 25 are read value-for-value and 9 read a leading run
+- **257 of 257** layouts on 62.0.0 have a complete main record; 260 of 260 on
+  `97ca231` (252 and 255 before the two layout fixes above).
+- On Ames, **46** of 109 files have a layout, against 37 in the dataselector's
+  static schema (44 before the per-row name fix above added `pcp.cli` and
+  `tmp.cli`). Of those, 27 are read value-for-value and 9 read a leading run
   with the tail (usually `description`) unread; the 2 that read more than the
   row holds are `file.cio` and `soil_plant.ini`, whose Ames form is the
   layout's `alternative`.
@@ -63,8 +129,8 @@ the twelve `.con` files were filed under `hyd_read_connect`'s dummy argument
 `con_file`, and are now resolved through its call sites; and the two
 `backspace 107` statements written without parentheses were dropped, and are
 now kept on the right file. Method, numbers and caveats (header names differ
-from Fortran names; foreign keys and branch conditions are not in the facts):
-`layouts_experiment.md`.
+from Fortran names; branch conditions are not in the facts):
+`layouts_experiment.md`. Links between files are the section above.
 
 The dataselector pin moved to its published v0.2.0 (`0c73c64`) the same day:
 it compiles, and its standalone MCP server lists the same six tools and
@@ -389,7 +455,8 @@ Still unverified against the new scanner: the eight-question byte comparison
   `--no-rhs` for base facts only); `--markdown` adds the greppable rendering and
   the instruction pointers for tools that cannot run a server
 - `swatplus-layouts` — writes those layouts as JSON from a facts file (default:
-  the bundled one)
+  the bundled one), each column with the rows of other files it references;
+  `--links` lists every link and every comparison that shows none
 
 
 
@@ -409,6 +476,7 @@ parser nor a SWAT+ checkout present.
 | `index_experiment.md` | Index vs grep, measured, with the script |
 | `output_reader_experiment.md` | Reading a run's output, and the files that cannot be indexed safely |
 | `layouts_experiment.md` | Deriving input-file layouts from the facts, measured on Ames and across two SWAT+ trees |
+| `links_experiment.md` | Which column names a row of another file, from the comparisons SWAT+ makes, against the editor schema's foreign keys |
 | `ant_integration.md` | Testing local models, and whether to fold this into ANT |
 | `launch_checklist.md` | Everything between "code is ready" and "someone else can install it" |
 
@@ -430,6 +498,11 @@ missing loop form, input files keyed by expressions instead of their source
 defaults, and a long-running server that kept serving its startup snapshot.
 
 Every one was invisible to measurement and obvious within one real question.
+The links work added two more of the same kind: a per-row name line read as a
+title, which hid six weather files' layouts entirely, and a routine reading a
+unit its caller opened, which filed `management.sch`'s operations under
+`unit_107`. Both surfaced by following a link to a column that should have
+been there.
 The two post-fork fixes were adapted from archived commits `c5fa088` (live
 freshness) and `8760e3d` (input filenames); Tamandua also retains its stronger
 parser-level input resolution at the pinned parser commit.
