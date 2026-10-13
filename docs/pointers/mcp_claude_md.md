@@ -11,6 +11,7 @@ tree, so they do not miss occurrences the way a reading pass does.
 | Which routine reads or writes a file | `file_io` |
 | Which routines use a unit number | `unit_users` |
 | What assigns a variable | `writers` |
+| Where a variable's value is used, and how (formula, condition, call, output, copy) | `uses` |
 | **Every loop in a routine, with its index variable** | `loops` |
 | A variable from ordinary words, e.g. "lateral flow" | `search_fields` |
 | What a derived type contains, with units | `describe_type` |

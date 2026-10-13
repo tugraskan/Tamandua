@@ -29,6 +29,7 @@ from tamandua.index.build import (
     find_corpus,
     index_is_current,
     input_filenames,
+    is_fortran_source,
     looks_like_swatplus,
     module_variables,
     output_unit_filenames,
@@ -57,6 +58,8 @@ from tamandua.index.scope import (
     loop_ranges,
     scope_at,
 )
+from tamandua.index.programs import program_as_subroutine
+from tamandua.index.reads import READ_KINDS, Read, Scope, statement_reads
 from tamandua.index.render import render_index
 from tamandua.index.snapshot import (
     RHS_FORMAT,
@@ -87,7 +90,10 @@ __all__ = [
     "LoopScope",
     "Procedure",
     "Provenance",
+    "READ_KINDS",
+    "Read",
     "ScannerWarning",
+    "Scope",
     "SelectCase",
     "SNAPSHOT_FORMAT",
     "RHS_FORMAT",
@@ -106,16 +112,19 @@ __all__ = [
     "save_snapshot",
     "loop_ranges",
     "scope_at",
+    "statement_reads",
     "field_path",
     "find_corpus",
     "index_is_current",
     "input_filenames",
     "install_hooks",
+    "is_fortran_source",
     "module_variables",
     "install_pointer",
     "install_pointers",
     "output_unit_filenames",
     "pointer_text",
+    "program_as_subroutine",
     "render_index",
     "resolve_source",
     "source_fingerprint",

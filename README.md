@@ -5,10 +5,11 @@ local model — cheaper and more accurate on SWAT+.
 
 It is not an assistant. It builds a **facts-only index** of the SWAT+ Fortran
 source, from static analysis alone, and serves it as **MCP tools** and as a
-file in your checkout. Procedures with locations, the call graph, file I/O with
-unit numbers, variable writes by field path, loop headers with their index
-variables, derived types with the units and meaning the source documents
-inline. Nothing in it is written by a model.
+file in your checkout. Procedures with locations -- the main program in
+`main.f90.in` among them -- the call graph with every call site, file I/O with
+unit numbers, variable writes by field path and where each value is read, loop
+headers with their index variables, derived types with the units and meaning
+the source documents inline. Nothing in it is written by a model.
 
 - **Dependency pins:** [`docs/pins.toml`](docs/pins.toml)
 
@@ -92,6 +93,25 @@ directly, through a routine like `search`, or through a copy -- never a guess
 from names that look alike. Against the editor schema's foreign keys, and what
 neither covers: [`docs/links_experiment.md`](docs/links_experiment.md).
 
+**Where a value is used.** `writers` says what assigns a variable; `uses`
+says where its value is read, and how -- in a formula, a condition, a call, an
+output list -- with the statement:
+
+```
+path|at|in|kind|detail|statement
+hru%lumv%bmp_sed|smp_bmpfixed.f90:46|smp_bmpfixed|assignment|sedyld|sedyld(j) = sedyld(j) * (1. - hru(j)%lumv%bmp_sed)
+bmpuser_db%bmp_sed|structure_set_parms.f90:103|structure_set_parms|copy|hru%lumv%bmp_sed|hru(j)%lumv%bmp_sed = bmpuser_db(istr)%bmp_sed
+```
+
+(`uses bmp_sed` against SWAT+ 62.0.1, from `swatplus-mcp --compact`.)
+
+A bare name matches the field under any parent; a full path
+(`hru%lumv%bmp_sed`) only that path and what it holds. A `copy` only moves
+the value, so a field whose every read is a copy is never computed with under
+that name -- `bmp_bac` -- and no rows at all means it is never read. The
+reads and statements are in `swatplus-rhs.json`, beside the facts. Kinds,
+limits and the recall audit: [`docs/reads_experiment.md`](docs/reads_experiment.md).
+
 ## Pairs with dataselector
 
 [`swatplus-dataselector`](https://github.com/tugraskan/swatplus-dataselector)
@@ -110,8 +130,10 @@ tamandua/
 │   ├── render.py      #   SWATPLUS_INDEX.md
 │   ├── install.py     #   assistant instruction-file pointers
 │   ├── scope.py       #   loop nesting, for conditional breakpoints
+│   ├── programs.py    #   the main program in main.f90.in, as a procedure
+│   ├── reads.py       #   where each value is read, and how
 │   └── layouts.py     #   input-file column layouts and the links between files
-├── mcp/server.py      # 15 read-only tools over the same objects
+├── mcp/server.py      # 16 read-only tools over the same objects
 ├── mcp/client.py      # generic MCP stdio client (talk to another server)
 ├── output/reader.py   # query a run's output files
 └── config.py          # loads docs/pins.toml

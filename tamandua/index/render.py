@@ -12,6 +12,8 @@ from tamandua.index.build import SourceIndex
 
 #: Assignment sites listed per variable before truncating.
 MAX_WRITE_SITES = 24
+#: Read sites listed per variable before truncating.
+MAX_READ_SITES = 24
 #: I/O line numbers listed per (file, op, unit, routine) before truncating.
 MAX_IO_LINES = 8
 #: Statement variables listed per I/O record before truncating.
@@ -207,8 +209,9 @@ def render_index(index: SourceIndex) -> str:
 
     w("## Assignment expressions")
     w("")
-    w("Complete logical statements for derived-type paths. These come from the")
-    w("scanner after Fortran continuation lines have been joined.")
+    w("Complete logical statements for every assignment, plain variables and")
+    w("arrays as well as derived-type paths. These come from the scanner after")
+    w("Fortran continuation lines have been joined.")
     w("")
     w("`variable | routine:line | assignment`")
     w("")
@@ -217,6 +220,29 @@ def render_index(index: SourceIndex) -> str:
         for item in index.writer_statements[variable]:
             raw = item.raw.replace("|", "/").replace("\n", " ")
             w(f"{variable}|{item.procedure}:{item.line}|{raw}")
+    w("```")
+    w("")
+
+    w("## Reads (who uses what)")
+    w("")
+    w("The reverse of the assignments: variable -> where its value is read, and")
+    w("how. Keys are full field paths like the assignments', so `bmp_sed|` finds")
+    w("one field under any parent. Kinds: assignment, copy (the value only moved),")
+    w("condition, loop_bounds, call_argument, function_argument, output,")
+    w("io_control, index, allocate. Declarations, the `read` that fills a value,")
+    w("and comments are not reads.")
+    w("")
+    w("`variable | routine:line:kind[,routine:line:kind...]`")
+    w("")
+    w("```")
+    for symbol in sorted(index.reads):
+        sites = sorted(
+            {f"{item.site}:{item.kind}" for item in index.reads[symbol]},
+            key=lambda site: (site.split(":")[0].lower(), int(site.split(":")[1]), site))
+        shown = sites[:MAX_READ_SITES]
+        if len(sites) > MAX_READ_SITES:
+            shown = shown + [f"...+{len(sites) - MAX_READ_SITES} more"]
+        w(f"{symbol}|{','.join(shown)}")
     w("```")
     w("")
 

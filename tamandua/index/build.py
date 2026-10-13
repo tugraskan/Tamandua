@@ -27,6 +27,8 @@ from typing import Any
 from tamandua.config import resolve_checkout
 from tamandua.index.analyze import analyze_project
 from tamandua.index.diagnostics import ScannerWarning, scan_source_warnings
+from tamandua.index.programs import program_scanner
+from tamandua.index.reads import Read, Scope, Span, file_reads
 from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 
 #: Bumped when the extracted fields change shape, so a stale index is
@@ -39,7 +41,11 @@ from tamandua.index.scope import LoopScope, condition_for, loop_ranges
 #: an ``if`` condition, which is how SWAT+ joins one input file's column to
 #: another file's rows -- by matching names at run time, declared nowhere --
 #: and ``copies``, the assignments that carry a column's value to one.
-INDEX_FORMAT_VERSION = "5"
+#: Format 6 indexes the main program (``main.f90.in``) as a procedure of kind
+#: ``program``, keeps every call site as ``called_at``, adds ``reads`` -- where
+#: each variable's value is used, and how -- and keeps the assignment statement
+#: for plain variables and arrays as well as derived-type paths.
+INDEX_FORMAT_VERSION = "6"
 
 # Assignment targets: `name`, `name(i)`, `name%comp`, `a%b(i)%c = ...`.
 # The negative lookahead keeps `==` comparisons out.
@@ -91,6 +97,25 @@ _PADDING_RE = re.compile(r"^(?:trim|adjustl|adjustr)\s*\(", re.IGNORECASE)
 # Keep this in step with the corpus scanner. Suffix matching is deliberately
 # case-insensitive: Git checkouts on Linux distinguish ``.F90`` from ``.f90``.
 FORTRAN_SUFFIXES = {".f90", ".for", ".f", ".f95"}
+
+#: A Fortran source named with a further ``.in`` is a CMake template of one:
+#: SWAT+'s main program is ``main.f90.in``, configured into ``main.f90`` at
+#: build time. The scanner lists files by their last suffix and never reads it.
+TEMPLATE_SUFFIX = ".in"
+
+
+def is_fortran_source(path: Path) -> bool:
+    """A Fortran source by suffix, or a template of one (``main.f90.in``)."""
+    suffix = path.suffix.lower()
+    if suffix == TEMPLATE_SUFFIX:
+        return Path(path.stem).suffix.lower() in FORTRAN_SUFFIXES
+    return suffix in FORTRAN_SUFFIXES
+
+
+def _templates(source: Path) -> list[Path]:
+    """The template sources under ``source``, for the scanner to read too."""
+    return [path for path in source_files(source)
+            if path.suffix.lower() == TEMPLATE_SUFFIX]
 
 
 class IndexError_(RuntimeError):
@@ -379,6 +404,12 @@ class Procedure:
     arguments: list[VariableDeclaration] = field(default_factory=list)
     locals: list[VariableDeclaration] = field(default_factory=list)
     select_cases: list[SelectCase] = field(default_factory=list)
+    #: ``subroutine``, ``function`` or ``program``; ``None`` from facts that
+    #: predate format 6.
+    kind: str | None = None
+    #: Every resolved call to this procedure, ``caller:line`` -- the sites
+    #: behind ``called_by``, which names each caller once.
+    called_at: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -406,6 +437,15 @@ class SourceIndex:
     call_paths: dict[str, list[list[str]]] = field(default_factory=lambda: defaultdict(list))
     scanner_warnings: list[ScannerWarning] = field(default_factory=list)
     unresolved_loop_files: set[str] = field(default_factory=set)
+    #: Where each variable's value is read, keyed by its lowercased field path
+    #: like ``writers``. See :mod:`tamandua.index.reads`.
+    reads: dict[str, list[Read]] = field(default_factory=lambda: defaultdict(list))
+    #: The statement at each read site, ``procedure:line`` -> text. Carried by
+    #: the RHS sidecar, so empty when it is absent.
+    read_statements: dict[str, str] = field(default_factory=dict)
+    #: False for facts that predate format 6, which hold no reads at all --
+    #: so "read nowhere" is never answered from a file that cannot know.
+    reads_indexed: bool = True
 
     # -- lookups; every consumer goes through these ----------------------
 
@@ -415,6 +455,20 @@ class SourceIndex:
     def callers_of(self, name: str) -> list[str]:
         proc = self.procedure(name)
         return sorted(set(proc.called_by)) if proc else []
+
+    def call_sites_of(self, name: str) -> list[str]:
+        """Every call to a procedure as ``file:line (caller)``, by file and line."""
+        proc = self.procedure(name)
+        if proc is None:
+            return []
+        sites: list[tuple[str, int, str]] = []
+        for site in set(proc.called_at):
+            caller_name, _, line = site.rpartition(":")
+            caller = self.procedure(caller_name)
+            if caller is None or not line.isdigit():
+                continue
+            sites.append((caller.path, int(line), caller.name))
+        return [f"{path}:{line} ({caller})" for path, line, caller in sorted(sites)]
 
     def callees_of(self, name: str) -> list[str]:
         proc = self.procedure(name)
@@ -441,6 +495,48 @@ class SourceIndex:
             {"at": site, "expression": raw_by_site.get(site, "unavailable")}
             for site in self.writers_of(key)
         ]
+
+    def reads_of(self, variable: str) -> list[tuple[str, Read]]:
+        """Every read of a variable, as ``(path read, read)``.
+
+        A full path (``hru%lumv%bmp_sed``, subscripts allowed) matches that
+        path and the fields beneath it. A bare name (``bmp_sed``) matches any
+        path with that component, under whatever parent -- the same field
+        reached as ``bmpuser_db(istr)%bmp_sed`` and ``hru(j)%lumv%bmp_sed``.
+        """
+        key = field_path(variable) or variable.strip().lower()
+        if not key:
+            return []
+        if "%" in key:
+            def matches(path: str) -> bool:
+                return path == key or path.startswith(f"{key}%")
+        else:
+            def matches(path: str) -> bool:
+                return key in path.split("%")
+        found = [(path, item) for path, items in self.reads.items() if matches(path)
+                 for item in items]
+
+        def order(entry: tuple[str, Read]) -> tuple[str, int, str, str, str]:
+            path, item = entry
+            proc = self.procedure(item.procedure)
+            return (proc.path if proc else item.procedure, item.line, path,
+                    item.kind, item.detail or "")
+        return sorted(found, key=order)
+
+    def read_details(self, variable: str) -> list[dict[str, Any]]:
+        """Every read of a variable, with its file, kind and statement."""
+        rows: list[dict[str, Any]] = []
+        for path, item in self.reads_of(variable):
+            proc = self.procedure(item.procedure)
+            rows.append({
+                "path": path,
+                "at": f"{proc.path if proc else item.procedure}:{item.line}",
+                "procedure": item.procedure,
+                "kind": item.kind,
+                "detail": item.detail,
+                "statement": self.read_statements.get(item.site, "unavailable"),
+            })
+        return rows
 
     def loops_in(self, procedure: str) -> list[Loop]:
         return self.loops.get(procedure.strip().lower(), [])
@@ -749,14 +845,14 @@ def _contains_fortran(path: Path, *, recursive: bool = True) -> bool:
     if not path.is_dir():
         return False
     candidates = path.rglob("*") if recursive else path.glob("*")
-    return any(
-        item.is_file() and item.suffix.lower() in FORTRAN_SUFFIXES
-        for item in candidates
-    )
+    return any(item.is_file() and is_fortran_source(item) for item in candidates)
 
 
 def source_files(source: Path) -> list[Path]:
     """The tracked Fortran files under ``source``, with a fixture fallback.
+
+    Templates (``main.f90.in``) count: they are what the main program is
+    written in, so an edit to one changes the index.
 
     The corpus scanner uses Git's tracked file list when it has one. Mirroring
     that rule prevents an untracked scratch file from invalidating a snapshot
@@ -784,15 +880,13 @@ def source_files(source: Path) -> list[Path]:
                 for raw in result.stdout.split(b"\0") if raw
             ]
             matched = [
-                path for path in tracked
-                if path.is_file() and path.suffix.lower() in FORTRAN_SUFFIXES
+                path for path in tracked if path.is_file() and is_fortran_source(path)
             ]
             if matched:
                 return sorted(matched, key=lambda path: path.relative_to(root).as_posix())
 
     return sorted(
-        (path for path in root.rglob("*")
-         if path.is_file() and path.suffix.lower() in FORTRAN_SUFFIXES),
+        (path for path in root.rglob("*") if path.is_file() and is_fortran_source(path)),
         key=lambda path: path.relative_to(root).as_posix(),
     )
 
@@ -1431,6 +1525,167 @@ def _add_copies(
         index.copies[copy.target_path].append(copy)
 
 
+#: Declared types whose scalar cannot be followed by a bracket: `real ::
+#: amin1` with `amin1(a, b)` below it types a function, not an array.
+_NUMERIC_TYPE_RE = re.compile(r"^\s*(?:integer|real|double|logical|complex)\b", re.IGNORECASE)
+
+
+def _is_scalar(variable: Any) -> bool:
+    """A numeric or logical variable declared with no dimension.
+
+    A bracket after one is a function reference -- ``real :: chg_par`` types
+    the result of the external ``chg_par``, ``real :: amin1`` the intrinsic --
+    whereas after an array it is a subscript and after a character variable a
+    substring.
+    """
+    name = (variable.name or "").lower()
+    if not _NUMERIC_TYPE_RE.match(variable.vartype or ""):
+        return False
+    attributes, separator, entity = (variable.declaration or "").partition("::")
+    if not separator:
+        attributes, entity = "", attributes
+    return not (re.search(r"\bdimension\b", attributes, re.IGNORECASE)
+                or re.search(rf"\b{re.escape(name)}\s*\(", entity, re.IGNORECASE))
+
+
+def _imported(use: Any, exports: dict[str, dict[str, bool]]) -> dict[str, bool]:
+    """The module variables one ``use`` statement brings into scope.
+
+    Each name maps to whether it is a scalar (:func:`_is_scalar`). An ``only``
+    list brings just the variables it names -- a procedure or type it names is
+    not one -- and a rename brings the local name.
+    """
+    available = exports.get(use.module.lower(), {})
+    names: dict[str, bool] = {}
+    only = list(getattr(use, "only", None) or ())
+    for item in only + list(getattr(use, "renames", None) or ()):
+        local, arrow, remote = item.partition("=>")
+        local = local.strip().lower()
+        remote = remote.strip().lower() if arrow else local
+        if remote in available:
+            names[local] = available[remote]
+    return names if only else {**available, **names}
+
+
+def _module_exports(project: Any) -> dict[str, dict[str, bool]]:
+    """Each module's variables a ``use`` of it reaches, and which are scalars.
+
+    Its own, and those of every module it uses in turn: a module's public
+    names are re-exported, so ``use hru_module`` also reaches whatever
+    ``hru_module`` itself uses.
+    """
+    modules = {module.name.lower(): module
+               for module in getattr(project, "modules", ()) or () if module.name}
+    exports: dict[str, dict[str, bool]] = {}
+
+    def visit(name: str, active: set[str]) -> dict[str, bool]:
+        if name in exports:
+            return exports[name]
+        module = modules.get(name)
+        if module is None or name in active:
+            return {}
+        active.add(name)
+        found: dict[str, bool] = {}
+        for use in module.uses:
+            visit(use.module.lower(), active)
+            found.update(_imported(use, exports))
+        found.update({variable.name.lower(): _is_scalar(variable)
+                      for variable in module.variables if variable.name})
+        active.discard(name)
+        exports[name] = found
+        return found
+
+    for name in modules:
+        visit(name, set())
+    return exports
+
+
+def _read_scopes(project: Any) -> dict[str, Scope]:
+    """What a name means in each procedure, for :mod:`tamandua.index.reads`.
+
+    In scope: the procedure's arguments and declarations, a function's own
+    name (its result), its host's names when it is contained in another, its
+    module's variables, and the module variables its ``use`` statements reach.
+    Only these count as variables, which is what keeps an intrinsic, a type
+    constructor or a routine from being read as one.
+    """
+    exports = _module_exports(project)
+    routines = frozenset(proc.name.lower() for proc in project.procedures)
+    by_name = {proc.name.lower(): proc for proc in project.procedures}
+    names: dict[str, dict[str, bool]] = {}
+
+    def visit(proc: Any, depth: int = 0) -> dict[str, bool]:
+        key = proc.name.lower()
+        if key in names:
+            return names[key]
+        found: dict[str, bool] = {}
+        host = by_name.get((proc.parent or "").lower())
+        if host is not None and host is not proc and depth < 8:
+            found.update(visit(host, depth + 1))
+        if proc.module:
+            found.update(exports.get(proc.module.lower(), {}))
+        for use in proc.uses:
+            found.update(_imported(use, exports))
+        # The procedure's own names last: a local hides a module's.
+        found.update({arg.lower(): False for arg in proc.args})
+        found.update({variable.name.lower(): _is_scalar(variable)
+                      for variable in proc.variables if variable.name})
+        if proc.kind == "function":
+            found.setdefault(key, False)
+        names[key] = found
+        return found
+
+    scopes: dict[str, Scope] = {}
+    for proc in project.procedures:
+        found = visit(proc)
+        scopes[proc.name.lower()] = Scope(
+            variables=frozenset(found),
+            procedures=routines,
+            scalars=frozenset(name for name, scalar in found.items() if scalar),
+        )
+    return scopes
+
+
+def _add_reads(
+    index: SourceIndex,
+    project: Any,
+    files: dict[str, Path],
+) -> None:
+    """Every read in every procedure, and the statement at each site.
+
+    ``files`` maps each scanned file's relative path to the file. An
+    ``output`` read names the file written where the build resolved one.
+    """
+    scopes = _read_scopes(project)
+    spans: dict[str, list[Span]] = defaultdict(list)
+    for proc in project.procedures:
+        location = proc.location
+        spans[location.path.replace("\\", "/")].append(Span(
+            procedure=proc.name, start=location.line,
+            end=location.end_line or location.line,
+            scope=scopes[proc.name.lower()]))
+    written: dict[tuple[str, int], str] = {}
+    for uses in index.io_by_file.values():
+        for use in uses:
+            # `unit_*` is the scanner's name for a unit it could not tie to a
+            # file; the read keeps the unit as written instead.
+            if use.op == "write" and not use.file.startswith("unit_"):
+                written.setdefault((use.procedure.lower(), use.line), use.file)
+    for relative, file_spans in sorted(spans.items()):
+        path = files.get(relative)
+        if path is None:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        found, statements = file_reads(text, file_spans)
+        index.read_statements.update(statements)
+        for variable, item in found:
+            if item.kind == "output":
+                target = written.get((item.procedure.lower(), item.line))
+                if target:
+                    item = Read(item.procedure, item.line, item.kind, target)
+            index.reads[variable].append(item)
+
+
 def build_source_index(
     source: Path | None = None,
     corpus: Path | None = None,
@@ -1448,11 +1703,14 @@ def build_source_index(
         raise IndexError_(f"could not import swatplus_reference from {corpus_src}: {exc}")
 
     # scan() leaves called_by/call_paths/resolved empty; analyze_project fills
-    # them. See tamandua/index/analyze.py.
-    scanner = FortranScanner(BuildConfig(source_dir=source_dir))
+    # them. See tamandua/index/analyze.py. The scanner reads templates and
+    # indexes a main program only through program_scanner; see programs.py.
+    scanner = program_scanner(
+        FortranScanner, BuildConfig(source_dir=source_dir), _templates)
     scanner_files = list(scanner.iter_source_files())
     scanner_warnings = scan_source_warnings(source_dir, scanner_files)
     ranges_by_file: dict[str, list[LoopScope] | None] = {}
+    files_by_relative: dict[str, Path] = {}
     for raw_path in scanner_files:
         path = Path(raw_path)
         if not path.is_absolute():
@@ -1461,6 +1719,7 @@ def build_source_index(
             relative = path.resolve().relative_to(source_dir.resolve()).as_posix()
         except ValueError:
             relative = path.name
+        files_by_relative[relative] = path
         ranges = loop_ranges(path)
         ranges_by_file[relative] = ranges
         # The parser normally reports a basename. Retain the relative key too
@@ -1477,10 +1736,14 @@ def build_source_index(
     call_lines: dict[str, list[tuple[str, int]]] = defaultdict(list)
     call_statements: dict[str, list[tuple[str, int, str]]] = defaultdict(list)
     unit_events: dict[str, list[tuple[int, str, str, str]]] = defaultdict(list)
+    # Every resolved call as `caller:line`, for the callers it names.
+    called_at: dict[str, set[str]] = defaultdict(set)
     for caller in project.procedures:
         caller_arguments = {name.lower() for name in caller.args}
         for call in caller.calls:
             call_sites[call.name.lower()].append(call.raw)
+            if call.resolved and call.name.lower() != caller.name.lower():
+                called_at[call.name.lower()].add(f"{caller.name}:{call.location.line}")
             if getattr(call, "kind", "subroutine") == "subroutine":
                 call_lines[call.name.lower()].append(
                     (caller.name.lower(), call.location.line))
@@ -1579,6 +1842,11 @@ def build_source_index(
                 )
                 for select in proc.select_cases
             ],
+            kind=proc.kind,
+            called_at=sorted(
+                called_at.get(proc.name.lower(), ()),
+                key=lambda site: (site.rpartition(":")[0].lower(),
+                                  int(site.rpartition(":")[2]))),
         )
         if proc.call_paths:
             index.call_paths[proc.name.lower()] = [list(p) for p in proc.call_paths]
@@ -1635,12 +1903,14 @@ def build_source_index(
             path = field_path(match.group(1))
             if path:
                 index.writers[path].append(f"{proc.name}:{step.location.line}")
-                if "%" in path:
-                    index.writer_statements[path].append(WriterStatement(
-                        procedure=proc.name,
-                        line=step.location.line,
-                        raw=step.raw.strip(),
-                    ))
+                # Every target, plain variables and arrays included: the
+                # formula at `sedyld(j) = sedyld(j) * (1. - ...)` is as much
+                # the answer as one assigning a derived-type field.
+                index.writer_statements[path].append(WriterStatement(
+                    procedure=proc.name,
+                    line=step.location.line,
+                    raw=step.raw.strip(),
+                ))
 
         proc_path = proc.location.path.replace("\\", "/")
         file_ranges = ranges_by_file.get(proc_path)
@@ -1680,4 +1950,5 @@ def build_source_index(
 
     _add_call_comparisons(index, project, call_statements, scopes)
     _add_copies(index, project, scopes)
+    _add_reads(index, project, files_by_relative)
     return index

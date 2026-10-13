@@ -60,6 +60,7 @@ def t_find_procedure(index: SourceIndex, name: str) -> Any:
     answer = {
         "name": proc.name,
         "at": proc.location,
+        "kind": proc.kind or "unknown",
         "module": proc.module or "none",
         "uses": _rows(proc.uses) or "none",
         "arguments": _rows(proc.arguments) or "none",
@@ -73,7 +74,15 @@ def t_find_procedure(index: SourceIndex, name: str) -> Any:
 def t_callers(index: SourceIndex, procedure: str) -> Any:
     # Echo the question. A bare list renders as an unlabelled word -- one real
     # session read `command` as an empty response and fell back to grep.
-    return {"procedure": procedure, "callers": index.callers_of(procedure) or "none"}
+    callers = index.callers_of(procedure)
+    answer: dict[str, Any] = {"procedure": procedure, "callers": callers or "none"}
+    sites = index.call_sites_of(procedure)
+    if sites:
+        answer["call_sites"] = sites
+    elif callers:
+        # Facts older than format 6 name callers without their lines.
+        answer["call_sites"] = "not recorded in these facts; rebuild to get them"
+    return answer
 
 
 def t_callees(index: SourceIndex, procedure: str) -> Any:
@@ -93,6 +102,35 @@ def t_writers(index: SourceIndex, variable: str) -> Any:
         "variable": variable,
         "assignments": index.writer_details(variable) or "none",
     }
+
+
+def t_uses(index: SourceIndex, variable: str, kind: str = "") -> Any:
+    """Where a variable's value is read -- the reverse of ``writers``.
+
+    Answers what documentation review asks of an input: is it read at all, in
+    which formula, as a fraction or a percent, or only copied somewhere else.
+    A ``copy`` row moves the value whole (``a%x = b%x``) and its ``detail`` is
+    where it went; when every row is a copy the value is never computed with
+    under that name, and the ``detail`` paths are where to look next.
+    """
+    if not index.reads_indexed:
+        # Facts without a read index must not answer "read nowhere".
+        return {"variable": variable, "reads": (
+            "not indexed -- these facts carry no reads; they are in the "
+            "format-2 swatplus-rhs.json beside the facts file, which "
+            "swatplus-build writes")}
+    wanted = {item.strip().lower() for item in kind.split(",") if item.strip()}
+    rows = [
+        {"path": row["path"], "at": row["at"], "in": row["procedure"],
+         "kind": row["kind"], "detail": row["detail"] or "none",
+         "statement": row["statement"]}
+        for row in index.read_details(variable)
+        if not wanted or row["kind"] in wanted
+    ]
+    if not rows:
+        return {"variable": variable, "reads": "none",
+                **({"kind": kind} if wanted else {})}
+    return rows
 
 
 def t_loops(index: SourceIndex, procedure: str) -> Any:
@@ -326,7 +364,8 @@ def _one(prop: str, desc: str) -> dict:
 
 
 TOOLS: list[tuple[str, str, dict, Callable]] = [
-    ("find_procedure", "Locate a SWAT+ procedure: source file, line range, module, "
+    ("find_procedure", "Locate a SWAT+ procedure -- subroutine, function, or the "
+                       "main program (main) -- source file, line range, module, "
                        "module imports and only lists, every argument and local "
                        "declaration with source line/type/initial/inline units and "
                        "meaning, and select-case vocabularies. All stored fields "
@@ -334,9 +373,11 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
                        "Returns advisory scanner warnings in a second content "
                        "block when this procedure has any; these are not compiler errors.",
      _one("name", "Procedure name, e.g. aqu_read"), t_find_procedure),
-    ("callers", "Routines that call this procedure. Exhaustive over the whole "
-                "tree, never sampled or truncated -- one result means exactly "
-                "one caller, not a partial list.",
+    ("callers", "Routines that call this procedure, and every call site as "
+                "file:line (caller) -- the main program (main.f90.in) "
+                "included. Exhaustive over the whole tree, never sampled or "
+                "truncated -- one result means exactly one caller, not a "
+                "partial list.",
      _one("procedure", "Procedure name"), t_callers),
     ("callees", "Routines this procedure calls. Exhaustive, not truncated.",
      _one("procedure", "Procedure name"), t_callees),
@@ -352,11 +393,37 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
                      "op": {"type": "string", "description": "Optional: open, read, or write"}},
       "required": ["unit"]}, t_unit_users),
     ("writers", "Routines that assign a variable, with line numbers and the "
-                "complete logical assignment statement for derived-type paths "
-                "when the RHS sidecar is installed. Exhaustive over the whole "
+                "complete logical assignment statement -- plain variables, "
+                "arrays and derived-type paths alike -- when the RHS sidecar "
+                "is installed. Exhaustive over the whole "
                 "tree, never sampled or truncated. Relevant "
-                "scanner warnings are returned separately when present.",
+                "scanner warnings are returned separately when present. "
+                "For where a value is read rather than set, use `uses`.",
      _one("variable", "Variable or derived-type root, e.g. sw_volume_begin"), t_writers),
+    ("uses", "Where a variable's value is READ -- the reverse of writers (not "
+             "module `use` imports). Give a component name (bmp_sed, matching "
+             "it under any parent) or a full path (hru%lumv%bmp_sed, which "
+             "also matches the fields beneath it). Each row: the path read, "
+             "file:line, routine, kind, detail and the statement. Kinds: "
+             "assignment (computed with; detail = variable assigned), copy "
+             "(the whole right-hand side, value only moved; detail = where "
+             "it went), condition (detail = if/else if/do while/select "
+             "case/case/where), loop_bounds, call_argument and "
+             "function_argument (detail = routine), output (detail = file), "
+             "io_control, index (a subscript), allocate. Declarations, the "
+             "read statement that fills the value, and comments are not "
+             "reads. No rows means the value is never read under that name. "
+             "Exhaustive, never sampled or truncated.",
+     {"type": "object",
+      "properties": {
+          "variable": {"type": "string",
+                       "description": "Component or variable name, e.g. bmp_sed, "
+                                      "or a full path, e.g. hru%lumv%bmp_sed"},
+          "kind": {"type": "string",
+                   "description": "Optional: only these kinds, comma-separated, "
+                                  "e.g. assignment,condition"},
+      },
+      "required": ["variable"]}, t_uses),
     ("loops", "Loop headers in a procedure with their index variables and start/end lines, "
               "for setting a conditional breakpoint. Exhaustive -- every loop in "
               "the procedure, not a sample. Relevant scanner warnings are "
@@ -392,7 +459,9 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
                      "description": "Optional declaring module, to disambiguate"},
       },
       "required": ["name"]}, t_module_variable),
-    ("call_path", "How execution reaches a procedure, from an entry point down.",
+    ("call_path", "How execution reaches a procedure, from an entry point down. "
+                  "Paths from the main program come first; a path from a "
+                  "routine nothing calls follows only where slots remain.",
      _one("procedure", "Procedure name, e.g. aqu_1d_control"), t_call_path),
     ("read_output", "Summarise a column of a run's output file: count, first, "
                     "last, min and max with where they occurred, and how many "

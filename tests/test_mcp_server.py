@@ -136,9 +136,13 @@ def test_scalar_results_echo_the_question() -> None:
         def callers_of(self, name):
             return ["command"]
 
+        def call_sites_of(self, name):
+            return ["command.f90:31 (command)"]
+
     text = render_compact(t_callers(_Index(), "hru_control"))
     assert "procedure=hru_control" in text
     assert "callers=command" in text
+    assert "call_sites=command.f90:31 (command)" in text
 
 
 def test_new_tools_are_declared() -> None:
