@@ -443,6 +443,33 @@ def test_a_format_four_snapshot_loads_with_no_comparisons(index, tmp_path):
     assert back.loops_in("aqu_read")[0].index == "ish_aqp"
 
 
+def test_round_trip_preserves_kind_and_call_sites(index, tmp_path):
+    index.procedures["main"] = Procedure(
+        name="main", module=None, location="main.f90.in:1-178",
+        path="main.f90.in", kind="program")
+    index.procedures["aqu_read"].kind = "subroutine"
+    index.procedures["aqu_read"].called_at = ["command:12", "main:69"]
+    back = load_snapshot(save_snapshot(index, tmp_path / "snap.json"))
+    assert back.procedure("main").kind == "program"
+    assert back.procedure("aqu_read").called_at == ["command:12", "main:69"]
+    assert back.call_sites_of("aqu_read") == ["main.f90.in:69 (main)"]
+
+
+def test_a_format_five_snapshot_loads_with_no_kind_or_call_sites(index, tmp_path):
+    """Format 5 predates ``kind`` and ``called_at``; both default on load."""
+    path = save_snapshot(index, tmp_path / "snap.json")
+    payload = json.loads(path.read_text())
+    payload["snapshot_format"] = "5"
+    for procedure in payload["procedures"]:
+        del procedure["kind"], procedure["called_at"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    back = load_snapshot(path)
+    assert back.procedure("aqu_read").kind is None
+    assert back.call_sites_of("aqu_read") == []
+    assert back.callers_of("aqu_read") == ["command"]
+
+
 def test_loading_a_missing_file_reports_the_path(tmp_path):
     with pytest.raises(IndexError_) as exc:
         load_snapshot(tmp_path / "absent.json")
@@ -603,3 +630,36 @@ def test_the_bundled_snapshot_carries_comparisons():
     assert first.loops[-1] == "ilum"
     assert any(item.via == "search:22" for item in index.comparisons_in("hyd_read_connect"))
     assert [copy.source for copy in index.copies_to("wst_n")] == ["wst(i)%name"]
+
+
+def test_the_bundled_snapshot_carries_the_main_program():
+    """Format 6, asserted on the shipped file.
+
+    main.f90.in was never scanned, so every routine only it calls had no
+    caller and no call path. Format 5 still loads, with no program in it.
+    """
+    index = load_snapshot(_bundled(FACTS_NAME))
+    main = index.procedure("main")
+    assert main is not None and main.kind == "program", (
+        "the bundled snapshot has no main program; rebuild it with "
+        "`swatplus-build`")
+    assert main.path == "main.f90.in"
+    assert "main.f90.in:68 (main)" in index.call_sites_of("lsu_read_elements")
+    assert index.paths_to("recalldb_read")[0] == ["main", "recalldb_read"]
+
+
+def test_the_bundled_sidecar_carries_reads_and_plain_formulas():
+    """RHS format 2, asserted on the shipped pair.
+
+    Format 1 still loads, with no reads, so a stale sidecar would answer every
+    `uses` question "not indexed" from a pair that loads without complaint.
+    """
+    index = load_snapshot(_bundled(FACTS_NAME))
+    assert index.reads_indexed, (
+        "the bundled sidecar carries no reads; rebuild the pair with "
+        "`swatplus-build`")
+    assert ("smp_bmpfixed.f90:46", "assignment") in {
+        (row["at"], row["kind"]) for row in index.read_details("bmp_sed")}
+    formulas = {row["at"]: row["expression"] for row in index.writer_details("sedyld")}
+    assert formulas["smp_bmpfixed:46"] == \
+        "sedyld(j) = sedyld(j) * (1. - hru(j)%lumv%bmp_sed)"

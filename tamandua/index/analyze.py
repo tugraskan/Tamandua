@@ -69,6 +69,13 @@ def _fill_call_paths(project: Any) -> None:
     Breadth-first from every procedure nothing calls, so the first path found
     to a procedure is a shortest one. Capped per procedure, which also bounds
     the walk: a node stops being expanded once it has its quota.
+
+    A ``program`` is the entry point execution actually starts from, so the
+    walk from programs runs first and their paths come first. Every other
+    uncalled procedure -- a routine no source calls, which is dead code or
+    reached some way the scanner cannot see -- is walked afterwards, filling
+    only the slots left. Walked together, a dead routine one call away would
+    crowd out the program's real, longer path.
     """
     display = {proc.name.lower(): proc.name for proc in project.procedures}
     children = {
@@ -80,24 +87,27 @@ def _fill_call_paths(project: Any) -> None:
     }
 
     paths: dict[str, list[list[str]]] = defaultdict(list)
-    queue: deque[tuple[str, list[str]]] = deque(
-        (proc.name.lower(), [proc.name])
-        for proc in project.procedures if not proc.called_by
-    )
 
-    while queue:
-        node, path = queue.popleft()
-        if len(path) >= MAX_DEPTH:
-            continue
-        walked = {name.lower() for name in path}
-        for child in children.get(node, ()):
-            if child in walked:          # a cycle: stop rather than loop
+    def walk(roots: list[Any]) -> None:
+        queue: deque[tuple[str, list[str]]] = deque(
+            (proc.name.lower(), [proc.name]) for proc in roots)
+        while queue:
+            node, path = queue.popleft()
+            if len(path) >= MAX_DEPTH:
                 continue
-            if len(paths[child]) >= MAX_PATHS:
-                continue
-            extended = path + [display[child]]
-            paths[child].append(extended)
-            queue.append((child, extended))
+            walked = {name.lower() for name in path}
+            for child in children.get(node, ()):
+                if child in walked:          # a cycle: stop rather than loop
+                    continue
+                if len(paths[child]) >= MAX_PATHS:
+                    continue
+                extended = path + [display[child]]
+                paths[child].append(extended)
+                queue.append((child, extended))
+
+    roots = [proc for proc in project.procedures if not proc.called_by]
+    walk([proc for proc in roots if getattr(proc, "kind", None) == "program"])
+    walk([proc for proc in roots if getattr(proc, "kind", None) != "program"])
 
     for proc in project.procedures:
         proc.call_paths = paths.get(proc.name.lower(), [])

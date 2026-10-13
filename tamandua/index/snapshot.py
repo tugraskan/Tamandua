@@ -40,6 +40,7 @@ from tamandua.index.build import (
     ModuleVariable,
     Procedure,
     Provenance,
+    Read,
     ScannerWarning,
     SelectCase,
     SourceIndex,
@@ -54,18 +55,26 @@ from tamandua.index.install import RHS_NAME
 #: Bumped when the *snapshot file's* own layout changes. Distinct from
 #: ``INDEX_FORMAT_VERSION``, which describes the facts inside it: a snapshot can
 #: gain a section without the extracted fields changing shape, and vice versa.
-SNAPSHOT_FORMAT = "5"
+SNAPSHOT_FORMAT = "6"
 #: Format 3 adds ``module_variables``. Format 4 adds ``declaration`` to
 #: derived-type fields. Format 5 adds ``comparisons`` and ``copies``, the
 #: equality tests the input-file links are derived from and the assignments
-#: that carry a column's value to them. Older files stay readable, and each
+#: that carry a column's value to them. Format 6 adds each procedure's
+#: ``kind`` -- a main program is now one -- and ``called_at``, the call sites
+#: behind ``called_by``. Older files stay readable, and each
 #: added section or key loads empty/``None`` from them -- so the guard against
 #: quietly serving a snapshot that predates one is the assertion that the
 #: *bundled* pair is current, not this allow-list. A format-1 bundle once loaded silently while
 #: answering every `breakpoint` query with zero loops; see
 #: ``tests/test_snapshot.py``.
-READABLE_SNAPSHOT_FORMATS = {"1", "2", "3", "4", SNAPSHOT_FORMAT}
-RHS_FORMAT = "1"
+READABLE_SNAPSHOT_FORMATS = {"1", "2", "3", "4", "5", SNAPSHOT_FORMAT}
+#: Format 2 keeps the statement for every assignment, plain variables and
+#: arrays included, and adds ``reads`` -- where each variable's value is used,
+#: and how -- with ``statements``, the text at each read site. Both are about
+#: right-hand sides and both are large, so they live here rather than in the
+#: base facts every consumer loads. Format 1 still loads, with no reads.
+RHS_FORMAT = "2"
+READABLE_RHS_FORMATS = {"1", RHS_FORMAT}
 
 
 def _io_to_json(use: IOUse) -> dict[str, Any]:
@@ -134,6 +143,8 @@ def save_snapshot(index: SourceIndex, path: Path) -> Path:
                      "line": select.line}
                     for select in p.select_cases
                 ],
+                "kind": p.kind,
+                "called_at": list(p.called_at),
             }
             for p in index.procedures.values()
         ],
@@ -194,9 +205,10 @@ def save_snapshot(index: SourceIndex, path: Path) -> Path:
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     # sort_keys so a rebuild of an unchanged tree produces an identical file and
-    # a release diff shows only real changes.
-    path.write_text(
-        json.dumps(payload, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    # a release diff shows only real changes; "\n" so it is identical whichever
+    # system wrote it.
+    path.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n",
+                    encoding="utf-8", newline="\n")
     return path
 
 
@@ -221,7 +233,14 @@ def rhs_matches_snapshot(rhs_path: Path, facts_path: Path) -> bool:
 
 
 def save_rhs(index: SourceIndex, path: Path) -> Path:
-    """Write assignment expressions separately from the compact base facts."""
+    """Write right-hand sides separately from the compact base facts.
+
+    Three sections: ``assignments``, each variable's assignment statements;
+    ``reads``, each variable's read sites as ``procedure:line:kind[:detail]``
+    (:meth:`Read.encode`, one short string per read rather than an object,
+    which is a third of the size); and ``statements``, the text at each read
+    site, stored once however many variables it reads.
+    """
 
     payload = {
         "rhs_format": RHS_FORMAT,
@@ -234,11 +253,15 @@ def save_rhs(index: SourceIndex, path: Path) -> Path:
             ]
             for variable, items in index.writer_statements.items()
         },
+        "reads": {
+            variable: [item.encode() for item in items]
+            for variable, items in index.reads.items()
+        },
+        "statements": dict(index.read_statements),
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, indent=1, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n",
+                    encoding="utf-8", newline="\n")
     return path
 
 
@@ -253,7 +276,7 @@ def load_rhs(index: SourceIndex, path: Path) -> SourceIndex:
         raise IndexError_(f"{path} is not valid RHS JSON: {exc}")
 
     found = str(payload.get("rhs_format", "missing"))
-    if found != RHS_FORMAT:
+    if found not in READABLE_RHS_FORMATS:
         raise IndexError_(
             f"{path} is RHS format {found}, this build reads {RHS_FORMAT}; "
             "rebuild it together with the base facts"
@@ -277,8 +300,17 @@ def load_rhs(index: SourceIndex, path: Path) -> SourceIndex:
             variable: [WriterStatement(**item) for item in items]
             for variable, items in payload.get("assignments", {}).items()
         })
-    except (AttributeError, KeyError, TypeError) as exc:
-        raise IndexError_(f"RHS sidecar {path} has malformed assignments: {exc}")
+        # Absent before RHS format 2: no reads, and the index says so rather
+        # than answering "read nowhere".
+        if "reads" in payload:
+            index.reads = defaultdict(list, {
+                variable: [Read.decode(item) for item in items]
+                for variable, items in payload["reads"].items()
+            })
+            index.read_statements = dict(payload.get("statements", {}))
+            index.reads_indexed = True
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        raise IndexError_(f"RHS sidecar {path} is malformed: {exc}")
     return index
 
 
@@ -304,7 +336,9 @@ def load_snapshot(path: Path) -> SourceIndex:
 
     provenance = dict(payload["provenance"])
     provenance.setdefault("compile_status", "not_checked")
-    index = SourceIndex(provenance=Provenance(**provenance))
+    # Reads live in the RHS sidecar; until one carrying them attaches, the
+    # index has none to answer from.
+    index = SourceIndex(provenance=Provenance(**provenance), reads_indexed=False)
 
     for raw in payload["procedures"]:
         values = dict(raw)

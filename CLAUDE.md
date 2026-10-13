@@ -13,12 +13,17 @@ written by a model.
 
 Two deliveries over one implementation:
 
-- `tamandua/mcp/server.py` -- 15 read-only tools
+- `tamandua/mcp/server.py` -- 16 read-only tools
 - `tamandua/index/` -- writes `SWATPLUS_INDEX.md` into a checkout,
   plus a pointer in each assistant's instruction file
 
 `tamandua/output/reader.py` answers the one thing no index can: what
 a run's numbers actually did.
+
+`tamandua/index/reads.py` is the reverse of `writers`: every statement that
+reads a variable, with the kind of read (`uses`). The main program lives in
+`main.f90.in`, a CMake template; `tamandua/index/programs.py` gets it scanned
+and indexed as a procedure of kind `program`, where call paths start.
 
 `tamandua/index/layouts.py` (`swatplus-layouts`) derives each input file's
 column layout -- what SWAT+ reads, in order -- from the same facts, and the
@@ -36,7 +41,7 @@ with neither the parser nor a SWAT+ checkout present.
 export SWATPLUS_SOURCE=/path/to/swatplus
 export SWATPLUS_REFERENCE_CORPUS=/path/to/swatplus-reference-corpus  # the parser
 pip install -e ".[dev]"
-python -m pytest -q          # 301 pass with source, parser + Ames; 263/38 without
+python -m pytest -q          # 374 pass with source, parser + Ames; 330/44 without
 ```
 
 `swatplus-build` from inside a SWAT+ checkout writes the facts file and

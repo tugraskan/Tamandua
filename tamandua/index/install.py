@@ -116,6 +116,8 @@ Procedures   name | file:line | module | calls | called-by
 File I/O     file | op | unit=N | routine | lines | variables in scope there
 Assignments  variable | routine:line,routine:line,...   (full field path,
              e.g. aqu_d%rchrg -- subscripts stripped)
+Reads        variable | routine:line:kind,...   (same keys; where the value
+             is used: assignment, copy, condition, call_argument, output...)
 Loops        routine | line | loop header
 ```
 
@@ -125,6 +127,7 @@ Loops        routine | line | loop header
 | Which routine reads or writes a file | `grep '^aquifer.aqu\|' {INDEX_NAME}` |
 | Which routines use a unit number | `grep '\|unit=107\|' {INDEX_NAME}` |
 | What assigns a variable | `grep '^sw_volume_begin\|' {INDEX_NAME}` |
+| Where a variable's value is used (the rows ending `:kind`) | `grep 'bmp_sed\|' {INDEX_NAME}` |
 | What computes a derived-type field, wherever it lives | `grep 'rchrg\|' {INDEX_NAME}` |
 | Every field of a structure | `grep '^aqu_d%' {INDEX_NAME}` |
 | Every loop in a routine, with its index variable | `grep '^hru_control\|' {INDEX_NAME} \| grep '\|do '` |

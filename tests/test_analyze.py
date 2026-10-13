@@ -172,6 +172,42 @@ def test_empty_project_is_fine():
     assert analyze_project(FakeProject()).procedures == []
 
 
+@dataclass
+class FakeUnit(FakeProc):
+    kind: str = "subroutine"
+
+
+def test_paths_from_the_main_program_come_before_a_dead_routines():
+    """A program is where execution starts; an uncalled routine is not.
+
+    Walked together, `dead` reaches `target` in one call and fills the first
+    slot, ahead of the program's real, longer route.
+    """
+    proj = FakeProject(procedures=[
+        FakeUnit(name="main", kind="program", calls=[FakeCall("proc_read")]),
+        FakeUnit(name="proc_read", calls=[FakeCall("target")]),
+        FakeUnit(name="dead", calls=[FakeCall("target")]),
+        FakeUnit(name="target"),
+    ])
+    procs = by_name(analyze_project(proj))
+    assert procs["target"].call_paths[0] == ["main", "proc_read", "target"]
+    # The dead routine's path is still a fact, in a slot left over.
+    assert ["dead", "target"] in procs["target"].call_paths
+
+
+def test_a_program_fills_every_slot_it_can_before_any_other_root():
+    calls = [FakeCall(f"via{i}") for i in range(MAX_PATHS)]
+    proj = FakeProject(procedures=[
+        FakeUnit(name="main", kind="program", calls=calls),
+        *[FakeUnit(name=f"via{i}", calls=[FakeCall("target")]) for i in range(MAX_PATHS)],
+        FakeUnit(name="dead", calls=[FakeCall("target")]),
+        FakeUnit(name="target"),
+    ])
+    paths = by_name(analyze_project(proj))["target"].call_paths
+    assert len(paths) == MAX_PATHS
+    assert all(path[0] == "main" for path in paths)
+
+
 # ------------------------------------------------- against the real parser
 
 def test_real_scanner_output_gets_a_usable_call_graph(tmp_path, monkeypatch):

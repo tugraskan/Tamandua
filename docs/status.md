@@ -2,22 +2,22 @@
 
 The one-page map. Read this before anything else in `docs/`.
 
-Last updated 2026-09-29 (input-file links derived from the comparisons SWAT+
-makes, format 5; two layout fixes; bundled snapshot rebuilt). Earlier the same
-day: input-file layouts derived from the facts; filenames passed as arguments
-followed to their callers; parser pin bumped to `110c2a2` for a field-doc
-attribution fix. Previously updated 2026-09-22 (derived-type field
-declarations restored, format 4, bundled snapshot rebuilt).
+Last updated 2026-10-13 (the main program indexed from `main.f90.in`, call
+sites kept, and where each value is read -- the `uses` tool; format 6, RHS
+format 2; bundled snapshot rebuilt). Previously updated 2026-09-29
+(input-file links derived from the comparisons SWAT+ makes, format 5; two
+layout fixes; input-file layouts derived from the facts; parser pin bumped to
+`110c2a2` for a field-doc attribution fix).
 
 ---
 
 ## What this is
 
-A **facts-only index of SWAT+ Fortran source**, delivered two ways: a 15-tool
+A **facts-only index of SWAT+ Fortran source**, delivered two ways: a 16-tool
 MCP server, and a generated file in the checkout. Both answer the same
 questions — which routine reads this file, what calls this, what assigns this
-variable, what loops are here, where do I set a breakpoint — from static
-analysis, with nothing written by a model.
+variable, where its value is used, what loops are here, where do I set a
+breakpoint — from static analysis, with nothing written by a model.
 
 The point is to make **whatever assistant a developer already uses** cheaper
 and more accurate on SWAT+, not to be an assistant.
@@ -31,7 +31,7 @@ and more accurate on SWAT+, not to be an assistant.
 | Live reload | one running process picked up a replaced facts file on its next request |
 | Frozen source navigation | **12/12**, including `aquifer.aqu` → `aqu_read` |
 | Output reader vs. independent `awk` | exact match on real Ames data |
-| Tests | real-source gate **301 pass, 0 skipped**; **263/38** with neither source nor parser. Both measured 2026-09-29 after the links change (format 5), on the pinned tree. |
+| Tests | real-source gate **374 pass, 0 skipped**; **330/44** with neither source nor parser. Both measured 2026-10-13 after the reads change (format 6), on the pinned tree; the same run of the format-5 code gave 307 and 269/38. |
 | | Counts exclude `tests/test_ant_harness.py`; see the httpx note below. |
 | Full-tree build | **5.8 s** on this runner, 734 procedures and 510 derived types (SWAT+ 62.0.0), unchanged by the parser swap |
 | Loop recovery vs the parser | **2,833 of 2,833 agree**, none invented; 19 remaining are gwflow_pond.f90, still unresolved by design |
@@ -40,6 +40,62 @@ and more accurate on SWAT+, not to be an assistant.
 `index_experiment.md` and `output_reader_experiment.md` carry the method and
 the caveats for these. Neither came across in the fork; both are in the
 archived repository (see "Where the findings are").
+
+## The main program, and where a value is read (format 6, 2026-10-13)
+
+Two gaps found by use. `callers("lsu_read_elements")` answered none, although
+`main.f90.in:69` calls it: SWAT+ keeps `program main` in a CMake template the
+scanner never listed (its suffix is `.in`), and for a `program` unit the
+scanner keeps only calls and control flow. And documentation review asks of an
+input whether it is used at all and as what, which `writers` -- what *assigns*
+a variable -- cannot say.
+
+- **The main program is a procedure.** Every enumeration of the tree takes a
+  Fortran suffix followed by `.in` (`is_fortran_source`), so `main.f90.in` is
+  scanned and fingerprinted; `program_scanner` gives the scanner the program
+  spelled as a subroutine (line numbers unchanged) and marks it
+  `kind = "program"`. Call paths walk from programs first. Each procedure
+  keeps `called_at`, so `callers` answers `main.f90.in:69 (main)`.
+- **`uses`**, the reverse of `writers`: every read of a variable, under any
+  parent (`bmp_sed`) or one path (`hru%lumv%bmp_sed`), each with its kind --
+  assignment, copy, condition, loop bounds, call or function argument, output,
+  I/O control, index, allocate -- and the statement. A copy (`a%x = b%x`) is
+  marked as one, so "only ever copied" is visible. Declarations, the `read`
+  that fills a value, and comments are not reads.
+- **`writers` keeps the statement for every assignment**, plain variables and
+  arrays too: `sedyld(j) = sedyld(j) * (1. - hru(j)%lumv%bmp_sed)` was missing.
+
+| On 62.0.0 (`de210d6`, parser `110c2a2`) | |
+|---|---|
+| Procedures | **735**: 624 subroutines, 110 functions, `main` (`main.f90.in:1-178`) |
+| Call paths gained | **51** procedures, none lost |
+| I/O resolved | 10 writes to unit 9003, `unit_9003` before, now `simulation.out` -- the `open` is in `main` |
+| Reads | **99,918** over 9,230 paths, from 34,711 statements |
+| Recall | 61,263 of 62,215 `%component` references read, assigned or filled; the rest allocated, deallocated, one-line `if` targets, an `inquire` answer |
+| Base facts cost | **+85,243 bytes, +1.13%** |
+| Sidecar | 1.38 MB -> **9.87 MB** (1.22 MB gzipped): assignments 2.68, reads 4.67, statements 2.52 |
+| Build, 62.0.1, one machine | 4.77 s -> **6.68 s** |
+
+On 62.0.1 the motivating questions answer as they should: `bmp_sed` is used
+at `smp_bmpfixed.f90:46` as a fraction and copied at
+`structure_set_parms.f90:103`; `bmp_bac` is only ever copied
+(`structure_set_parms.f90:108`) into a field nothing reads; `frsw_gro` and
+`inject_dep` are read from `plants.plt` and `chem_app.ops` and never used.
+
+**The format change** follows formats 3 to 5. `INDEX_FORMAT_VERSION` and
+`SNAPSHOT_FORMAT` are `6`; `RHS_FORMAT` is `2`, and reads live in the sidecar
+beside the statements, so consumers of the base facts pay 1%. Format 5 facts
+and a format-1 sidecar still load -- and then `uses` says the facts carry no
+reads rather than answering "none". Two bundled-file tests assert the shipped
+pair has the program and the reads. The rebuild changed nothing else: types,
+module variables, comparisons, warnings and every earlier assignment statement
+are identical, and a second rebuild was byte-identical apart from
+`generated_at`. The 260 input-file layouts of 62.0.1 are unchanged.
+
+Method, the kinds in full, the recall audit and the caveats -- a structure
+read whole is filed under the structure, a pointer under the pointer, a call
+argument may be `intent(out)` -- are in `reads_experiment.md`, with
+`scripts/measure_reads.py`.
 
 ## Input-file links (format 5, 2026-09-29)
 
@@ -448,14 +504,17 @@ Still unverified against the new scanner: the eight-question byte comparison
 ## What exists
 
 - `tamandua/index/` — parse, render, install pointers, snapshot, scope
-- `tamandua/mcp/server.py` — 15 read-only tools over the same objects
+- `tamandua/mcp/server.py` — 16 read-only tools over the same objects
 - `tamandua/mcp/client.py` — generic MCP stdio client
 - `tamandua/output/reader.py` — query a run's output, refuses files it cannot index safely
 - `tamandua/index/layouts.py` — input-file column layouts in read order, from the facts
+- `tamandua/index/reads.py` — where each value is read, and how; `programs.py`
+  — the main program in `main.f90.in`, indexed as a procedure
 - `swatplus-build` — writes `swatplus-facts.json` plus the optional-by-presence
-  `swatplus-rhs.json` expression sidecar (both are release assets; use
-  `--no-rhs` for base facts only); `--markdown` adds the greppable rendering and
-  the instruction pointers for tools that cannot run a server
+  `swatplus-rhs.json` sidecar of assignment statements, reads and the
+  statements read from (both are release assets; use `--no-rhs` for base facts
+  only, which leaves `uses` unanswerable); `--markdown` adds the greppable
+  rendering and the instruction pointers for tools that cannot run a server
 - `swatplus-layouts` — writes those layouts as JSON from a facts file (default:
   the bundled one), each column with the rows of other files it references;
   `--links` lists every link and every comparison that shows none
@@ -478,6 +537,7 @@ parser nor a SWAT+ checkout present.
 | [`index_experiment.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/index_experiment.md) (archived) | Index vs grep, measured, with the script |
 | [`output_reader_experiment.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/output_reader_experiment.md) (archived) | Reading a run's output, and the files that cannot be indexed safely |
 | `layouts_experiment.md` | Deriving input-file layouts from the facts, measured on Ames and across two SWAT+ trees |
+| `reads_experiment.md` | Indexing the main program, and where each value is read, with a recall audit on 62.0.0 and 62.0.1 |
 | `links_experiment.md` | Which column names a row of another file, from the comparisons SWAT+ makes, against the editor schema's foreign keys |
 | `ant_integration.md` | Testing local models, and whether to fold this into ANT |
 | [`launch_checklist.md`](https://github.com/tugraskan/SWATPLUS-TACI/blob/8760e3d/docs/launch_checklist.md) (archived) | Everything between "code is ready" and "someone else can install it" |
