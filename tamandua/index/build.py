@@ -13,6 +13,7 @@ over MCP. Neither re-parses anything itself.
 
 from __future__ import annotations
 
+import bisect
 import hashlib
 import json
 import re
@@ -412,6 +413,29 @@ class Procedure:
     called_at: list[str] = field(default_factory=list)
 
 
+#: READ sites ``writers`` lists for one variable before it only counts them.
+MAX_READ_SITES = 20
+
+
+@dataclass(frozen=True)
+class _WriterPaths:
+    stamp: tuple[int, int, int]
+    writer_keys: list[str]
+    statement_keys: list[str]
+    #: field path -> (statement order, ``procedure:line``, path, file) of each READ that stores into it
+    reads: dict[str, list[tuple[int, str, str, str]]]
+    read_keys: list[str]
+
+
+def _under(keys: list[str], key: str):
+    """The sorted keys strictly beneath ``key`` (``key%...``), found by bisection."""
+
+    prefix = key + "%"
+    index = bisect.bisect_left(keys, prefix)
+    while index < len(keys) and keys[index].startswith(prefix):
+        yield keys[index]
+        index += 1
+
 @dataclass
 class SourceIndex:
     """Facts extracted from one SWAT+ checkout."""
@@ -484,33 +508,73 @@ class SourceIndex:
     def writers_of(self, variable: str) -> list[str]:
         return sorted(set(self.writers.get(variable.strip().lower(), [])))
 
-    def writer_details(self, variable: str) -> list[dict[str, Any]]:
+    def writer_details(self, variable: str, max_reads: int = MAX_READ_SITES) -> list[dict[str, Any]]:
         """Every site that sets a variable, with its expression when the RHS sidecar is loaded.
 
         First the assignments to the variable itself. Then the assignments to
         its components: ``hpathb_y(j)%path(ipath) = ...`` sets ``hpathb_y``,
         keyed ``hpathb_y%path``, and each such site names its ``target``.
-        Then the READ statements that load it, a component of it, or a whole
-        record it is part of (``read (107,*) name, pco%pest%d, pco%pest%y``
-        sets ``pco%pest%y``; an implied DO ``(cs_db%pests(i), i = 1, n)`` sets
-        ``cs_db%pests``), marked ``via: read`` with the file read.
+        Then the READ statements that load it or a component of it
+        (``read (107,*) name, pco%pest%d, pco%pest%y`` sets ``pco%pest%y``; an
+        implied DO ``(cs_db%pests(i), i = 1, n)`` sets ``cs_db%pests``), then
+        those that load a whole record it is part of, which also name that
+        ``record``, all marked ``via: read`` with the file read. At most
+        ``max_reads`` READ sites are listed; ``writer_report`` counts the rest.
+        """
+        return self.writer_report(variable, max_reads)[0]
+
+    def writer_report(self, variable: str, max_reads: int = MAX_READ_SITES) -> tuple[list[dict[str, Any]], dict[str, int]]:
+        """``writer_details`` and the READ sites past ``max_reads``, counted by file.
+
+        A common name (``name``, ``titldum``) is read by hundreds of
+        statements; the first ones are listed and the rest counted.
         """
         key = field_path(variable) or variable.strip().lower()
+        paths = self._writer_paths()
+        under = list(_under(paths.writer_keys, key))
         raw_by_site = {
             (path, f"{item.procedure}:{item.line}"): item.raw
-            for path in [key, *(name for name in self.writer_statements if name.startswith(key + "%"))]
+            for path in [key, *_under(paths.statement_keys, key)]
             for item in self.writer_statements.get(path, [])
         }
         details: list[dict[str, Any]] = [
             {"at": site, "expression": raw_by_site.get((key, site), "unavailable")}
             for site in self.writers_of(key)
         ]
-        for path in sorted(name for name in self.writers if name.startswith(key + "%")):
+        for path in under:
             details.extend(
                 {"at": site, "expression": raw_by_site.get((path, site), "unavailable"), "target": path}
                 for site in self.writers_of(path)
             )
+        parts = key.split("%")
+        records = ["%".join(parts[:count]) for count in range(1, len(parts))]
+        found = [(0, entry) for entry in paths.reads.get(key, ())]
+        found += [(1, entry) for path in _under(paths.read_keys, key) for entry in paths.reads[path]]
+        found += [(2, entry) for path in records for entry in paths.reads.get(path, ())]
         seen: set[tuple[str, str]] = set()
+        omitted: dict[str, int] = {}
+        listed = 0
+        for rank, (_, site, path, file) in sorted(found, key=lambda item: (item[0], item[1][0])):
+            if (site, path) in seen:
+                continue
+            seen.add((site, path))
+            if listed >= max_reads:
+                omitted[file] = omitted.get(file, 0) + 1
+                continue
+            listed += 1
+            details.append({"at": site, "via": "read", "target": path, "file": file, "expression": "unavailable",
+                            **({"record": path} if rank == 2 else {})})
+        return details, omitted
+
+    def _writer_paths(self) -> "_WriterPaths":
+        """Writer and READ sites by field path, built once per index state, not on every call."""
+
+        stamp = (len(self.writers), len(self.writer_statements), sum(len(uses) for uses in self.io_by_file.values()))
+        cached = getattr(self, "_writer_paths_cache", None)
+        if cached is not None and cached.stamp == stamp:
+            return cached
+        reads: dict[str, list[tuple[int, str, str, str]]] = defaultdict(list)
+        sequence = 0
         for uses in self.io_by_file.values():
             for use in uses:
                 if use.op != "read":
@@ -518,14 +582,11 @@ class SourceIndex:
                 site = f"{use.procedure}:{use.line}"
                 for item in use.fields:
                     for path in read_targets(item):
-                        if not (path == key or path.startswith(key + "%") or key.startswith(path + "%")):
-                            continue
-                        if (site, path) in seen:
-                            continue
-                        seen.add((site, path))
-                        details.append({"at": site, "via": "read", "target": path, "file": use.file,
-                                        "expression": "unavailable"})
-        return details
+                        reads[path].append((sequence, site, path, use.file))
+                        sequence += 1
+        cached = _WriterPaths(stamp, sorted(self.writers), sorted(self.writer_statements), dict(reads), sorted(reads))
+        self._writer_paths_cache = cached
+        return cached
 
     def reads_of(self, variable: str) -> list[tuple[str, Read]]:
         """Every read of a variable, as ``(path read, read)``.

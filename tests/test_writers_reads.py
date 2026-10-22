@@ -66,3 +66,45 @@ def test_an_implied_do_sets_its_items_not_its_bounds() -> None:
 def test_a_write_statement_sets_nothing() -> None:
     assert t_writers(make_index(), "pco%pest%d")["assignments"][0]["file"] == "print.prt"
     assert all(item.get("file") != "aquifer_day.txt" for item in t_writers(make_index(), "pco%pest%y")["assignments"])
+
+
+def test_a_common_name_lists_twenty_reads_and_counts_the_rest_by_file() -> None:
+    # Review of tugraskan/Tamandua#11: every file's reader starts with `name`, hundreds of READ sites.
+    index = make_index()
+    for number in range(30):
+        use = IOUse(file=f"table{number % 3}.dat", op="read", unit="107", procedure=f"reader{number}", line=10,
+                    fields=("name", "value"))
+        index.io_by_file[use.file].append(use)
+    answer = t_writers(index, "name")
+    reads = [item for item in answer["assignments"] if item.get("via") == "read"]
+    assert len(reads) == 20
+    # 31 with print.prt's own `name`; the first 20 in statement order are listed.
+    assert answer["reads_omitted"] == {"count": 11, "by_file": {"table1.dat": 1, "table2.dat": 10}}
+    assert "reads_omitted" not in t_writers(index, "pco%pest%y")
+
+
+def test_the_path_index_is_built_once_and_follows_new_reads(monkeypatch) -> None:
+    # Review of tugraskan/Tamandua#11: each call scanned every writer key and every READ.
+    from tamandua.index import build
+
+    calls = []
+    original = build.read_targets
+    monkeypatch.setattr(build, "read_targets", lambda item: calls.append(item) or original(item))
+    index = make_index()
+    index.writer_details("pco%pest%y")
+    scanned = len(calls)
+    index.writer_details("pco%pest%y")
+    index.writer_details("hpathb_y")
+    assert len(calls) == scanned, "a second lookup reads the cached path index"
+    index.io_by_file["new.dat"].append(IOUse(file="new.dat", op="read", unit="9", procedure="late", line=3,
+                                             fields=("pco%pest%y",)))
+    assert [item["at"] for item in index.writer_details("pco%pest%y")] == ["basin_print_codes_read:145", "late:3"]
+
+
+def test_a_read_of_an_enclosing_record_names_that_record() -> None:
+    # Review of tugraskan/Tamandua#11: a whole-record READ was reported like a READ of the field itself.
+    deep = t_writers(make_index(), "soildb%s%alb")["assignments"]
+    assert deep == [{"at": "soil_db_read:60", "via": "read", "target": "soildb%s", "file": "soils.sol",
+                     "expression": "unavailable", "record": "soildb%s"}]
+    direct = t_writers(make_index(), "pco%pest%y")["assignments"]
+    assert "record" not in direct[0]
