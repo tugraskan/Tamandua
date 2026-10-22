@@ -392,10 +392,14 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
       "properties": {"unit": {"type": "string", "description": "Unit number, e.g. 107"},
                      "op": {"type": "string", "description": "Optional: open, read, or write"}},
       "required": ["unit"]}, t_unit_users),
-    ("writers", "Routines that assign a variable, with line numbers and the "
+    ("writers", "Routines that set a variable, with line numbers and the "
                 "complete logical assignment statement -- plain variables, "
                 "arrays and derived-type paths alike -- when the RHS sidecar "
-                "is installed. Exhaustive over the whole "
+                "is installed. Assignments to its components follow, each "
+                "naming its `target` path, then the READ statements that load "
+                "it, a component, or a whole record it is part of (`via: read`, "
+                "with the `file` read; an implied DO loads its items). "
+                "Exhaustive over the whole "
                 "tree, never sampled or truncated. Relevant "
                 "scanner warnings are returned separately when present. "
                 "For where a value is read rather than set, use `uses`.",

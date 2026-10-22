@@ -485,16 +485,47 @@ class SourceIndex:
         return sorted(set(self.writers.get(variable.strip().lower(), [])))
 
     def writer_details(self, variable: str) -> list[dict[str, Any]]:
-        """Every write site with its expression when the RHS sidecar is loaded."""
-        key = variable.strip().lower()
+        """Every site that sets a variable, with its expression when the RHS sidecar is loaded.
+
+        First the assignments to the variable itself. Then the assignments to
+        its components: ``hpathb_y(j)%path(ipath) = ...`` sets ``hpathb_y``,
+        keyed ``hpathb_y%path``, and each such site names its ``target``.
+        Then the READ statements that load it, a component of it, or a whole
+        record it is part of (``read (107,*) name, pco%pest%d, pco%pest%y``
+        sets ``pco%pest%y``; an implied DO ``(cs_db%pests(i), i = 1, n)`` sets
+        ``cs_db%pests``), marked ``via: read`` with the file read.
+        """
+        key = field_path(variable) or variable.strip().lower()
         raw_by_site = {
-            f"{item.procedure}:{item.line}": item.raw
-            for item in self.writer_statements.get(key, [])
+            (path, f"{item.procedure}:{item.line}"): item.raw
+            for path in [key, *(name for name in self.writer_statements if name.startswith(key + "%"))]
+            for item in self.writer_statements.get(path, [])
         }
-        return [
-            {"at": site, "expression": raw_by_site.get(site, "unavailable")}
+        details: list[dict[str, Any]] = [
+            {"at": site, "expression": raw_by_site.get((key, site), "unavailable")}
             for site in self.writers_of(key)
         ]
+        for path in sorted(name for name in self.writers if name.startswith(key + "%")):
+            details.extend(
+                {"at": site, "expression": raw_by_site.get((path, site), "unavailable"), "target": path}
+                for site in self.writers_of(path)
+            )
+        seen: set[tuple[str, str]] = set()
+        for uses in self.io_by_file.values():
+            for use in uses:
+                if use.op != "read":
+                    continue
+                site = f"{use.procedure}:{use.line}"
+                for item in use.fields:
+                    for path in read_targets(item):
+                        if not (path == key or path.startswith(key + "%") or key.startswith(path + "%")):
+                            continue
+                        if (site, path) in seen:
+                            continue
+                        seen.add((site, path))
+                        details.append({"at": site, "via": "read", "target": path, "file": use.file,
+                                        "expression": "unavailable"})
+        return details
 
     def reads_of(self, variable: str) -> list[tuple[str, Read]]:
         """Every read of a variable, as ``(path read, read)``.
@@ -753,6 +784,33 @@ def field_path(target: str) -> str | None:
     if not re.fullmatch(r"[A-Za-z_]\w*(?:%[A-Za-z_]\w*)*", text):
         return None
     return text.lower()
+
+
+def read_targets(item: str) -> list[str]:
+    """The field paths one READ input item stores into.
+
+    A plain item is its own field path. An implied DO,
+    ``(cs_db%pests(i), i = 1, cs_db%num_pests)``, stores into the items
+    before its control variable, which may themselves be implied DOs.
+    """
+    text = item.strip()
+    if text.startswith("(") and text.endswith(")"):
+        parts, depth, start = [], 0, 1
+        for index, char in enumerate(text[1:-1], start=1):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+            elif char == "," and depth == 0:
+                parts.append(text[start:index])
+                start = index + 1
+        parts.append(text[start:-1])
+        control = next((number for number, part in enumerate(parts)
+                        if re.match(r"^\s*[A-Za-z_]\w*\s*=", part)), None)
+        if control is not None:
+            return [path for part in parts[:control] for path in read_targets(part)]
+    path = field_path(text)
+    return [path] if path else []
 
 
 def find_corpus(explicit: Path | None = None) -> Path:
