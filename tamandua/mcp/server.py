@@ -98,9 +98,12 @@ def t_unit_users(index: SourceIndex, unit: str, op: str = "") -> Any:
 
 
 def t_writers(index: SourceIndex, variable: str) -> Any:
+    details, omitted = index.writer_report(variable)
     return {
         "variable": variable,
-        "assignments": index.writer_details(variable) or "none",
+        "assignments": details or "none",
+        **({"reads_omitted": {"count": sum(omitted.values()), "by_file": dict(sorted(omitted.items()))}}
+           if omitted else {}),
     }
 
 
@@ -392,11 +395,17 @@ TOOLS: list[tuple[str, str, dict, Callable]] = [
       "properties": {"unit": {"type": "string", "description": "Unit number, e.g. 107"},
                      "op": {"type": "string", "description": "Optional: open, read, or write"}},
       "required": ["unit"]}, t_unit_users),
-    ("writers", "Routines that assign a variable, with line numbers and the "
+    ("writers", "Routines that set a variable, with line numbers and the "
                 "complete logical assignment statement -- plain variables, "
                 "arrays and derived-type paths alike -- when the RHS sidecar "
-                "is installed. Exhaustive over the whole "
-                "tree, never sampled or truncated. Relevant "
+                "is installed. Assignments to its components follow, each "
+                "naming its `target` path, then the READ statements that load "
+                "it or a component (`via: read`, with the `file` read; an "
+                "implied DO loads its items), then those that load a whole "
+                "record it is part of, which also name that `record`. "
+                "Assignments are exhaustive over the whole tree, never sampled "
+                "or truncated; at most 20 READ sites are listed, and "
+                "`reads_omitted` counts the rest by file. Relevant "
                 "scanner warnings are returned separately when present. "
                 "For where a value is read rather than set, use `uses`.",
      _one("variable", "Variable or derived-type root, e.g. sw_volume_begin"), t_writers),
