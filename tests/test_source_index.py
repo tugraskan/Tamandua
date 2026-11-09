@@ -11,11 +11,13 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
 
 import tamandua.index.install as install_module
+from tamandua.index.diagnostics import scan_source_warnings
 from tamandua.index import (
     FACTS_NAME,
     INDEX_NAME,
@@ -188,6 +190,40 @@ def test_resolve_source_returns_an_absolute_path(fake_source: Path, monkeypatch)
     resolved = resolve_source(Path("."))
     assert resolved.is_absolute()
     assert resolved == fake_source.resolve()
+
+
+def _link_directory(link: Path, target: Path) -> None:
+    """A junction on Windows, which needs no privilege; a symlink elsewhere."""
+    if sys.platform == "win32":
+        import _winapi
+
+        _winapi.CreateJunction(str(target), str(link))
+    else:
+        os.symlink(target, link, target_is_directory=True)
+
+
+def test_resolve_source_follows_a_linked_src_dir(tmp_path: Path) -> None:
+    """A checkout whose src/ is a link to another checkout's src/.
+
+    The scanner lists files under the link's target. Returned unresolved, the
+    root and those files disagree, and `scan_source_warnings` raised
+    ValueError on the first file (a swatplus_DEV whose src/ is a junction to
+    swatplus_ug/src).
+    """
+    target = tmp_path / "other" / "src"
+    target.mkdir(parents=True)
+    (target / "main.f90").write_text("program main\nend program main\n", encoding="utf-8")
+    checkout = tmp_path / "checkout"
+    checkout.mkdir()
+    try:
+        _link_directory(checkout / "src", target)
+    except OSError as exc:
+        pytest.skip(f"cannot link a directory here: {exc}")
+
+    resolved = resolve_source(checkout)
+    assert resolved == target.resolve()
+    listed = sorted((checkout / "src").resolve().rglob("*.f90"))
+    assert scan_source_warnings(resolved, listed) is not None
 
 
 def test_resolve_source_rejects_missing_path(tmp_path: Path) -> None:

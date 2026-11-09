@@ -952,7 +952,9 @@ def resolve_source(explicit: Path | None = None) -> Path:
     if (candidate / "src").is_dir() and not _contains_fortran(
         candidate, recursive=False
     ):
-        candidate = candidate / "src"
+        # Resolved again: src/ itself may be a link, such as a junction to
+        # another checkout's src/, and the scanner lists files under its target.
+        candidate = (candidate / "src").resolve()
     if not _contains_fortran(candidate):
         raise IndexError_(
             f"no .f90 files or other supported Fortran source files found under {candidate}"
